@@ -1,2 +1,3 @@
 #include "dspblocks.h"
-/* TODO: implement tested DSP primitives. */
+
+/* Non-RT filter design and evaluation implementations: TODO(T03), TODO(T04). */

@@ -14,3 +14,14 @@ jobs:
           python-version: "3.12"
       - run: pip install -r tools/requirements.txt
       - run: python tools/check.py
+
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure CMake
+        run: cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build host/build
+      - name: Run tests
+        run: ctest --test-dir host/build --output-on-failure
