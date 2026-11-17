@@ -41,3 +41,4 @@ void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
         st[sec].z2 = z2;
     }
 }
+
