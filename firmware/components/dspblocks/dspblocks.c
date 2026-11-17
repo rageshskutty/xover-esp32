@@ -209,3 +209,23 @@ dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz, double *out_freqs, size
 
     return DSP_OK;
 }
+
+float dsp_db_to_linear(float db)
+{
+    if (isnan(db) || isinf(db) || db <= -120.0f) return 0.0f;
+    return (float)pow(10.0, (double)db * 0.05);
+}
+
+float dsp_linear_to_db(float lin)
+{
+    if (lin <= 1e-6f || isnan(lin) || isinf(lin)) return -120.0f;
+    return (float)(20.0 * log10((double)lin));
+}
+
+uint32_t dsp_delay_us_to_samples(double delay_us, double fs_hz)
+{
+    if (delay_us <= 0.0 || fs_hz <= 0.0 || isnan(delay_us) || isinf(delay_us) ||
+        isnan(fs_hz) || isinf(fs_hz)) return 0U;
+    double s = delay_us * 1e-6 * fs_hz + 0.5;
+    return (s <= 0.0) ? 0U : (uint32_t)s;
+}

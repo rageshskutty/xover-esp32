@@ -48,6 +48,28 @@ tools/check.py implements the config-level codes and is the reference for them.
     void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
                          const float *in, float *out, size_t n_frames);
 
+    /* simple blocks (RT, file blocks_rt.c); in == out allowed */
+    typedef struct { float current, target, step; uint32_t remaining; } dsp_gain_t;
+    typedef struct { float *buffer; size_t capacity, delay_samples, write_pos; } dsp_delay_t;
+    #define DSP_MAX_DELAY_SAMPLES 960U
+    void dsp_gain_init(dsp_gain_t *g, float initial_gain);
+    void dsp_gain_set_target(dsp_gain_t *g, float target, uint32_t ramp_frames);
+    void dsp_gain_process(dsp_gain_t *g, const float *in, float *out, size_t n_frames);
+    void dsp_polarity_process(bool invert, const float *in, float *out, size_t n_frames);
+    dsp_err_t dsp_delay_init(dsp_delay_t *d, float *buffer, size_t capacity, size_t delay_samples);
+    dsp_err_t dsp_delay_set_delay(dsp_delay_t *d, size_t delay_samples);
+    void dsp_delay_process(dsp_delay_t *d, const float *in, float *out, size_t n_frames);
+    void dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
+                         float *out, size_t n_frames);
+
+    /* numeric safety */
+    bool dsp_check_nan_inf(const float *buf, size_t n_frames);
+    void dsp_flush_denormals(float *buf, size_t n_frames);
+    bool dsp_sanitize_block(float *buf, size_t n_frames);
+    float dsp_db_to_linear(float db);
+    float dsp_linear_to_db(float lin);
+    uint32_t dsp_delay_us_to_samples(double delay_us, double fs_hz);
+
     /* response: core 0 only */
     #define DSP_MAX_EVAL_SECTIONS 96U
     dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
