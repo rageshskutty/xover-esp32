@@ -51,3 +51,17 @@ if(NOT MSVC)
 endif()
 
 add_test(NAME test_design COMMAND test_design)
+
+add_executable(test_eval
+    tests/test_eval.c
+)
+target_include_directories(test_eval PRIVATE
+    tests
+)
+target_link_libraries(test_eval PRIVATE dspblocks)
+
+if(NOT MSVC)
+    target_link_libraries(test_eval PRIVATE m)
+endif()
+
+add_test(NAME test_eval COMMAND test_eval)
