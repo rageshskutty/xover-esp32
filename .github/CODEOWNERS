@@ -1,8 +1,14 @@
-# Safety-critical configuration and protection paths require human review.
-/firmware/main/board_config.h @rageshskutty
-/data/drivers.yaml @rageshskutty
-/tools/provision_protect.py @rageshskutty
-/firmware/components/dspgraph/ @rageshskutty
-/firmware/components/xoweb/ @rageshskutty
+/AGENTS.md @rageshskutty
+/docs/api.md @rageshskutty
+/docs/design.md @rageshskutty
 /docs/bringup-log.md @rageshskutty
 /docs/adr/ @rageshskutty
+/.github/ @rageshskutty
+/tools/check.py @rageshskutty
+/tools/provision_protect.py @rageshskutty
+/data/drivers.yaml @rageshskutty
+/firmware/main/board_config.h @rageshskutty
+/firmware/components/dspgraph/ @rageshskutty
+/firmware/components/xoweb/ @rageshskutty
+/firmware/components/tdmout/ @rageshskutty
+/firmware/components/pcm5122/ @rageshskutty
