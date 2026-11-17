@@ -1,0 +1,1 @@
+{"_expect":"E_SCHEMA","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0,"frequency_hz":1000},{"id":"g","type":"gain","db":0},{"id":"out0","type":"output","slot":0}],"edges":[["in0","g"],["g","out0"]]}

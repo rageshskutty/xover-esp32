@@ -132,6 +132,11 @@ Normative schema: configs/schema.json. Node parameter table: docs/design.md
 section 4. Semantic rules and error codes: tools/check.py. T06 tightens the
 schema so per-type parameters are validated there too.
 
+The schema rejects keys that do not belong to a node type and constrains each
+type's required parameters, shapes, and ranges. Unknown keys and malformed JSON
+shapes report `E_SCHEMA`; missing or out-of-range node parameters retain
+`E_NODE_PARAM`. Graph-level failures retain their semantic error codes.
+
 ## 4. HTTP API v1
 Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 `Authorization: Bearer <token>` (token in NVS). Write rate limit: 5 per minute.
