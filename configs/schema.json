@@ -54,7 +54,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 31
           },
           "type": {
             "enum": [
@@ -76,7 +77,8 @@
             "oneOf": [
               {
                 "type": "number",
-                "exclusiveMinimum": 0
+                "minimum": 10,
+                "maximum": 21600
               },
               {
                 "type": "string",
@@ -85,7 +87,7 @@
             ]
           },
           "family": {
-            "type": "string"
+            "enum": ["Butterworth", "Linkwitz-Riley", "Bessel"]
           },
           "mode": {
             "enum": [
@@ -100,7 +102,8 @@
           },
           "channel": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1
           },
           "slot": {
             "type": "integer",
@@ -109,6 +112,8 @@
           },
           "gains": {
             "type": "array",
+            "minItems": 2,
+            "maxItems": 8,
             "items": {
               "type": "number"
             }
@@ -116,12 +121,87 @@
           "db": {
             "type": "number"
           },
+          "q": {
+            "type": "number"
+          },
+          "shape": {
+            "enum": ["low", "high"]
+          },
+          "invert": {
+            "type": "boolean"
+          },
+          "b": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {"type": "number"}
+          },
+          "a": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {"type": "number"}
+          },
+          "sample_rate_hz": {
+            "const": 48000
+          },
           "delay_us": {
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 20000
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {"properties": {"type": {"const": "crossover"}}},
+            "then": {"required": ["frequency_hz", "family", "mode", "order"], "propertyNames": {"enum": ["id", "type", "frequency_hz", "family", "mode", "order"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "peq"}}},
+            "then": {"required": ["frequency_hz", "q", "db"], "properties": {"q": {"minimum": 0.1, "maximum": 20}, "db": {"minimum": -24, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "q", "db"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "shelf"}}},
+            "then": {"required": ["frequency_hz", "db", "shape"], "properties": {"db": {"minimum": -24, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "db", "shape"]}}
+          },
+          {
+            "if": {"properties": {"type": {"enum": ["allpass", "notch"]}}},
+            "then": {"required": ["frequency_hz", "q"], "properties": {"q": {"minimum": 0.1, "maximum": 20}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "q"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "gain"}}},
+            "then": {"required": ["db"], "properties": {"db": {"minimum": -60, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "db"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "polarity"}}},
+            "then": {"required": ["invert"], "propertyNames": {"enum": ["id", "type", "invert"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "mix"}}},
+            "then": {"required": ["gains"], "propertyNames": {"enum": ["id", "type", "gains"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "biquad"}}},
+            "then": {"required": ["b", "a", "sample_rate_hz"], "propertyNames": {"enum": ["id", "type", "b", "a", "sample_rate_hz"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "input"}}},
+            "then": {"required": ["channel"], "propertyNames": {"enum": ["id", "type", "channel"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "output"}}},
+            "then": {"required": ["slot"], "propertyNames": {"enum": ["id", "type", "slot"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "delay"}}},
+            "then": {"required": ["delay_us"], "propertyNames": {"enum": ["id", "type", "delay_us"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "crossover"}, "family": {"const": "Linkwitz-Riley"}}},
+            "then": {"properties": {"order": {"enum": [2, 4, 6, 8]}}}
+          }
+        ]
       }
     },
     "edges": {

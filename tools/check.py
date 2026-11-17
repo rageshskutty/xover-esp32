@@ -208,9 +208,11 @@ def check_configs():
     for p in bad:
         cfg = load(p)
         expect = cfg.pop("_expect", None)
+        # Schema failures use E_SCHEMA; semantic fixtures also check that a
+        # range failure retains its public E_NODE_PARAM classification.
         errs = schema_errors(cfg, schema)
-        if not errs:
-            errs = semantic_errors(cfg)
+        if expect != "E_SCHEMA":
+            errs += semantic_errors(cfg)
         codes = {e.split(":")[0] for e in errs}
         name = os.path.relpath(p, ROOT)
         if expect is None:
