@@ -37,8 +37,12 @@ void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
             dst[i] = y;
         }
 
-        st[sec].z1 = z1;
-        st[sec].z2 = z2;
+        if (dsp_is_nan_or_inf(z1) || dsp_is_nan_or_inf(z2)) {
+            z1 = 0.0f;
+            z2 = 0.0f;
+        }
+        st[sec].z1 = dsp_flush_denormal(z1);
+        st[sec].z2 = dsp_flush_denormal(z2);
     }
 }
 

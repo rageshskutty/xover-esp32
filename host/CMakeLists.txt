@@ -20,6 +20,7 @@ endif()
 add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/blocks_rt.c
 )
 target_include_directories(dspblocks PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/include
@@ -28,6 +29,7 @@ target_include_directories(dspblocks PUBLIC
 add_library(dspblocks_eval SHARED
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/blocks_rt.c
 )
 set_target_properties(dspblocks_eval PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_include_directories(dspblocks_eval PUBLIC
@@ -77,3 +79,11 @@ if(NOT MSVC)
 endif()
 
 add_test(NAME test_eval COMMAND test_eval)
+
+add_executable(test_blocks tests/test_blocks.c)
+target_include_directories(test_blocks PRIVATE tests)
+target_link_libraries(test_blocks PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_blocks PRIVATE m)
+endif()
+add_test(NAME test_blocks COMMAND test_blocks)
