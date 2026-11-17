@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"xover-esp32 graph configuration",
+  "type":"object",
+  "required":["version","sample_rate_hz","nodes","edges"],
+  "properties":{
+    "version":{"const":1},
+    "sample_rate_hz":{"const":48000},
+    "nodes":{"type":"array","maxItems":64,"items":{"type":"object","required":["id","type"],"properties":{"id":{"type":"string","minLength":1},"type":{"enum":["input","output","crossover","peq","shelf","allpass","notch","biquad","gain","delay","polarity","mix"]}},"additionalProperties":true}},
+    "edges":{"type":"array","items":{"type":"array","prefixItems":[{"type":"string"},{"type":"string"}],"minItems":2,"maxItems":2}}
+  },
+  "additionalProperties":false
+}
