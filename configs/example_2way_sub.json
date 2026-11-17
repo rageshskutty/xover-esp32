@@ -1,16 +1,199 @@
 {
   "version": 1,
   "sample_rate_hz": 48000,
+  "vars": {
+    "sub_xo": 80
+  },
+  "limits": {
+    "sub_xo": {
+      "min": 70,
+      "max": 120
+    }
+  },
   "nodes": [
-    {"id":"in_l","type":"input","channel":0},
-    {"id":"in_r","type":"input","channel":1},
-    {"id":"sub_sum","type":"mix","gains":[0.5,0.5]},
-    {"id":"sub_lp","type":"crossover","mode":"lowpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
-    {"id":"left_hp","type":"crossover","mode":"highpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
-    {"id":"right_hp","type":"crossover","mode":"highpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
-    {"id":"out_l","type":"output","slot":0},
-    {"id":"out_r","type":"output","slot":2},
-    {"id":"out_sub","type":"output","slot":4}
+    {
+      "id": "in_l",
+      "type": "input",
+      "channel": 0
+    },
+    {
+      "id": "in_r",
+      "type": "input",
+      "channel": 1
+    },
+    {
+      "id": "l_sub_hp",
+      "type": "crossover",
+      "mode": "highpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": "@sub_xo"
+    },
+    {
+      "id": "r_sub_hp",
+      "type": "crossover",
+      "mode": "highpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": "@sub_xo"
+    },
+    {
+      "id": "l_woofer_lp",
+      "type": "crossover",
+      "mode": "lowpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": 2400
+    },
+    {
+      "id": "l_tweeter_hp",
+      "type": "crossover",
+      "mode": "highpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": 2400
+    },
+    {
+      "id": "r_woofer_lp",
+      "type": "crossover",
+      "mode": "lowpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": 2400
+    },
+    {
+      "id": "r_tweeter_hp",
+      "type": "crossover",
+      "mode": "highpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": 2400
+    },
+    {
+      "id": "l_tweeter_gain",
+      "type": "gain",
+      "db": 0
+    },
+    {
+      "id": "r_tweeter_gain",
+      "type": "gain",
+      "db": 0
+    },
+    {
+      "id": "sub_sum",
+      "type": "mix",
+      "gains": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": "sub_lp",
+      "type": "crossover",
+      "mode": "lowpass",
+      "family": "Linkwitz-Riley",
+      "order": 4,
+      "frequency_hz": "@sub_xo"
+    },
+    {
+      "id": "out_l_woofer",
+      "type": "output",
+      "slot": 0
+    },
+    {
+      "id": "out_l_tweeter",
+      "type": "output",
+      "slot": 1
+    },
+    {
+      "id": "out_r_woofer",
+      "type": "output",
+      "slot": 2
+    },
+    {
+      "id": "out_r_tweeter",
+      "type": "output",
+      "slot": 3
+    },
+    {
+      "id": "out_sub_a",
+      "type": "output",
+      "slot": 4
+    },
+    {
+      "id": "out_sub_b",
+      "type": "output",
+      "slot": 5
+    }
   ],
-  "edges": [["in_l","left_hp"],["left_hp","out_l"],["in_r","right_hp"],["right_hp","out_r"],["in_l","sub_sum"],["in_r","sub_sum"],["sub_sum","sub_lp"],["sub_lp","out_sub"]]
+  "edges": [
+    [
+      "in_l",
+      "l_sub_hp"
+    ],
+    [
+      "l_sub_hp",
+      "l_woofer_lp"
+    ],
+    [
+      "l_woofer_lp",
+      "out_l_woofer"
+    ],
+    [
+      "l_sub_hp",
+      "l_tweeter_hp"
+    ],
+    [
+      "l_tweeter_hp",
+      "l_tweeter_gain"
+    ],
+    [
+      "l_tweeter_gain",
+      "out_l_tweeter"
+    ],
+    [
+      "in_r",
+      "r_sub_hp"
+    ],
+    [
+      "r_sub_hp",
+      "r_woofer_lp"
+    ],
+    [
+      "r_woofer_lp",
+      "out_r_woofer"
+    ],
+    [
+      "r_sub_hp",
+      "r_tweeter_hp"
+    ],
+    [
+      "r_tweeter_hp",
+      "r_tweeter_gain"
+    ],
+    [
+      "r_tweeter_gain",
+      "out_r_tweeter"
+    ],
+    [
+      "in_l",
+      "sub_sum"
+    ],
+    [
+      "in_r",
+      "sub_sum"
+    ],
+    [
+      "sub_sum",
+      "sub_lp"
+    ],
+    [
+      "sub_lp",
+      "out_sub_a"
+    ],
+    [
+      "sub_lp",
+      "out_sub_b"
+    ]
+  ]
 }
