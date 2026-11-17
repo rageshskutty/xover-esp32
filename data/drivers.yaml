@@ -1,0 +1,25 @@
+# Populate only from actual driver datasheets and measurements.
+drivers:
+  left_woofer:
+    model: null
+    fs_hz: null
+    xmax_mm: null
+    power_w: null
+  left_tweeter:
+    model: null
+    fs_hz: null
+    power_w: null
+  right_woofer:
+    model: null
+    fs_hz: null
+    xmax_mm: null
+    power_w: null
+  right_tweeter:
+    model: null
+    fs_hz: null
+    power_w: null
+  subwoofer:
+    model: null
+    fs_hz: null
+    xmax_mm: null
+    power_w: null
