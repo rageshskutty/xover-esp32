@@ -1,0 +1,1 @@
+{"_expect":"E_NODE_PARAM","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0},{"id":"x","type":"crossover","mode":"lowpass","family":"Linkwitz-Riley","order":3,"frequency_hz":80},{"id":"o","type":"output","slot":0}],"edges":[["in0","x"],["x","o"]]}

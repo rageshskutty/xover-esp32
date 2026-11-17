@@ -1,0 +1,1 @@
+{"_expect":"E_LIMIT","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0},{"id":"x","type":"crossover","mode":"lowpass","family":"Butterworth","order":2,"frequency_hz":"@sub_xo"},{"id":"o","type":"output","slot":0}],"edges":[["in0","x"],["x","o"]],"vars":{"sub_xo":150},"limits":{"sub_xo":{"min":70,"max":120}}}

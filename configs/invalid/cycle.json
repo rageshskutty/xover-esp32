@@ -1,0 +1,1 @@
+{"_expect":"E_GRAPH_CYCLE","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0},{"id":"a","type":"gain","db":0},{"id":"b","type":"gain","db":0},{"id":"o","type":"output","slot":0}],"edges":[["in0","a"],["a","b"],["b","a"],["b","o"]]}

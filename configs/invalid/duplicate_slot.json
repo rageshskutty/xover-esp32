@@ -1,0 +1,1 @@
+{"_expect":"E_SLOT","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0},{"id":"o1","type":"output","slot":0},{"id":"o2","type":"output","slot":0}],"edges":[["in0","o1"],["in0","o2"]]}
