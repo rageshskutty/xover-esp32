@@ -1,13 +1,145 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "title":"xover-esp32 graph configuration",
-  "type":"object",
-  "required":["version","sample_rate_hz","nodes","edges"],
-  "properties":{
-    "version":{"const":1},
-    "sample_rate_hz":{"const":48000},
-    "nodes":{"type":"array","maxItems":64,"items":{"type":"object","required":["id","type"],"properties":{"id":{"type":"string","minLength":1},"type":{"enum":["input","output","crossover","peq","shelf","allpass","notch","biquad","gain","delay","polarity","mix"]}},"additionalProperties":true}},
-    "edges":{"type":"array","items":{"type":"array","prefixItems":[{"type":"string"},{"type":"string"}],"minItems":2,"maxItems":2}}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "xover-esp32 graph configuration",
+  "type": "object",
+  "required": [
+    "version",
+    "sample_rate_hz",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "sample_rate_hz": {
+      "const": 48000
+    },
+    "vars": {
+      "type": "object",
+      "description": "Numeric tunable parameters referenced as @name in node fields.",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "limits": {
+      "type": "object",
+      "description": "Configuration-requested operating bounds. Firmware must additionally enforce immutable device protection limits stored in NVS; uploaded values must never weaken them.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "min",
+          "max"
+        ],
+        "properties": {
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "input",
+              "output",
+              "crossover",
+              "peq",
+              "shelf",
+              "allpass",
+              "notch",
+              "biquad",
+              "gain",
+              "delay",
+              "polarity",
+              "mix"
+            ]
+          },
+          "frequency_hz": {
+            "oneOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^@[A-Za-z_][A-Za-z0-9_]*$"
+              }
+            ]
+          },
+          "family": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "lowpass",
+              "highpass"
+            ]
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "channel": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          "gains": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "db": {
+            "type": "number"
+          },
+          "delay_us": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    }
   },
-  "additionalProperties":false
+  "additionalProperties": false
 }
