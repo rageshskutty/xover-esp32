@@ -18,6 +18,7 @@ if(ENABLE_SANITIZERS AND NOT MSVC)
 endif()
 
 add_library(dspblocks STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
 )
 target_include_directories(dspblocks PUBLIC
@@ -36,3 +37,17 @@ if(NOT MSVC)
 endif()
 
 add_test(NAME test_sos COMMAND test_sos)
+
+add_executable(test_design
+    tests/test_design.c
+)
+target_include_directories(test_design PRIVATE
+    tests
+)
+target_link_libraries(test_design PRIVATE dspblocks)
+
+if(NOT MSVC)
+    target_link_libraries(test_design PRIVATE m)
+endif()
+
+add_test(NAME test_design COMMAND test_design)

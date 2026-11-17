@@ -16,6 +16,22 @@ typedef enum {
     DSP_E_NOMEM
 } dsp_err_t;
 
+typedef enum {
+    DSP_FAMILY_BUTTERWORTH = 0,
+    DSP_FAMILY_LINKWITZ_RILEY,
+    DSP_FAMILY_BESSEL
+} dsp_family_t;
+
+typedef enum {
+    DSP_MODE_LOWPASS = 0,
+    DSP_MODE_HIGHPASS
+} dsp_mode_t;
+
+typedef enum {
+    DSP_SHELF_LOW = 0,
+    DSP_SHELF_HIGH
+} dsp_shelf_t;
+
 typedef struct {
     float b0;
     float b1;
@@ -35,6 +51,15 @@ typedef struct {
     dsp_sos_t sos[DSP_MAX_SOS];
     uint8_t n;
 } dsp_cascade_t;
+
+/* design: core 0 only, double precision inside */
+dsp_err_t dsp_design_xo(dsp_family_t family, dsp_mode_t mode, unsigned order,
+                        double fc_hz, double fs_hz, dsp_cascade_t *out);
+dsp_err_t dsp_design_peq(double f_hz, double q, double gain_db, double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_shelf(dsp_shelf_t shape, double f_hz, double gain_db, double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_allpass(double f_hz, double q, double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_notch(double f_hz, double q, double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_check_stable(const dsp_sos_t *s);
 
 /* process: RT-safe (file dsp_sos_rt.c); in == out allowed */
 void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
