@@ -130,3 +130,82 @@ dsp_err_t dsp_design_notch(double f, double q, double fs, dsp_sos_t *out)
     out->a1 = out->b1; out->a2 = (float)((1.0 - a) / a0);
     return dsp_check_stable(out);
 }
+
+dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
+                       double f_hz, double *re, double *im)
+{
+    if (!s || !re || !im) return DSP_E_PARAM;
+    if (n_sections == 0U || n_sections > DSP_MAX_EVAL_SECTIONS) return DSP_E_PARAM;
+    if (fs_hz <= 0.0 || isnan(fs_hz) || isinf(fs_hz)) return DSP_E_PARAM;
+    if (f_hz < 0.0 || f_hz > 0.5 * fs_hz || isnan(f_hz) || isinf(f_hz)) return DSP_E_RANGE;
+
+    const double w = 2.0 * M_PI * f_hz / fs_hz;
+    const double c1 = cos(w);
+    const double s1 = sin(w);
+    const double c2 = cos(2.0 * w);
+    const double s2 = sin(2.0 * w);
+
+    double tr = 1.0;
+    double ti = 0.0;
+
+    for (size_t i = 0U; i < n_sections; ++i) {
+        if (!isfinite(s[i].b0) || !isfinite(s[i].b1) || !isfinite(s[i].b2) ||
+            !isfinite(s[i].a1) || !isfinite(s[i].a2)) {
+            return DSP_E_UNSTABLE;
+        }
+
+        const double b0 = (double)s[i].b0;
+        const double b1 = (double)s[i].b1;
+        const double b2 = (double)s[i].b2;
+        const double a1 = (double)s[i].a1;
+        const double a2 = (double)s[i].a2;
+
+        const double nr = b0 + b1 * c1 + b2 * c2;
+        const double ni = -(b1 * s1 + b2 * s2);
+        const double dr = 1.0 + a1 * c1 + a2 * c2;
+        const double di = -(a1 * s1 + a2 * s2);
+
+        const double den = dr * dr + di * di;
+        if (den <= 1e-30 || isnan(den)) {
+            return DSP_E_UNSTABLE;
+        }
+
+        const double hr = (nr * dr + ni * di) / den;
+        const double hi = (ni * dr - nr * di) / den;
+
+        const double ntr = tr * hr - ti * hi;
+        const double nti = tr * hi + ti * hr;
+        tr = ntr;
+        ti = nti;
+    }
+
+    if (!isfinite(tr) || !isfinite(ti)) {
+        return DSP_E_UNSTABLE;
+    }
+
+    *re = tr;
+    *im = ti;
+    return DSP_OK;
+}
+
+dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz, double *out_freqs, size_t n_points)
+{
+    if (!out_freqs || n_points < 2U || n_points > DSP_GRID_POINTS_MAX) return DSP_E_PARAM;
+    if (!isfinite(f_min_hz) || f_min_hz <= 0.0) return DSP_E_PARAM;
+    if (!isfinite(f_max_hz) || f_max_hz <= f_min_hz) return DSP_E_PARAM;
+
+    out_freqs[0] = f_min_hz;
+    out_freqs[n_points - 1U] = f_max_hz;
+
+    const double log_min = log(f_min_hz);
+    const double log_span = log(f_max_hz) - log_min;
+    const double span = (double)(n_points - 1U);
+
+    for (size_t i = 1U; i + 1U < n_points; ++i) {
+        const double factor = (double)i / span;
+        out_freqs[i] = exp(log_min + log_span * factor);
+        if (out_freqs[i] <= out_freqs[i - 1U] || out_freqs[i] >= f_max_hz) return DSP_E_RANGE;
+    }
+
+    return DSP_OK;
+}

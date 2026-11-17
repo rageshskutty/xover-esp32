@@ -49,8 +49,19 @@ tools/check.py implements the config-level codes and is the reference for them.
                          const float *in, float *out, size_t n_frames);
 
     /* response: core 0 only */
+    #define DSP_MAX_EVAL_SECTIONS 96U
     dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
                            double f_hz, double *re, double *im);
+    #define DSP_GRID_POINTS_DEFAULT 1054U
+    #define DSP_GRID_POINTS_MAX 100000U
+    dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz,
+                           double *out_freqs, size_t n_points);
+
+`dsp_log_grid` is core-0-only. It writes a strictly increasing logarithmic
+grid with exact endpoints; both frequencies must be finite, positive, and
+`f_max_hz > f_min_hz`. `n_points` must be in 2..`DSP_GRID_POINTS_MAX`. It
+returns `DSP_E_RANGE` if the range cannot represent every point distinctly.
+The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
 
 ### 2.2 dspgraph
     typedef struct dspg dspg_t;

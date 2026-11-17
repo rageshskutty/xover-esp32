@@ -25,6 +25,18 @@ target_include_directories(dspblocks PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/include
 )
 
+add_library(dspblocks_eval SHARED
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
+)
+set_target_properties(dspblocks_eval PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+target_include_directories(dspblocks_eval PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/include
+)
+if(NOT MSVC)
+    target_link_libraries(dspblocks_eval PRIVATE m)
+endif()
+
 enable_testing()
 
 add_executable(test_sos
@@ -51,3 +63,17 @@ if(NOT MSVC)
 endif()
 
 add_test(NAME test_design COMMAND test_design)
+
+add_executable(test_eval
+    tests/test_eval.c
+)
+target_include_directories(test_eval PRIVATE
+    tests
+)
+target_link_libraries(test_eval PRIVATE dspblocks)
+
+if(NOT MSVC)
+    target_link_libraries(test_eval PRIVATE m)
+endif()
+
+add_test(NAME test_eval COMMAND test_eval)

@@ -48,45 +48,90 @@ def main():
     os.makedirs(GOLDEN_DIR, exist_ok=True)
     grid = [10.0, 100.0, 1000.0, 10000.0, 20000.0]
     def eval_s(secs):
-        arr = np.array([[s[0], s[1], s[2], 1.0, s[3], s[4]] for s in secs])
+        arr = np.array([[np.float32(s[0]), np.float32(s[1]), np.float32(s[2]), 1.0, np.float32(s[3]), np.float32(s[4])] for s in secs], dtype=np.float64)
         w, h = sig.sosfreqz(arr, grid, fs=FS)
-        return (20*np.log10(np.abs(h))).tolist(), (np.unwrap(np.angle(h))*180/np.pi).tolist()
+        mag = np.abs(h)
+        mag_db = []
+        phase_deg = []
+        for i in range(len(grid)):
+            m = float(mag[i])
+            if m < 1e-12:
+                mag_db.append(-999.0)
+                phase_deg.append(0.0)
+            else:
+                mag_db.append(float(20.0 * np.log10(m)))
+                phase_deg.append(float(np.angle(h[i]) * 180.0 / np.pi))
+        return mag_db, phase_deg
 
-    bw = [{"family": "Butterworth", "order": o, "mode": m, "fc_hz": fc, "sections": butter_sos(o, m, fc),
-           "mag_db": eval_s(butter_sos(o, m, fc))[0]} for o in range(1, 9) for m in ("lowpass", "highpass") for fc in (100.0, 1000.0, 5000.0)]
-    lr = [{"family": "Linkwitz-Riley", "order": o, "mode": m, "fc_hz": fc, "sections": lr_sos(o, m, fc),
-           "mag_db": eval_s(lr_sos(o, m, fc))[0]} for o in (2, 4, 6, 8) for m in ("lowpass", "highpass") for fc in (100.0, 1000.0, 5000.0)]
+    bw = []
+    for o in range(1, 9):
+        for m in ("lowpass", "highpass"):
+            for fc in (100.0, 1000.0, 5000.0):
+                secs = butter_sos(o, m, fc)
+                mag_db, phase_deg = eval_s(secs)
+                bw.append({
+                    "family": "Butterworth", "order": o, "mode": m, "fc_hz": fc,
+                    "sections": secs, "mag_db": mag_db, "phase_deg": phase_deg
+                })
+
+    lr = []
+    for o in (2, 4, 6, 8):
+        for m in ("lowpass", "highpass"):
+            for fc in (100.0, 1000.0, 5000.0):
+                secs = lr_sos(o, m, fc)
+                mag_db, phase_deg = eval_s(secs)
+                lr.append({
+                    "family": "Linkwitz-Riley", "order": o, "mode": m, "fc_hz": fc,
+                    "sections": secs, "mag_db": mag_db, "phase_deg": phase_deg
+                })
+
     eq = []
     for f0 in (200.0, 1000.0, 4000.0):
         for q in (0.7, 2.0):
-            for g in (-6.0, 6.0): eq.append({"type": "peq", "f0_hz": f0, "q": q, "gain_db": g, "sos": rbj('peq', f0, q=q, g=g)})
+            for g in (-6.0, 6.0):
+                s = rbj('peq', f0, q=q, g=g)
+                mag_db, phase_deg = eval_s([s])
+                eq.append({"type": "peq", "f0_hz": f0, "q": q, "gain_db": g, "sos": s, "mag_db": mag_db, "phase_deg": phase_deg})
         for g in (-6.0, 6.0):
-            for sh in ('low', 'high'): eq.append({"type": "shelf", "shape": sh, "f0_hz": f0, "gain_db": g, "sos": rbj('shelf', f0, g=g, shape=sh)})
+            for sh in ('low', 'high'):
+                s = rbj('shelf', f0, g=g, shape=sh)
+                mag_db, phase_deg = eval_s([s])
+                eq.append({"type": "shelf", "shape": sh, "f0_hz": f0, "gain_db": g, "sos": s, "mag_db": mag_db, "phase_deg": phase_deg})
         for q in (0.7, 2.0):
-            eq.append({"type": "allpass", "f0_hz": f0, "q": q, "sos": rbj('allpass', f0, q=q)})
-            eq.append({"type": "notch", "f0_hz": f0, "q": q, "sos": rbj('notch', f0, q=q)})
+            s = rbj('allpass', f0, q=q)
+            mag_db, phase_deg = eval_s([s])
+            eq.append({"type": "allpass", "f0_hz": f0, "q": q, "sos": s, "mag_db": mag_db, "phase_deg": phase_deg})
+            s = rbj('notch', f0, q=q)
+            mag_db, phase_deg = eval_s([s])
+            eq.append({"type": "notch", "f0_hz": f0, "q": q, "sos": s, "mag_db": mag_db, "phase_deg": phase_deg})
 
     with open(os.path.join(GOLDEN_DIR, "butterworth.json"), "w") as f: json.dump(bw, f, indent=2)
     with open(os.path.join(GOLDEN_DIR, "linkwitz_riley.json"), "w") as f: json.dump(lr, f, indent=2)
     with open(os.path.join(GOLDEN_DIR, "rbj_eq.json"), "w") as f: json.dump(eq, f, indent=2)
 
     with open(os.path.join(GOLDEN_DIR, "golden_vectors.h"), "w") as f:
-        f.write("#pragma once\n#include \"dspblocks.h\"\n")
-        f.write("typedef struct { dsp_family_t family; dsp_mode_t mode; unsigned order; double fc_hz, fs_hz; uint8_t n_sections; dsp_sos_t expected_sos[4]; } golden_xo_entry_t;\n")
+        f.write("#pragma once\n#include \"dspblocks.h\"\n\n")
+        f.write("#define GOLDEN_GRID_COUNT 5U\n")
+        f.write("static const double GOLDEN_GRID_HZ[GOLDEN_GRID_COUNT] = { 10.0, 100.0, 1000.0, 10000.0, 20000.0 };\n\n")
+        f.write("typedef struct { dsp_family_t family; dsp_mode_t mode; unsigned order; double fc_hz, fs_hz; uint8_t n_sections; dsp_sos_t expected_sos[4]; double expected_mag_db[GOLDEN_GRID_COUNT]; double expected_phase_deg[GOLDEN_GRID_COUNT]; } golden_xo_entry_t;\n")
         f.write("static const golden_xo_entry_t GOLDEN_XO_ENTRIES[] = {\n")
         for e in bw + lr:
             fam = "DSP_FAMILY_BUTTERWORTH" if e["family"] == "Butterworth" else "DSP_FAMILY_LINKWITZ_RILEY"
             m = "DSP_MODE_LOWPASS" if e["mode"] == "lowpass" else "DSP_MODE_HIGHPASS"
             secs = e["sections"] + [[0.0]*5]*(4 - len(e["sections"]))
             sos_str = ", ".join(f"{{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f }}" for s in secs)
-            f.write(f"    {{ {fam}, {m}, {e['order']}U, {e['fc_hz']}, 48000.0, {len(e['sections'])}, {{ {sos_str} }} }},\n")
+            mag_str = ", ".join(f"{v:.6f}" for v in e["mag_db"])
+            phase_str = ", ".join(f"{v:.6f}" for v in e["phase_deg"])
+            f.write(f"    {{ {fam}, {m}, {e['order']}U, {e['fc_hz']}, 48000.0, {len(e['sections'])}, {{ {sos_str} }}, {{ {mag_str} }}, {{ {phase_str} }} }},\n")
         f.write(f"}};\n#define GOLDEN_XO_COUNT {len(bw) + len(lr)}U\n\n")
-        f.write("typedef struct { const char *type; int shape; double f0_hz, q, gain_db, fs_hz; dsp_sos_t expected_sos; } golden_eq_entry_t;\n")
+        f.write("typedef struct { const char *type; int shape; double f0_hz, q, gain_db, fs_hz; dsp_sos_t expected_sos; double expected_mag_db[GOLDEN_GRID_COUNT]; double expected_phase_deg[GOLDEN_GRID_COUNT]; } golden_eq_entry_t;\n")
         f.write("static const golden_eq_entry_t GOLDEN_EQ_ENTRIES[] = {\n")
         for e in eq:
             sh = "DSP_SHELF_LOW" if e.get("shape") == "low" else "DSP_SHELF_HIGH"
             s = e["sos"]
-            f.write(f"    {{ \"{e['type']}\", {sh}, {e['f0_hz']}, {e.get('q', 0.0)}, {e.get('gain_db', 0.0)}, 48000.0, {{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f }} }},\n")
+            mag_str = ", ".join(f"{v:.6f}" for v in e["mag_db"])
+            phase_str = ", ".join(f"{v:.6f}" for v in e["phase_deg"])
+            f.write(f"    {{ \"{e['type']}\", {sh}, {e['f0_hz']}, {e.get('q', 0.0)}, {e.get('gain_db', 0.0)}, 48000.0, {{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f }}, {{ {mag_str} }}, {{ {phase_str} }} }},\n")
         f.write(f"}};\n#define GOLDEN_EQ_COUNT {len(eq)}U\n")
     print(f"Generated {len(bw)} BW, {len(lr)} LR, {len(eq)} EQ golden vectors.")
 
