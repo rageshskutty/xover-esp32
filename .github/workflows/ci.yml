@@ -19,9 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r tools/requirements.txt
       - name: Configure CMake
         run: cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build host/build
       - name: Run tests
         run: ctest --test-dir host/build --output-on-failure
+      - name: Compare compiled C response with SciPy
+        run: python tools/test_scipy_compare.py --library host/build/libdspblocks_eval.so

@@ -135,7 +135,7 @@ dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
                        double f_hz, double *re, double *im)
 {
     if (!s || !re || !im) return DSP_E_PARAM;
-    if (n_sections == 0U || n_sections > 96U) return DSP_E_PARAM;
+    if (n_sections == 0U || n_sections > DSP_MAX_EVAL_SECTIONS) return DSP_E_PARAM;
     if (fs_hz <= 0.0 || isnan(fs_hz) || isinf(fs_hz)) return DSP_E_PARAM;
     if (f_hz < 0.0 || f_hz > 0.5 * fs_hz || isnan(f_hz) || isinf(f_hz)) return DSP_E_RANGE;
 
@@ -149,10 +149,8 @@ dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
     double ti = 0.0;
 
     for (size_t i = 0U; i < n_sections; ++i) {
-        if (isnan(s[i].b0) || isnan(s[i].b1) || isnan(s[i].b2) ||
-            isnan(s[i].a1) || isnan(s[i].a2) ||
-            isinf(s[i].b0) || isinf(s[i].b1) || isinf(s[i].b2) ||
-            isinf(s[i].a1) || isinf(s[i].a2)) {
+        if (!isfinite(s[i].b0) || !isfinite(s[i].b1) || !isfinite(s[i].b2) ||
+            !isfinite(s[i].a1) || !isfinite(s[i].a2)) {
             return DSP_E_UNSTABLE;
         }
 
@@ -181,7 +179,7 @@ dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
         ti = nti;
     }
 
-    if (isnan(tr) || isnan(ti) || isinf(tr) || isinf(ti)) {
+    if (!isfinite(tr) || !isfinite(ti)) {
         return DSP_E_UNSTABLE;
     }
 
@@ -192,21 +190,22 @@ dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
 
 dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz, double *out_freqs, size_t n_points)
 {
-    if (!out_freqs || n_points < 2U || n_points > 100000U) return DSP_E_PARAM;
-    if (f_min_hz <= 0.0 || isnan(f_min_hz) || isinf(f_min_hz)) return DSP_E_PARAM;
-    if (f_max_hz <= f_min_hz || isnan(f_max_hz) || isinf(f_max_hz)) return DSP_E_PARAM;
+    if (!out_freqs || n_points < 2U || n_points > DSP_GRID_POINTS_MAX) return DSP_E_PARAM;
+    if (!isfinite(f_min_hz) || f_min_hz <= 0.0) return DSP_E_PARAM;
+    if (!isfinite(f_max_hz) || f_max_hz <= f_min_hz) return DSP_E_PARAM;
 
     out_freqs[0] = f_min_hz;
     out_freqs[n_points - 1U] = f_max_hz;
 
-    const double ratio = f_max_hz / f_min_hz;
+    const double log_min = log(f_min_hz);
+    const double log_span = log(f_max_hz) - log_min;
     const double span = (double)(n_points - 1U);
 
     for (size_t i = 1U; i + 1U < n_points; ++i) {
         const double factor = (double)i / span;
-        out_freqs[i] = f_min_hz * pow(ratio, factor);
+        out_freqs[i] = exp(log_min + log_span * factor);
+        if (out_freqs[i] <= out_freqs[i - 1U] || out_freqs[i] >= f_max_hz) return DSP_E_RANGE;
     }
 
     return DSP_OK;
 }
-

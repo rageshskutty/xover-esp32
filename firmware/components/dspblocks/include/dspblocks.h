@@ -66,11 +66,16 @@ void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
                      const float *in, float *out, size_t n_frames);
 
 /* response: core 0 only */
+#define DSP_MAX_EVAL_SECTIONS 96U
 #define DSP_GRID_POINTS_DEFAULT 1054U /* 10 Hz to 20 kHz at ~1/96 octave */
+#define DSP_GRID_POINTS_MAX 100000U
 
 dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
                        double f_hz, double *re, double *im);
 
+/* Core 0 only. Fills n_points strictly increasing logarithmic frequencies,
+ * including both endpoints. Requires 2..DSP_GRID_POINTS_MAX points and
+ * finite 0 < f_min_hz < f_max_hz. */
 dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz, double *out_freqs, size_t n_points);
 
 #ifdef __cplusplus
