@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sample_rate_hz": 48000,
+  "nodes": [
+    {"id":"in_l","type":"input","channel":0},
+    {"id":"in_r","type":"input","channel":1},
+    {"id":"sub_sum","type":"mix","gains":[0.5,0.5]},
+    {"id":"sub_lp","type":"crossover","mode":"lowpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
+    {"id":"left_hp","type":"crossover","mode":"highpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
+    {"id":"right_hp","type":"crossover","mode":"highpass","family":"Linkwitz-Riley","order":4,"frequency_hz":80},
+    {"id":"out_l","type":"output","slot":0},
+    {"id":"out_r","type":"output","slot":2},
+    {"id":"out_sub","type":"output","slot":4}
+  ],
+  "edges": [["in_l","left_hp"],["left_hp","out_l"],["in_r","right_hp"],["right_hp","out_r"],["in_l","sub_sum"],["in_r","sub_sum"],["sub_sum","sub_lp"],["sub_lp","out_sub"]]
+}
