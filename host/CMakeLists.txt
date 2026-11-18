@@ -34,6 +34,18 @@ target_include_directories(dspgraph_json PUBLIC
 )
 target_link_libraries(dspgraph_json PUBLIC cjson)
 
+add_library(dspgraph STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_validate.c
+)
+target_include_directories(dspgraph PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/include
+)
+target_link_libraries(dspgraph PUBLIC dspgraph_json)
+if(NOT MSVC)
+    target_link_libraries(dspgraph PUBLIC m)
+endif()
+
 add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
@@ -107,6 +119,12 @@ add_test(NAME test_blocks COMMAND test_blocks)
 add_executable(test_graph_json tests/test_graph_json.c)
 target_link_libraries(test_graph_json PRIVATE dspgraph_json)
 add_test(NAME test_graph_json COMMAND test_graph_json)
+
+add_executable(test_graph_validate tests/test_graph_validate.c)
+target_link_libraries(test_graph_validate PRIVATE dspgraph)
+target_compile_definitions(test_graph_validate PRIVATE
+    XOVER_CONFIG_DIR="${CMAKE_CURRENT_LIST_DIR}/../configs")
+add_test(NAME test_graph_validate COMMAND test_graph_validate)
 
 add_executable(test_eval_analytic tests/test_eval_analytic.c)
 target_include_directories(test_eval_analytic PRIVATE tests)

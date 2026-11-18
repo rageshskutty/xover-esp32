@@ -66,7 +66,7 @@ the source of a pinned dependency, or a measurement before code relies on them.
 | polarity | invert (bool) | | 0 |
 | mix | gains[] (one per incoming edge) | | 0 |
 
-Numeric fields except `order` may be `@var`. Ranges above are the device
+Only `frequency_hz` may be supplied as an `@var`. Ranges above are the device
 limits; check.py enforces the subset it can (see tools/check.py).
 
 ## 5. Graph semantics
