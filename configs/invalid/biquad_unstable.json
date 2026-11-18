@@ -1,0 +1,1 @@
+{"_expect":"E_NODE_PARAM","version":1,"sample_rate_hz":48000,"nodes":[{"id":"in0","type":"input","channel":0},{"id":"bq","type":"biquad","b":[1.0,0.0,0.0],"a":[-1.9,1.2],"sample_rate_hz":48000},{"id":"o","type":"output","slot":0}],"edges":[["in0","bq"],["bq","o"]]}

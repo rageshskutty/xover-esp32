@@ -17,7 +17,7 @@ wrong JSON type, unknown key or unknown node type report `E_SCHEMA`; a missing
 or out-of-range node parameter reports `E_NODE_PARAM`; Bessel reports
 `E_UNSUPPORTED`; more than 64 nodes reports `E_RESOURCE`. Graph-level rules
 (references, cycles, fan-in, slots, variables, limits, section cap) landed in T06a4 and run only when
-the structural pass found no issue; biquad stability lands in T06a5; `dspg_protect_t` lands with T07.
+the structural pass found no issue; biquad stability landed in T06a5 (E_NODE_PARAM, same `dsp_check_stable` test the engine uses, so `dspgraph` now requires `dspblocks`); `dspg_protect_t` lands with T07.
 
 ## Alternatives considered
 Return an opaque graph from `dspg_build` immediately (too large for C1), or

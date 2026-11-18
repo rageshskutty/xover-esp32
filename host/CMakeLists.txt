@@ -42,7 +42,7 @@ add_library(dspgraph STATIC
 target_include_directories(dspgraph PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/include
 )
-target_link_libraries(dspgraph PUBLIC dspgraph_json)
+target_link_libraries(dspgraph PUBLIC dspgraph_json dspblocks)
 if(NOT MSVC)
     target_link_libraries(dspgraph PUBLIC m)
 endif()

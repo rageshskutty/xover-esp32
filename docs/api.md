@@ -9,7 +9,7 @@ that implements them, in the same PR, if the contract here is updated.
 |---|---|
 | E_JSON | not parseable, too deep, too large |
 | E_SCHEMA | fails configs/schema.json (wrong type, unknown key, sample rate) |
-| E_NODE_PARAM | missing or out-of-range node parameter |
+| E_NODE_PARAM | missing, out-of-range or unstable node parameter (a biquad whose float32 poles are not inside the unit circle) |
 | E_GRAPH_REF | duplicate id or edge to unknown id |
 | E_GRAPH_CYCLE | graph has a cycle |
 | E_GRAPH_FANIN | wrong number of incoming edges |

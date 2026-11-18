@@ -60,7 +60,7 @@ the source of a pinned dependency, or a measurement before code relies on them.
 | shelf | shape (low/high), frequency_hz, db | db -24..+12 | 1 |
 | allpass | frequency_hz, q | | 1 |
 | notch | frequency_hz, q | | 1 |
-| biquad | b[3], a[2], sample_rate_hz = 48000 | stability checked | 1 |
+| biquad | b[3], a[2], sample_rate_hz = 48000 | finite float32; `dsp_check_stable` on the float32 values (\|a2\| < 1, 1 + a1 + a2 > 0, 1 - a1 + a2 > 0) | 1 |
 | gain | db | -60..+12 | 0 |
 | delay | delay_us | 0..20000 (rounded to whole samples, 20.83 us each) | 0 |
 | polarity | invert (bool) | | 0 |

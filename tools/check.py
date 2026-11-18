@@ -10,8 +10,10 @@ Exit code 0 = all checks pass.  Checks:
 """
 import glob
 import json
+import math
 import os
 import re
+import struct
 import sys
 from collections import defaultdict
 
@@ -29,6 +31,27 @@ VAR_RE = re.compile(r"^@([A-Za-z_][A-Za-z0-9_]*)$")
 def load(path):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def f32(x):
+    """Round to float32; None if not finite or out of float32 range."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return None
+    try:
+        r = struct.unpack("f", struct.pack("f", x))[0]
+    except (OverflowError, struct.error):
+        return None
+    return r if math.isfinite(r) else None
+
+
+def biquad_stable(b, a):
+    """Mirror of dsp_check_stable on float32 values (float32 arithmetic)."""
+    cs = [f32(v) for v in list(b) + list(a)]
+    if any(v is None for v in cs):
+        return False
+    a1, a2 = cs[3], cs[4]
+    return (abs(a2) < 1.0 and f32(f32(1.0 + a1) + a2) > 0.0
+            and f32(f32(1.0 - a1) + a2) > 0.0)
 
 
 def sections(node):
@@ -163,6 +186,8 @@ def semantic_errors(cfg):
                   and n.get("sample_rate_hz") == FS)
             if not ok:
                 errs.append("E_NODE_PARAM: biquad %s needs b[3], a[2], sample_rate_hz=%d" % (i, FS))
+            elif not biquad_stable(b, a):
+                errs.append("E_NODE_PARAM: biquad %s is unstable or not finite float32" % i)
         elif t == "gain" and "db" not in n:
             errs.append("E_NODE_PARAM: gain %s needs db" % i)
         elif t == "delay":

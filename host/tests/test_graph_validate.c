@@ -18,7 +18,7 @@
 static const char *const REJECTED_HERE[] = {
     "bessel_unsupported", "crossover_too_low", "gain_too_high", "lr_odd_order",
     "peq_q_too_high", "recognized_wrong_node_property", "sample_rate_96k",
-    "unknown_node_property", "unknown_node_type", "cycle", "duplicate_slot",
+    "unknown_node_property", "unknown_node_type", "biquad_unstable", "cycle", "duplicate_slot",
     "fanin_without_mix", "too_many_sections", "undefined_var", "var_outside_limits",
 };
 
@@ -98,6 +98,26 @@ static int has_code(const dspg_report_t *rep, const char *code)
     return 0;
 }
 
+/* Validates in -> biquad(b, a) -> out. Returns 0 valid, -1 rejected with E_NODE_PARAM, -2 other. */
+static int biquad_result(const char *b, const char *a)
+{
+    char json[512];
+    dspg_report_t rep;
+    int n = snprintf(json, sizeof(json),
+                     "{\"version\":1,\"sample_rate_hz\":48000,\"nodes\":["
+                     "{\"id\":\"i\",\"type\":\"input\",\"channel\":0},"
+                     "{\"id\":\"q\",\"type\":\"biquad\",\"b\":[%s],\"a\":[%s],\"sample_rate_hz\":48000},"
+                     "{\"id\":\"o\",\"type\":\"output\",\"slot\":0}],"
+                     "\"edges\":[[\"i\",\"q\"],[\"q\",\"o\"]]}", b, a);
+    if (n <= 0 || (size_t)n >= sizeof(json)) {
+        return -2;
+    }
+    if (dspg_validate(json, (size_t)n, &rep) == 0) {
+        return 0;
+    }
+    return (rep.n == 1U && strcmp(rep.items[0].code, "E_NODE_PARAM") == 0) ? -1 : -2;
+}
+
 static int expect_code(const char *json, const char *code)
 {
     dspg_report_t rep;
@@ -129,6 +149,17 @@ int main(void)
                       "{\"id\":\"x\",\"type\":\"crossover\",\"mode\":\"lowpass\",\"family\":\"Butterworth\",\"order\":2,\"frequency_hz\":\"@f\"},"
                       "{\"id\":\"o\",\"type\":\"output\",\"slot\":0}],\"edges\":[[\"i\",\"x\"],[\"x\",\"o\"]]}", "E_NODE_PARAM"));
 
+    /* T06a5: biquad stability is judged on the float32 values the DSP runs. */
+    CHECK(biquad_result("1,0,0", "-1.9,0.95") == 0);            /* stable */
+    CHECK(biquad_result("1,0,0", "-1.99,0.9901") == 0);         /* pole just inside */
+    CHECK(biquad_result("1,0,0", "-1.9,1.2") == -1);            /* |a2| > 1 */
+    CHECK(biquad_result("1,0,0", "0,1") == -1);                 /* |a2| == 1 */
+    CHECK(biquad_result("1,0,0", "2,1") == -1);                 /* pole on z = 1 */
+    CHECK(biquad_result("1,0,0", "-2,0.99") == -1);             /* 1 + a1 + a2 < 0 */
+    CHECK(biquad_result("1,0,0", "2.5,0.5") == -1);            /* 1 - a1 + a2 < 0 */
+    CHECK(biquad_result("1e39,0,0", "0,0") == -1);              /* beyond float32 */
+    CHECK(biquad_result("1,0,0", "1e999,0") == -1);             /* infinite */
+
     /* dspg_validate: syntax errors surface as E_JSON, never as valid. */
     CHECK(dspg_validate("{", 1U, &rep) == -1);
     CHECK(rep.n == 1U && strcmp(rep.items[0].code, "E_JSON") == 0);
@@ -154,6 +185,6 @@ int main(void)
     CHECK(dspg_validate(many, used, &rep) == -1);
     CHECK(rep.n == DSPG_MAX_ISSUES);
 
-    puts("PASS: graph validator (schema-equivalent and node parameter checks)");
+    puts("PASS: graph validator (schema-equivalent, node parameter and biquad stability checks)");
     return 0;
 }
