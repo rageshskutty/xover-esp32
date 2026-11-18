@@ -80,7 +80,7 @@ Every card provides objective, context, dependencies, exact files, implementatio
 
 ### T09b — Core-1 runtime, ring and swap lifecycle
 **Objective:** integrate DSP worker, SPSC ring, mute state and safe graph generation swaps.  
-**Context:** source and executor absent; 64-frame/1ms criterion conflict is open.  
+**Context:** source and executor absent; 64-frame period versus execution-time measurement definition is unresolved.  
 **Dependencies:** T09a,T07b,T08b and accepted timing ADR.  
 **Files:** new runtime/task, audiosrc, CMake, tests and design/API docs.  
 **Implementation:** fixed block pacing; SPSC only; generation handoff; retire graph only after task acknowledgment; underrun/overrun counters; non-finite output muted and fault-counted.  
