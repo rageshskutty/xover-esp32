@@ -1,0 +1,3 @@
+[submodule "firmware/third_party/cjson"]
+	path = firmware/third_party/cjson
+	url = https://github.com/DaveGamble/cJSON.git

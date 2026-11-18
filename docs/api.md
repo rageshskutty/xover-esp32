@@ -137,6 +137,10 @@ type's required parameters, shapes, and ranges. Unknown keys and malformed JSON
 shapes report `E_SCHEMA`; missing or out-of-range node parameters retain
 `E_NODE_PARAM`. Graph-level failures retain their semantic error codes.
 
+JSON parsing on host and target uses the same pinned cJSON source. The parser
+rejects malformed or trailing data, bodies over 32 KB, and nesting deeper than
+eight levels before schema validation.
+
 ## 4. HTTP API v1
 Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 `Authorization: Bearer <token>` (token in NVS). Write rate limit: 5 per minute.
