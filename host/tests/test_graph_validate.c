@@ -1,5 +1,6 @@
 #include "dspgraph_validate.h"
 #include "dspgraph_json.h"
+#include "dspgraph_graph.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -17,13 +18,8 @@
 static const char *const REJECTED_HERE[] = {
     "bessel_unsupported", "crossover_too_low", "gain_too_high", "lr_odd_order",
     "peq_q_too_high", "recognized_wrong_node_property", "sample_rate_96k",
-    "unknown_node_property", "unknown_node_type",
-};
-
-/* Graph-level fixtures are owned by T06a4; they must raise no issue here. */
-static const char *const DEFERRED[] = {
-    "cycle", "duplicate_slot", "fanin_without_mix", "too_many_sections",
-    "undefined_var", "var_outside_limits",
+    "unknown_node_property", "unknown_node_type", "cycle", "duplicate_slot",
+    "fanin_without_mix", "too_many_sections", "undefined_var", "var_outside_limits",
 };
 
 static char file_buf[DSPG_JSON_MAX_BYTES];
@@ -85,7 +81,9 @@ static int run_fixture(const char *name, int invalid, dspg_report_t *rep, char *
         cJSON_DeleteItemFromObjectCaseSensitive(root, "_expect");
     }
     memset(rep, 0, sizeof(*rep));
-    (void)dspg_validate_tree(root, rep);
+    if (dspg_validate_tree(root, rep) == 0) {
+        (void)dspg_validate_graph(root, rep);
+    }
     cJSON_Delete(root);
     return 0;
 }
@@ -98,6 +96,12 @@ static int has_code(const dspg_report_t *rep, const char *code)
         }
     }
     return 0;
+}
+
+static int expect_code(const char *json, const char *code)
+{
+    dspg_report_t rep;
+    return dspg_validate(json, strlen(json), &rep) == -1 && has_code(&rep, code);
 }
 
 int main(void)
@@ -118,10 +122,12 @@ int main(void)
             return 1;
         }
     }
-    for (size_t i = 0U; i < sizeof(DEFERRED) / sizeof(DEFERRED[0]); i++) {
-        CHECK(run_fixture(DEFERRED[i], 1, &rep, expect) == 0);
-        CHECK(rep.n == 0U);
-    }
+    CHECK(expect_code("{\"version\":1,\"sample_rate_hz\":48000,\"nodes\":[{\"id\":\"i\",\"type\":\"input\",\"channel\":0},{\"id\":\"o\",\"type\":\"output\",\"slot\":0}],\"edges\":[[\"i\",\"o\"],[\"i\",\"zz\"]]}", "E_GRAPH_REF"));
+    CHECK(expect_code("{\"version\":1,\"sample_rate_hz\":48000,\"nodes\":[{\"id\":\"i\",\"type\":\"input\",\"channel\":0},{\"id\":\"i\",\"type\":\"output\",\"slot\":0}],\"edges\":[]}", "E_GRAPH_REF"));
+    CHECK(expect_code("{\"version\":1,\"sample_rate_hz\":48000,\"nodes\":[{\"id\":\"i\",\"type\":\"input\",\"channel\":0},{\"id\":\"g\",\"type\":\"gain\",\"db\":0}],\"edges\":[[\"i\",\"g\"]]}", "E_GRAPH_DEAD"));
+    CHECK(expect_code("{\"version\":1,\"sample_rate_hz\":48000,\"vars\":{\"f\":30000},\"nodes\":[{\"id\":\"i\",\"type\":\"input\",\"channel\":0},"
+                      "{\"id\":\"x\",\"type\":\"crossover\",\"mode\":\"lowpass\",\"family\":\"Butterworth\",\"order\":2,\"frequency_hz\":\"@f\"},"
+                      "{\"id\":\"o\",\"type\":\"output\",\"slot\":0}],\"edges\":[[\"i\",\"x\"],[\"x\",\"o\"]]}", "E_NODE_PARAM"));
 
     /* dspg_validate: syntax errors surface as E_JSON, never as valid. */
     CHECK(dspg_validate("{", 1U, &rep) == -1);

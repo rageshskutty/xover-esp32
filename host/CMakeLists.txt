@@ -37,6 +37,7 @@ target_link_libraries(dspgraph_json PUBLIC cjson)
 add_library(dspgraph STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_validate.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_graph.c
 )
 target_include_directories(dspgraph PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/include
@@ -140,3 +141,6 @@ if(NOT MSVC)
     target_link_libraries(test_f32 PRIVATE m)
 endif()
 add_test(NAME test_f32 COMMAND test_f32)
+
+add_executable(validate_cli tests/validate_cli.c)
+target_link_libraries(validate_cli PRIVATE dspgraph)
