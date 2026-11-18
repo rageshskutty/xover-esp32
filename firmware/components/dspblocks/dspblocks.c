@@ -16,6 +16,16 @@ dsp_err_t dsp_check_stable(const dsp_sos_t *s)
         ? DSP_OK : DSP_E_UNSTABLE;
 }
 
+/* Store a denominator coefficient as a float32 hi + lo pair: hi + lo carries
+ * about 48 bits, so poles near z = 1 (low crossovers) are not quantised. */
+static void set_den(dsp_sos_t *s, double a1, double a2)
+{
+    s->a1 = (float)a1;
+    s->da1 = (float)(a1 - (double)s->a1);
+    s->a2 = (float)a2;
+    s->da2 = (float)(a2 - (double)s->a2);
+}
+
 static dsp_sos_t make_biquad(dsp_mode_t mode, double fc, double q, double fs)
 {
     double K = tan(M_PI * fc / fs);
@@ -25,15 +35,13 @@ static dsp_sos_t make_biquad(dsp_mode_t mode, double fc, double q, double fs)
         s.b0 = (float)((mode == DSP_MODE_LOWPASS ? K : 1.0) / n);
         s.b1 = (float)((mode == DSP_MODE_LOWPASS ? K : -1.0) / n);
         s.b2 = 0.0f;
-        s.a1 = (float)((K - 1.0) / n);
-        s.a2 = 0.0f;
+        set_den(&s, (K - 1.0) / n, 0.0);
     } else {
         double n = 1.0 + (K / q) + (K * K);
         s.b0 = (float)((mode == DSP_MODE_LOWPASS ? K * K : 1.0) / n);
         s.b1 = (float)((mode == DSP_MODE_LOWPASS ? 2.0 : -2.0) * (double)s.b0);
         s.b2 = s.b0;
-        s.a1 = (float)(2.0 * (K * K - 1.0) / n);
-        s.a2 = (float)((1.0 - (K / q) + (K * K)) / n);
+        set_den(&s, 2.0 * (K * K - 1.0) / n, (1.0 - (K / q) + (K * K)) / n);
     }
     return s;
 }
@@ -87,6 +95,7 @@ dsp_err_t dsp_design_peq(double f, double q, double gain_db, double fs, dsp_sos_
     double a0 = 1.0 + a / A;
     out->b0 = (float)((1.0 + a * A) / a0); out->b1 = (float)(-2.0 * c / a0); out->b2 = (float)((1.0 - a * A) / a0);
     out->a1 = out->b1; out->a2 = (float)((1.0 - a / A) / a0);
+    out->da1 = 0.0f; out->da2 = 0.0f; /* EQ blocks stay plain float32 */
     return dsp_check_stable(out);
 }
 
@@ -108,6 +117,7 @@ dsp_err_t dsp_design_shelf(dsp_shelf_t shape, double f, double gain_db, double f
     }
     out->b0 = (float)(b0 / a0); out->b1 = (float)(b1 / a0); out->b2 = (float)(b2 / a0);
     out->a1 = (float)(a1 / a0); out->a2 = (float)(a2 / a0);
+    out->da1 = 0.0f; out->da2 = 0.0f; /* EQ blocks stay plain float32 */
     return dsp_check_stable(out);
 }
 
@@ -118,6 +128,7 @@ dsp_err_t dsp_design_allpass(double f, double q, double fs, dsp_sos_t *out)
     double w0 = 2.0 * M_PI * f / fs, a = sin(w0) / (2.0 * q), a0 = 1.0 + a;
     out->b0 = (float)((1.0 - a) / a0); out->b1 = (float)(-2.0 * cos(w0) / a0); out->b2 = 1.0f;
     out->a1 = out->b1; out->a2 = out->b0;
+    out->da1 = 0.0f; out->da2 = 0.0f; /* EQ blocks stay plain float32 */
     return dsp_check_stable(out);
 }
 
@@ -128,6 +139,7 @@ dsp_err_t dsp_design_notch(double f, double q, double fs, dsp_sos_t *out)
     double w0 = 2.0 * M_PI * f / fs, a = sin(w0) / (2.0 * q), a0 = 1.0 + a;
     out->b0 = (float)(1.0 / a0); out->b1 = (float)(-2.0 * cos(w0) / a0); out->b2 = out->b0;
     out->a1 = out->b1; out->a2 = (float)((1.0 - a) / a0);
+    out->da1 = 0.0f; out->da2 = 0.0f; /* EQ blocks stay plain float32 */
     return dsp_check_stable(out);
 }
 
@@ -150,15 +162,16 @@ dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
 
     for (size_t i = 0U; i < n_sections; ++i) {
         if (!isfinite(s[i].b0) || !isfinite(s[i].b1) || !isfinite(s[i].b2) ||
-            !isfinite(s[i].a1) || !isfinite(s[i].a2)) {
+            !isfinite(s[i].a1) || !isfinite(s[i].a2) ||
+            !isfinite(s[i].da1) || !isfinite(s[i].da2)) {
             return DSP_E_UNSTABLE;
         }
 
         const double b0 = (double)s[i].b0;
         const double b1 = (double)s[i].b1;
         const double b2 = (double)s[i].b2;
-        const double a1 = (double)s[i].a1;
-        const double a2 = (double)s[i].a2;
+        const double a1 = (double)s[i].a1 + (double)s[i].da1;
+        const double a2 = (double)s[i].a2 + (double)s[i].da2;
 
         const double nr = b0 + b1 * c1 + b2 * c2;
         const double ni = -(b1 * s1 + b2 * s2);
