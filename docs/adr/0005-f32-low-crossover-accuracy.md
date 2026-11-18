@@ -1,4 +1,4 @@
-# ADR 0003: Float32 accuracy of low crossovers (G2)
+# ADR 0005: Float32 accuracy of low crossovers (G2)
 - Status: proposed (needs human approval, touches a public header)
 - Date: 2026-11-18
 - Task: T03b (fix to T03/T05, found while checking the repo against docs/PLAN.md)
