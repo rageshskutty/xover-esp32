@@ -51,8 +51,10 @@ def rbj(kind, f0, q=0.0, g=0.0, shape='low'):
 def main():
     os.makedirs(GOLDEN_DIR, exist_ok=True)
     grid = [10.0, 100.0, 1000.0, 10000.0, 20000.0]
-    def eval_s(secs):
-        arr = np.array([[np.float32(s[0]), np.float32(s[1]), np.float32(s[2]), 1.0, np.float32(s[3]), np.float32(s[4])] for s in secs], dtype=np.float64)
+    def eval_s(secs, hilo=False):
+        # crossover denominators are stored hi + lo (about double precision); EQ blocks are plain float32
+        den = (lambda a: a) if hilo else np.float32
+        arr = np.array([[np.float32(s[0]), np.float32(s[1]), np.float32(s[2]), 1.0, den(s[3]), den(s[4])] for s in secs], dtype=np.float64)
         w, h = sig.sosfreqz(arr, grid, fs=FS)
         mag = np.abs(h)
         mag_db = []
@@ -72,7 +74,7 @@ def main():
         for m in ("lowpass", "highpass"):
             for fc in (100.0, 1000.0, 5000.0):
                 secs = butter_sos(o, m, fc)
-                mag_db, phase_deg = eval_s(secs)
+                mag_db, phase_deg = eval_s(secs, hilo=True)
                 bw.append({
                     "family": "Butterworth", "order": o, "mode": m, "fc_hz": fc,
                     "sections": secs, "mag_db": mag_db, "phase_deg": phase_deg
@@ -83,7 +85,7 @@ def main():
         for m in ("lowpass", "highpass"):
             for fc in (100.0, 1000.0, 5000.0):
                 secs = lr_sos(o, m, fc)
-                mag_db, phase_deg = eval_s(secs)
+                mag_db, phase_deg = eval_s(secs, hilo=True)
                 lr.append({
                     "family": "Linkwitz-Riley", "order": o, "mode": m, "fc_hz": fc,
                     "sections": secs, "mag_db": mag_db, "phase_deg": phase_deg
