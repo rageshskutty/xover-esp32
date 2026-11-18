@@ -1,6 +1,9 @@
 #include "dspgraph_validate.h"
 
+#include "dspblocks.h"
+
 #include <ctype.h>
+#include <float.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -276,6 +279,34 @@ static int find_key(const char *name)
     return -1;
 }
 
+static bool biquad_coeff(const cJSON *arr, int index, float *out)
+{
+    const cJSON *e = cJSON_GetArrayItem(arr, index);
+    if (!cJSON_IsNumber(e) || !isfinite(e->valuedouble) || fabs(e->valuedouble) > (double)FLT_MAX) {
+        return false;
+    }
+    *out = (float)e->valuedouble;
+    return true;
+}
+
+/* Same test the engine applies (dsp_check_stable), on the float32 values the
+ * DSP will run, so the validator and the engine cannot disagree. */
+static void check_biquad_stable(dspg_report_t *r, unsigned index, const cJSON *node)
+{
+    const cJSON *b = cJSON_GetObjectItemCaseSensitive(node, "b");
+    const cJSON *a = cJSON_GetObjectItemCaseSensitive(node, "a");
+    char path[sizeof(((dspg_issue_t *)0)->path)];
+    dsp_sos_t s = {0};
+
+    (void)snprintf(path, sizeof(path), "nodes[%u].a", index);
+    if (!biquad_coeff(b, 0, &s.b0) || !biquad_coeff(b, 1, &s.b1) || !biquad_coeff(b, 2, &s.b2) ||
+        !biquad_coeff(a, 0, &s.a1) || !biquad_coeff(a, 1, &s.a2)) {
+        dspg_report_add(r, E_NODE_PARAM, path, "biquad coefficients must be finite float32 values");
+    } else if (dsp_check_stable(&s) != DSP_OK) {
+        dspg_report_add(r, E_NODE_PARAM, path, "biquad poles are not inside the unit circle");
+    }
+}
+
 static void validate_node(dspg_report_t *r, unsigned index, const cJSON *node)
 {
     char base[LABEL_LEN];
@@ -283,6 +314,7 @@ static void validate_node(dspg_report_t *r, unsigned index, const cJSON *node)
     const cJSON *id = cJSON_GetObjectItemCaseSensitive(node, "id");
     const cJSON *type = cJSON_GetObjectItemCaseSensitive(node, "type");
     const node_spec_t *spec = NULL;
+    const uint8_t issues_before = r->n;
 
     (void)snprintf(base, sizeof(base), "nodes[%u]", index);
     if (!cJSON_IsObject(node)) {
@@ -317,6 +349,9 @@ static void validate_node(dspg_report_t *r, unsigned index, const cJSON *node)
             (void)snprintf(path, sizeof(path), "%s.%s", base, KEY_NAME[k]);
             dspg_report_add(r, E_NODE_PARAM, path, "required parameter missing");
         }
+    }
+    if (strcmp(spec->name, "biquad") == 0 && r->n == issues_before) {
+        check_biquad_stable(r, index, node);
     }
 }
 
