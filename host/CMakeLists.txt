@@ -17,6 +17,23 @@ if(ENABLE_SANITIZERS AND NOT MSVC)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
+set(CJSON_DIR ${CMAKE_CURRENT_LIST_DIR}/../firmware/third_party/cjson)
+add_library(cjson STATIC ${CJSON_DIR}/cJSON.c)
+target_include_directories(cjson SYSTEM PUBLIC ${CJSON_DIR})
+if(MSVC)
+    target_compile_options(cjson PRIVATE /W3)
+else()
+    target_compile_options(cjson PRIVATE -w)
+endif()
+
+add_library(dspgraph_json STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_json.c
+)
+target_include_directories(dspgraph_json PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/internal
+)
+target_link_libraries(dspgraph_json PUBLIC cjson)
+
 add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
@@ -87,3 +104,6 @@ if(NOT MSVC)
     target_link_libraries(test_blocks PRIVATE m)
 endif()
 add_test(NAME test_blocks COMMAND test_blocks)
+add_executable(test_graph_json tests/test_graph_json.c)
+target_link_libraries(test_graph_json PRIVATE dspgraph_json)
+add_test(NAME test_graph_json COMMAND test_graph_json)
