@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "dspgraph_graph.h"
 #include "dspgraph_json.h"
 #include "dspgraph_validate.h"
 
@@ -21,6 +22,9 @@ int dspg_validate(const char *json, size_t len, dspg_report_t *report)
         return -1;
     }
     rc = dspg_validate_tree(root, report);
+    if (rc == 0) {
+        rc = dspg_validate_graph(root, report);
+    }
     cJSON_Delete(root);
     return rc;
 }

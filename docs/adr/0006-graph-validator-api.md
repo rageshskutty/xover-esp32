@@ -16,8 +16,8 @@ api.md) and `dspg_validate(json, len, report)`, returning 0 or -1. The later
 wrong JSON type, unknown key or unknown node type report `E_SCHEMA`; a missing
 or out-of-range node parameter reports `E_NODE_PARAM`; Bessel reports
 `E_UNSUPPORTED`; more than 64 nodes reports `E_RESOURCE`. Graph-level rules
-(references, cycles, fan-in, slots, variables, limits, section cap) and biquad
-stability land in T06a4 and T06a5; `dspg_protect_t` lands with T07.
+(references, cycles, fan-in, slots, variables, limits, section cap) landed in T06a4 and run only when
+the structural pass found no issue; biquad stability lands in T06a5; `dspg_protect_t` lands with T07.
 
 ## Alternatives considered
 Return an opaque graph from `dspg_build` immediately (too large for C1), or
@@ -25,5 +25,5 @@ embed a generic JSON Schema engine (code size, new dependency, X4).
 
 ## Consequences
 The C validator and tools/check.py now implement the same rules twice;
-T06a4 adds a differential test so they cannot drift. Per-type key tables in
+T06a4 adds a differential test (tools/test_validator_diff.py) so they cannot drift. Per-type key tables in
 dspgraph_validate.c must change together with configs/schema.json.
