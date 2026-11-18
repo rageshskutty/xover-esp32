@@ -39,6 +39,8 @@ typedef struct {
     float b2;
     float a1;
     float a2;
+    float da1;      /* a1 + da1 is the double-precision denominator coefficient; */
+    float da2;      /* design functions fill these, zero means plain float32 */
 } dsp_sos_t;     /* a0 = 1 */
 
 typedef struct {

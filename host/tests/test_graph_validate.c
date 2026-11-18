@@ -33,7 +33,19 @@ static size_t load(const char *dir, const char *name, char *out, size_t cap)
     char path[PATH_MAX_LEN];
     FILE *f;
     size_t n;
-    (void)snprintf(path, sizeof(path), "%s/%s.json", dir, name);
+    size_t dir_len = strlen(dir);
+    size_t name_len = strlen(name);
+    size_t name_start = dir_len + 1U;
+    size_t suffix_start = name_start + name_len;
+    if (dir_len >= sizeof(path) || name_start >= sizeof(path) ||
+        name_len >= sizeof(path) - name_start ||
+        sizeof(".json") > sizeof(path) - suffix_start) {
+        return 0U;
+    }
+    memcpy(path, dir, dir_len);
+    path[dir_len] = '/';
+    memcpy(path + name_start, name, name_len);
+    memcpy(path + suffix_start, ".json", sizeof(".json"));
 #if defined(_MSC_VER)
     if (fopen_s(&f, path, "rb") != 0) {
         f = NULL;

@@ -9,7 +9,7 @@ from scipy.signal import sosfreqz
 FS, FMIN, FMAX, POINTS = 48000.0, 10.0, 20000.0, 1054
 
 class Sos(c.Structure):
-    _fields_ = [(n, c.c_float) for n in ("b0", "b1", "b2", "a1", "a2")]
+    _fields_ = [(n, c.c_float) for n in ("b0", "b1", "b2", "a1", "a2", "da1", "da2")]
 
 class Cascade(c.Structure):
     _fields_ = [("sos", Sos * 4), ("n", c.c_uint8)]
@@ -59,7 +59,7 @@ def compare(lib, grid, families):
         worst_mag = worst_phase = 0.0
         for sections, label in cases:
             csos = (Sos * len(sections))(*sections)
-            arr = np.array([[s.b0, s.b1, s.b2, 1.0, s.a1, s.a2] for s in sections])
+            arr = np.array([[s.b0, s.b1, s.b2, 1.0, s.a1 + s.da1, s.a2 + s.da2] for s in sections])
             _, ref = sosfreqz(arr, worN=grid, fs=FS)
             actual = np.empty(POINTS, dtype=np.complex128)
             for i, f in enumerate(grid):

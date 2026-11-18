@@ -125,3 +125,18 @@ target_link_libraries(test_graph_validate PRIVATE dspgraph)
 target_compile_definitions(test_graph_validate PRIVATE
     XOVER_CONFIG_DIR="${CMAKE_CURRENT_LIST_DIR}/../configs")
 add_test(NAME test_graph_validate COMMAND test_graph_validate)
+
+add_executable(test_eval_analytic tests/test_eval_analytic.c)
+target_include_directories(test_eval_analytic PRIVATE tests)
+target_link_libraries(test_eval_analytic PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_eval_analytic PRIVATE m)
+endif()
+add_test(NAME test_eval_analytic COMMAND test_eval_analytic)
+
+add_executable(test_f32 tests/test_f32.c)
+target_link_libraries(test_f32 PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_f32 PRIVATE m)
+endif()
+add_test(NAME test_f32 COMMAND test_f32)

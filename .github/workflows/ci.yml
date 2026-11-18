@@ -33,3 +33,38 @@ jobs:
         run: ctest --test-dir host/build --output-on-failure
       - name: Compare compiled C response with SciPy
         run: python tools/test_scipy_compare.py --library host/build/libdspblocks_eval.so
+
+  host-sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Configure CMake (ASan + UBSan)
+        run: cmake -S host -B host/build-san -DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON
+      - name: Build
+        run: cmake --build host/build-san
+      - name: Run tests
+        run: ctest --test-dir host/build-san --output-on-failure
+
+  host-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure CMake (coverage)
+        run: >
+          cmake -S host -B host/build-cov -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_FLAGS="--coverage -O0"
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+          -DCMAKE_SHARED_LINKER_FLAGS="--coverage"
+      - name: Build
+        run: cmake --build host/build-cov
+      - name: Run tests
+        run: ctest --test-dir host/build-cov --output-on-failure
+      - name: G2 gate, dspblocks line coverage >= 90 %
+        run: python tools/coverage_gate.py host/build-cov

@@ -84,7 +84,7 @@ static bool test_nan_inf_safety(void)
     CHECK(!dsp_sanitize_block(out, 4U));
     for (size_t i = 0U; i < 4U; ++i) CHECK(out[i] == 0.0f);
 
-    dsp_sos_t s = {1.0f, 0.0f, 0.0f, -0.5f, 0.0f}; dsp_state_t st = {0.0f, 0.0f};
+    dsp_sos_t s = {1.0f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f, 0.0f}; dsp_state_t st = {0.0f, 0.0f};
     dsp_sos_process(&s, &st, 1U, in, out, 4U);
     CHECK(!dsp_sanitize_block(out, 4U) && st.z1 == 0.0f && st.z2 == 0.0f);
     return true;
