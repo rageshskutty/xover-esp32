@@ -93,6 +93,11 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
                      float stop_below_hz, atten_below_db;
                      float stop_above_hz, atten_above_db; } dspg_protect_t;
 
+    #define DSPG_MAX_ISSUES 8U
+    /* core 0. Parse and validate only (T06a3, ADR 0006). 0 = valid, -1 = rejected;
+       the report lists up to 8 issues. dspg_build calls this first. */
+    int dspg_validate(const char *json, size_t len, dspg_report_t *report);
+
     /* core 0. Parses, validates, designs filters, applies protection.
        On failure returns NULL and fills the report; never touches the live graph. */
     dspg_t *dspg_build(const char *json, size_t len,
