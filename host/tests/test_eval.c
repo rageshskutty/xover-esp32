@@ -8,20 +8,20 @@
 int main(void)
 {
     double re = 7.0, im = 8.0;
-    const dsp_sos_t unity = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    const dsp_sos_t unity = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     CHECK(dsp_sos_eval(&unity, 1U, 48000.0, 1000.0, &re, &im) == DSP_OK);
     CHECK(re == 1.0 && im == 0.0);
     CHECK(dsp_sos_eval(&unity, 1U, NAN, 1000.0, &re, &im) == DSP_E_PARAM);
     CHECK(dsp_sos_eval(&unity, 1U, INFINITY, 1000.0, &re, &im) == DSP_E_PARAM);
     CHECK(dsp_sos_eval(&unity, 1U, 48000.0, NAN, &re, &im) == DSP_E_RANGE);
     CHECK(dsp_sos_eval(&unity, 1U, 48000.0, INFINITY, &re, &im) == DSP_E_RANGE);
-    const dsp_sos_t nan_sos = {(float)NAN, 0.0f, 0.0f, 0.0f, 0.0f};
-    const dsp_sos_t inf_sos = {1.0f, 0.0f, 0.0f, 0.0f, (float)INFINITY};
+    const dsp_sos_t nan_sos = {(float)NAN, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    const dsp_sos_t inf_sos = {1.0f, 0.0f, 0.0f, 0.0f, (float)INFINITY, 0.0f, 0.0f};
     CHECK(dsp_sos_eval(&nan_sos, 1U, 48000.0, 1000.0, &re, &im) == DSP_E_UNSTABLE);
     CHECK(dsp_sos_eval(&inf_sos, 1U, 48000.0, 1000.0, &re, &im) == DSP_E_UNSTABLE);
     CHECK(dsp_sos_eval(&unity, DSP_MAX_EVAL_SECTIONS + 1U, 48000.0, 1000.0, &re, &im) == DSP_E_PARAM);
     dsp_sos_t large[DSP_MAX_EVAL_SECTIONS];
-    for (size_t i = 0U; i < DSP_MAX_EVAL_SECTIONS; ++i) large[i] = (dsp_sos_t){FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f};
+    for (size_t i = 0U; i < DSP_MAX_EVAL_SECTIONS; ++i) large[i] = (dsp_sos_t){FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     re = 7.0; im = 8.0;
     CHECK(dsp_sos_eval(large, DSP_MAX_EVAL_SECTIONS, 48000.0, 1000.0, &re, &im) == DSP_E_UNSTABLE);
     CHECK(re == 7.0 && im == 8.0);

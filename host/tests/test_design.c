@@ -53,7 +53,7 @@ static bool test_golden(void)
     }
     for (size_t i = 0U; i < GOLDEN_EQ_COUNT; ++i) {
         const golden_eq_entry_t *g = &GOLDEN_EQ_ENTRIES[i];
-        dsp_sos_t out = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+        dsp_sos_t out = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
         dsp_err_t err = DSP_OK;
         if (strcmp(g->type, "peq") == 0) err = dsp_design_peq(g->f0_hz, g->q, g->gain_db, g->fs_hz, &out);
         else if (strcmp(g->type, "shelf") == 0) err = dsp_design_shelf((dsp_shelf_t)g->shape, g->f0_hz, g->gain_db, g->fs_hz, &out);
@@ -109,7 +109,7 @@ static bool test_validation(void)
     if (dsp_design_peq(1000.0, 1.0, 15.0, 48000.0, &s) != DSP_E_RANGE) return false;
     if (dsp_design_xo(DSP_FAMILY_BUTTERWORTH, DSP_MODE_LOWPASS, 2U, 1000.0, 48000.0, NULL) != DSP_E_PARAM) return false;
     if (dsp_check_stable(NULL) != DSP_E_PARAM) return false;
-    dsp_sos_t ok = { 0.5f, 0.25f, 0.125f, -0.5f, 0.25f }, bad = { 0.5f, 0.25f, 0.125f, -0.5f, 1.05f };
+    dsp_sos_t ok = { 0.5f, 0.25f, 0.125f, -0.5f, 0.25f, 0.0f, 0.0f }, bad = { 0.5f, 0.25f, 0.125f, -0.5f, 1.05f, 0.0f, 0.0f };
     if (dsp_check_stable(&ok) != DSP_OK || dsp_check_stable(&bad) != DSP_E_UNSTABLE) return false;
     printf("  PASS: validation & stability passed\n");
     return true;

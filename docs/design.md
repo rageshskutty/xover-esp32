@@ -117,8 +117,11 @@ Ramps: down >= 5 ms, up >= 20 ms. v1 swaps by mute-ramp-swap-ramp
 | Swap click | no step above -60 dBFS (G5) |
 | Allowed blocking calls in RT | i2s_channel_write, ring read with timeout |
 
-Float32 precision risk: an LR4 at 70 Hz, fs = 48 kHz has poles within about 0.0065
-of z = 1. If G4's noise floor or the 20 Hz+ response error fails, escalate in
+Float32 precision (ADR 0003, HOST-VERIFIED): crossover denominators are stored
+as float32 hi + lo pairs and `dsp_sos_process` runs the recursion in delta form
+(a1 = -2 + p, a2 = 1 - q), which met the 0.01 dB gate at 70 Hz. EQ blocks are
+still plain float32 and are not covered. An LR4 at 70 Hz, fs = 48 kHz has poles
+within about 0.0065 of z = 1. If G4's noise floor or the 20 Hz+ response error fails, escalate in
 this order: (1) DF1 with error feedback or a better structure on the low
 sections, (2) re-order the cascade, (3) double precision for those sections only
 (costs cycles; needs an ADR with measured numbers).

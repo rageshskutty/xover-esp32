@@ -30,7 +30,9 @@ tools/check.py implements the config-level codes and is the reference for them.
 ### 2.1 dspblocks (non-RT design, RT process)
     typedef enum { DSP_OK = 0, DSP_E_PARAM, DSP_E_RANGE, DSP_E_UNSTABLE,
                    DSP_E_UNSUPPORTED, DSP_E_NOMEM } dsp_err_t;
-    typedef struct { float b0, b1, b2, a1, a2; } dsp_sos_t;     /* a0 = 1 */
+    typedef struct { float b0, b1, b2, a1, a2, da1, da2; } dsp_sos_t; /* a0 = 1;
+                                   a1 + da1 and a2 + da2 are the double-precision
+                                   denominator (hi + lo), da* = 0 for EQ blocks */
     typedef struct { float z1, z2; } dsp_state_t;
     #define DSP_MAX_SOS 4                                        /* 8th order */
     typedef struct { dsp_sos_t sos[DSP_MAX_SOS]; uint8_t n; } dsp_cascade_t;

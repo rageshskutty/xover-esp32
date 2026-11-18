@@ -22,6 +22,10 @@ def butter_sos(order, mode, fc):
         qs = [1.0 / (2.0 * np.cos(k * np.pi / order)) for k in range(1, (order - 1) // 2 + 1)] + [-1.0]
     return [biquad(mode, fc, q) for q in qs]
 
+def lo(a):
+    """Low part of a float32 hi+lo pair: a == float32(a) + lo to about 1e-15."""
+    return float(a) - float(np.float32(a))
+
 def lr_sos(order, mode, fc):
     lr_qs = {2: [0.5], 4: [1/np.sqrt(2)]*2, 6: [1.0, 1.0, 0.5], 8: [1/(2*np.cos(np.pi/8))]*2 + [1/(2*np.cos(3*np.pi/8))]*2}
     return [biquad(mode, fc, q) for q in lr_qs[order]]
@@ -119,7 +123,7 @@ def main():
             fam = "DSP_FAMILY_BUTTERWORTH" if e["family"] == "Butterworth" else "DSP_FAMILY_LINKWITZ_RILEY"
             m = "DSP_MODE_LOWPASS" if e["mode"] == "lowpass" else "DSP_MODE_HIGHPASS"
             secs = e["sections"] + [[0.0]*5]*(4 - len(e["sections"]))
-            sos_str = ", ".join(f"{{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f }}" for s in secs)
+            sos_str = ", ".join(f"{{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f, {lo(s[3])}f, {lo(s[4])}f }}" for s in secs)
             mag_str = ", ".join(f"{v:.6f}" for v in e["mag_db"])
             phase_str = ", ".join(f"{v:.6f}" for v in e["phase_deg"])
             f.write(f"    {{ {fam}, {m}, {e['order']}U, {e['fc_hz']}, 48000.0, {len(e['sections'])}, {{ {sos_str} }}, {{ {mag_str} }}, {{ {phase_str} }} }},\n")
@@ -131,7 +135,7 @@ def main():
             s = e["sos"]
             mag_str = ", ".join(f"{v:.6f}" for v in e["mag_db"])
             phase_str = ", ".join(f"{v:.6f}" for v in e["phase_deg"])
-            f.write(f"    {{ \"{e['type']}\", {sh}, {e['f0_hz']}, {e.get('q', 0.0)}, {e.get('gain_db', 0.0)}, 48000.0, {{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f }}, {{ {mag_str} }}, {{ {phase_str} }} }},\n")
+            f.write(f"    {{ \"{e['type']}\", {sh}, {e['f0_hz']}, {e.get('q', 0.0)}, {e.get('gain_db', 0.0)}, 48000.0, {{ {s[0]}f, {s[1]}f, {s[2]}f, {s[3]}f, {s[4]}f, 0.0f, 0.0f }}, {{ {mag_str} }}, {{ {phase_str} }} }},\n")
         f.write(f"}};\n#define GOLDEN_EQ_COUNT {len(eq)}U\n")
     print(f"Generated {len(bw)} BW, {len(lr)} LR, {len(eq)} EQ golden vectors.")
 
