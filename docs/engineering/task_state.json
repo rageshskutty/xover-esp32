@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "basis": {
+    "repository": "rageshskutty/xover-esp32",
+    "base_branch": "main",
+    "base_commit": "cd2ae0d598fe7c414f4d128655083b0ffc5ec57d",
+    "inspected_at": "2026-11-18",
+    "verification": "REMOTE_SOURCE_INSPECTION_ONLY; no local checkout/build/hardware"
+  },
+  "active_task": null,
+  "items": [
+    {"id":"T06b1","state":"done","depends_on":[],"evidence":"Merged in main; current baseline."},
+    {"id":"T07a","state":"queued","depends_on":["T06b1"],"human_decisions":[]},
+    {"id":"T07b","state":"blocked","depends_on":["T07a"],"human_decisions":["protection record schema/limits owner review"]},
+    {"id":"T08a","state":"blocked","depends_on":["T06b1"],"human_decisions":["D1 module flash/PSRAM","D2 IDF version","D4 GPIO map","D5 PCM5122 board/straps","D6 protection limits"]},
+    {"id":"T08b","state":"blocked","depends_on":["T08a","T07b"],"human_decisions":["verified board pins/slots/registers and safe limits"]},
+    {"id":"T09a","state":"blocked","depends_on":["T06b1","accepted graph runtime API ADR"],"human_decisions":["review/freeze graph runtime API and arena sizing contract"]},
+    {"id":"T09b","state":"blocked","depends_on":["T09a","T07b","T08b","block-size/timing ADR"],"human_decisions":["resolve 64-frame/1ms timing conflict"]},
+    {"id":"T10a","state":"blocked","depends_on":["T09b"],"human_decisions":["D2 IDF","D3 Arduino pairing","D8 source scope"]},
+    {"id":"T10b","state":"blocked","depends_on":["T10a","T09b","T08b"],"human_decisions":["approved source/dependency"]},
+    {"id":"T11","state":"blocked","depends_on":["T07b","T09a","T09b","T08a"],"human_decisions":["IDF/pin and NVS owner decisions"]},
+    {"id":"T12","state":"blocked","depends_on":["T11","T09a"],"human_decisions":["T11/T09a completion"]},
+    {"id":"T13","state":"blocked","depends_on":["T03","T04"],"human_decisions":["VituixCAD version/input vector"]},
+    {"id":"T14","state":"blocked","depends_on":["T08b","T10b","T11","T12","T13"],"human_decisions":["human hardware bring-up log"]},
+    {"id":"T15","state":"blocked","depends_on":["T14"],"human_decisions":["D7 license","all measured gates"]}
+  ],
+  "critical_conflicts": [
+    {"id":"C1","description":"docs/design.md specifies 64 frames = 1.333 ms at 48 kHz; docs/PLAN.md G4 requires p99.9 <=0.60 ms and max <=1.00 ms. Resolve before runtime timing work."},
+    {"id":"C2","description":"Config/schema lists Bessel while device compilation rejects it as E_UNSUPPORTED; preserve rejection until normalization/implementation decision."},
+    {"id":"C3","description":"Repo says three PCM5122 on TDM, but pins/addresses/slot mapping and exact IDF/TDM driver compatibility are not confirmed."}
+  ],
+  "completion_record": null
+}
