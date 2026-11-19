@@ -41,7 +41,7 @@ List exact files changed, production LOC count, test names, command lines and ex
 **Bundle/test:** [T17 prompt](prompts/T17.md); committed `host/tests/test_tdm_pack.c`. Independent host card, 30–80 production LOC. Six planar channels map to slots 0–5 in design.md order; slots 6–7 are zero. Retain the invalid-slot rejection regression in `test_graph_validate` (`duplicate_slot.json`, E_SLOT).
 
 ## T18 — S7 ramp duration helper
-**Bundle/test:** [T18 prompt](prompts/T18.md); committed `host/tests/test_s7_ramp.c`. Independent host card, 30–80 production LOC. At 48 kHz, directional minima are 240/960 samples; float32 per-sample gain delta is <=`0.001f`, with adjacent-float boundary vectors around 240 frames.
+**Bundle/test:** [T18 prompt](prompts/T18.md); committed `host/tests/test_s7_ramp.c`. Independent host card, 30–80 production LOC. At 48 kHz, directional minima are 240/960 samples; float32 per-sample gain delta is <=`0.001f`, with adjacent-float boundary vectors around 250 frames.
 
 ## T19 — Fail-closed application state machine
 **Bundle/test:** [T19 prompt](prompts/T19.md); committed `host/tests/test_app_state_machine.c`. Independent host card, 30–80 production LOC. No transition can enter RUNNING without valid protection and config; tests cover FAULT from SWAP_WAIT/RAMP_UP and pending FAULT surviving invalidation during RAMP_DOWN. `FAULT_MUTED` is latched until reset/reinitialization; no runtime event clears it. Await CODEOWNERS and human safety review before execution; terminal fault behavior is safety-owned.
