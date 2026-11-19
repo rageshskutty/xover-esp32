@@ -2,10 +2,10 @@
   "schema_version": 2,
   "basis": {
     "repository": "rageshskutty/xover-esp32",
-    "base_branch": "architecture/7b-executable-engineering-plan",
-    "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
+    "base_branch": "architecture/7b-plan-overhaul-v2",
+    "base_commit": "f13984ed6577f28804298ab74203755d3ecca255",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; no local checkout or test execution; hardware unverified"
+    "verification": "REMOTE_GITHUB_API_INSPECTION; no local checkout or C test execution; hardware unverified; dependent planning PRs must land before task implementation"
   },
   "active_task": null,
   "decisions": [
@@ -28,6 +28,11 @@
       "id": "ADR-0010",
       "status": "planning-accepted",
       "approval": "CODEOWNERS required"
+    },
+    {
+      "id": "ADR-0011",
+      "status": "planning-accepted",
+      "approval": "CODEOWNERS required before implementation"
     }
   ],
   "items": [
@@ -69,21 +74,26 @@
       "id": "T07a5",
       "state": "blocked",
       "depends_on": [
-        "T07a4"
+        "T07a4",
+        "ADR-0011"
       ],
       "human_decisions": [
-        "maintainer approves internal seam",
-        "existing golden fixture availability"
+        "maintainer approves internal seam"
       ]
     },
     {
       "id": "T07a6",
       "state": "blocked",
       "depends_on": [
-        "T07a5"
+        "T07a1",
+        "T07a2",
+        "T07a3",
+        "T07a4",
+        "T07a5",
+        "ADR-0011"
       ],
       "human_decisions": [
-        "response propagation ADR and exact graph API"
+        "graph response propagation API and vectors approved"
       ]
     },
     {
@@ -114,7 +124,8 @@
       "id": "T09",
       "state": "blocked",
       "depends_on": [
-        "ADR-0007"
+        "ADR-0007",
+        "ADR-0011"
       ],
       "human_decisions": [
         "CODEOWNERS API approval",
@@ -133,6 +144,52 @@
       "human_decisions": [
         "dependency/license/source scope",
         "target evidence and human bring-up"
+      ]
+    },
+    {
+      "id": "T16",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T17",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T18",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T19",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T20",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T21",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": [
+        "CODEOWNERS review"
+      ]
+    },
+    {
+      "id": "T22",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": [
+        "CODEOWNERS review"
       ]
     }
   ],
