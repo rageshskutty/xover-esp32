@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); return 1; } while (0)
+#define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); return 1; } } while (0)
 
 int main(void)
 {
