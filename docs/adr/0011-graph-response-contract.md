@@ -25,7 +25,13 @@ no state. Reset clears every allocated node-channel state.
 ### Response evaluation
 `dspg_eval` is core-0-only and read-only. It evaluates the active graph's
 linear complex response in stable topological order at caller-supplied finite,
-strictly increasing frequencies in [10, 20000] Hz. The caller selects
+strictly increasing frequencies in [10, 20000] Hz, with 1 <= n_frequencies <=
+2048 (the protection grid is at most 1070 points; larger counts return -1 and
+leave output arrays untouched). The cost of one call is roughly
+n_frequencies * sections of software double-precision complex arithmetic on
+core 0; its worst case on the target is UNMEASURED, and the implementation
+must yield between frequency chunks. A measured on-target worst case is
+required before acceptance. The caller selects
 `input_channel` (0 or 1) as well as `out_id`. For each frequency, the selected
 input channel is driven with a unit complex signal and the other input channel
 with zero; all input nodes assigned to the selected channel receive that same
@@ -88,7 +94,16 @@ application treats it as a fault exactly like a storage fault: mute, enter the
 fail-closed fault path, never publish the selector, do not report success. The
 transaction gate is released in every outcome (success, rejection, storage
 fault, timeout). While the latched fault state is active, config mutations
-return `E_BUSY`, so a released gate cannot race an unresolved swap. Power loss
+return `E_BUSY`, so a released gate cannot race an unresolved swap. Config mutations are also rate-floored: at most one persisted
+mutation is accepted per 1000 ms; an earlier POST or PUT returns `E_BUSY`
+before building or writing. This is a floor, not a wear budget: at one write
+per second alternating two slots each slot is erased about 43,200 times a
+day, so a 100,000-cycle flash class would be exhausted in about 2.3 days of
+sustained updates, ignoring any wear-levelling in the storage layer.
+HUMAN DECISION OPEN: set the flash wear budget and decide whether variable
+updates persist on every change, are debounced, or apply live and persist on an
+explicit commit. That changes the persist-before-swap ordering above, so it is
+deliberately not decided here. Power loss
 before the selector update boots the previous slot. No network/API path can alter the
 protection snapshot. This transaction ordering is a planning contract and
 requires human safety review before implementation.

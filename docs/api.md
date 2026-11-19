@@ -174,8 +174,9 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 | GET | /limits | - | 200 the device protection records (read-only) | - |
 
 Rules: a failed POST or PUT leaves the running config untouched. Config
-mutations are serialized; a concurrent POST or PUT returns `E_BUSY` without
-building or writing a candidate. `PUT /vars/{name}` constructs a complete
+mutations are serialized and rate-floored to one per 1000 ms; a concurrent or
+too-early POST or PUT returns `E_BUSY` without building or writing a candidate.
+The wear budget is an open human decision (ADR 0011). `PUT /vars/{name}` constructs a complete
 protected candidate using `dspg_set_var`, writes and verifies the inactive
 slot, then requests the normal owner-acknowledged graph swap. The active-slot
 selector changes only after swap acknowledgment. A swap rejection leaves the old graph and selector
@@ -187,7 +188,8 @@ implementation. `/response` uses `dspg_eval`; the request names `out` and
 on that input channel, with the other input channel zero, to the selected
 output. Mixed paths on that channel are summed in declared edge order. It does
 not combine the two input channels into one response. Response frequencies
-are finite, strictly increasing, and in [10, 20000] Hz. mDNS name
+are finite, strictly increasing, and in [10, 20000] Hz; `points` is 2..1024 on
+the HTTP request and `dspg_eval` accepts 1..2048 frequencies (ADR 0011). mDNS name
 `xover.local`. Max 4 concurrent connections.
 
 ## 5. NVS layout
