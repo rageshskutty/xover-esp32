@@ -50,10 +50,10 @@ List exact files changed, production LOC count, test names, command lines and ex
 **Bundle/test:** [T20 prompt](prompts/T20.md); committed `host/tests/test_config_slot.c`. Independent host card, 30–80 production LOC. CRC-32/ISO-HDLC plus pure header validation and active/fallback selection; no flash or NVS access.
 
 ## T21 — Request bounds
-**Bundle/test:** [T21 prompt](prompts/T21.md); committed `host/tests/test_request_bounds.c`. Independent host card, 30–80 production LOC. Enforces body 1..32768 bytes, depth 1..8, nodes <=64, strings <=32; retains E_NODE_PARAM rejection regression.
+**Bundle/test:** [T21 prompt](prompts/T21.md); committed `host/tests/test_request_bounds.c`. Independent host card, 30–80 production LOC. Enforces body 1..32768 bytes, depth 1..8, nodes <=64, strings <=32. Do not modify test_graph_validate; the full host suite must stay green. Await CODEOWNERS review before execution.
 
 ## T22 — Token authentication comparison
-**Bundle/test:** [T22 prompt](prompts/T22.md); committed `host/tests/test_token_auth.c`. Independent host card, 30–80 production LOC. Fixed 32-byte content loop, no early exit, bounded caller buffers; retains E_NODE_PARAM rejection regression.
+**Bundle/test:** [T22 prompt](prompts/T22.md); committed `host/tests/test_token_auth.c`. Independent host card, 30–80 production LOC. Fixed 32-byte content loop, no early exit, bounded caller buffers. Do not modify test_graph_validate; the full host suite must stay green. Await CODEOWNERS review before execution.
 
 ## T07b — Protection storage and provisioning
 **State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
