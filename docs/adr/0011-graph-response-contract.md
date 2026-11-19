@@ -45,9 +45,11 @@ Required response vectors: an identity route from input channel 0 to an output
 returns 0 dB/0 degrees for input_channel=0 and -300 dB/0 degrees when only
 input channel 1 reaches that output; evaluate the reciprocal route the same
 way. A 0.5 linear gain on the selected path returns -6.020599913 dB within
-1e-5 dB. A mix sums complex path responses for the selected input channel in
-declared edge order before converting to dB/phase. `input_channel=2` is
-rejected and leaves output arrays untouched.
+1e-5 dB. A mix of two same-phase unity paths from the selected channel returns
+6.020599913 dB within 1e-5 dB; adding an inverted unity path cancels to
+-300 dB/0 degrees. Mix sums complex path responses in declared edge order
+before converting to dB/phase. `input_channel=2` is rejected and leaves
+output arrays untouched.
 
 ### Variable update
 `dspg_set_var` never mutates the active graph. It creates a complete candidate

@@ -175,10 +175,10 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 
 Rules: a failed POST or PUT leaves the running config untouched. Config
 mutations are serialized; a concurrent POST or PUT returns `E_BUSY` without
-building or writing a candidate. `PUT /vars/{name}` constructs a complete protected candidate
-using `dspg_set_var`, writes and verifies the inactive slot, then requests the
-normal owner-acknowledged graph swap. The active-slot selector changes only
-after swap acknowledgment. A swap rejection leaves the old graph and selector
+building or writing a candidate. `PUT /vars/{name}` constructs a complete
+protected candidate using `dspg_set_var`, writes and verifies the inactive
+slot, then requests the normal owner-acknowledged graph swap. The active-slot
+selector changes only after swap acknowledgment. A swap rejection leaves the old graph and selector
 active; a selector-write failure after acknowledgment is a storage fault and
 must mute/fail closed. A staged inactive slot without an active-selector
 change is ignored at boot. This ordering requires human safety review before
