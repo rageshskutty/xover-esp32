@@ -29,31 +29,31 @@ List exact files changed, production LOC count, test names, command lines and ex
 
 ## T07a5 — Compiled-node response evaluator
 **Bundle/test:** [T07a5 prompt](prompts/T07a5.md); committed `host/tests/test_node_response.c`.
-**Dependencies:** T07a4, ADR 0011, and maintainer approval of the internal seam. Single-node response only. Reuses the rbj_eq.json golden (-6.000003627305285 dB); never regenerate it.
+**Dependencies:** T07a4, ADR 0011, and CODEOWNERS/maintainer approval of the internal seam before implementation. Single-node response only. Reuses the rbj_eq.json golden (-6.000003627305285 dB); denominator convention is `1 + a1*z^-1 + a2*z^-2` with stored signs unchanged. Test invalid pointers, frequencies, sample rates, empty cascades, non-finite results, and unchanged output sentinels; never regenerate the golden.
 
 ## T07a6 — Protection comparator integration
 **State:** blocked; no executable bundle yet. Depends on T07a1–a5 and ADR 0011 graph response semantics and signature. Do not start until graph propagation tests and CODEOWNERS review are complete.
 
 ## T16 — SPSC audio frame ring
-**Bundle/test:** [T16 prompt](prompts/T16.md); committed `host/tests/test_spsc_ring.c`. Independent host card, 30–80 production LOC. Caller-owned storage, C11 acquire/release, immediate partial read/write; caller owns blocking/backpressure.
+**Bundle/test:** [T16 prompt](prompts/T16.md); committed `host/tests/test_spsc_ring.c`. Independent host card, 30–80 production LOC. Caller-owned storage, C11 acquire/release, immediate partial read/write; overflow-safe modulo-2*capacity count; threaded producer/consumer stress under TSan. Caller owns blocking/backpressure.
 
 ## T17 — Pure TDM slot packer
 **Bundle/test:** [T17 prompt](prompts/T17.md); committed `host/tests/test_tdm_pack.c`. Independent host card, 30–80 production LOC. Six planar channels map to slots 0–5 in design.md order; slots 6–7 are zero. Retain the invalid-slot rejection regression in `test_graph_validate` (`duplicate_slot.json`, E_SLOT).
 
 ## T18 — S7 ramp duration helper
-**Bundle/test:** [T18 prompt](prompts/T18.md); committed `host/tests/test_s7_ramp.c`. Independent host card, 30–80 production LOC. At 48 kHz, directional minima are 240/960 samples; linear gain delta is at most 0.001 per sample.
+**Bundle/test:** [T18 prompt](prompts/T18.md); committed `host/tests/test_s7_ramp.c`. Independent host card, 30–80 production LOC. At 48 kHz, directional minima are 240/960 samples; float32 per-sample gain delta is <=`0.001f`, with adjacent-float boundary vectors around 240 frames.
 
 ## T19 — Fail-closed application state machine
-**Bundle/test:** [T19 prompt](prompts/T19.md); committed `host/tests/test_app_state_machine.c`. Independent host card, 30–80 production LOC. No transition can enter RUNNING without valid protection and config; ramps and owner acknowledgments remain caller events.
+**Bundle/test:** [T19 prompt](prompts/T19.md); committed `host/tests/test_app_state_machine.c`. Independent host card, 30–80 production LOC. No transition can enter RUNNING without valid protection and config; tests cover FAULT from SWAP_WAIT/RAMP_UP and pending FAULT surviving invalidation during RAMP_DOWN. Await CODEOWNERS and human safety review before execution; terminal fault behavior is safety-owned.
 
 ## T20 — Config CRC and A/B slot selection
-**Bundle/test:** [T20 prompt](prompts/T20.md); committed `host/tests/test_config_slot.c`. Independent host card, 30–80 production LOC. CRC-32/ISO-HDLC plus pure header validation and active/fallback selection; no flash or NVS access.
+**Bundle/test:** [T20 prompt](prompts/T20.md); committed `host/tests/test_config_slot.c`. Independent host card, 30–80 production LOC. CRC-32/ISO-HDLC plus pure header validation and active/fallback selection; no flash or NVS access. Application transaction stages and verifies inactive data before owner swap acknowledgment, then flips the active selector; storage-fault behavior needs human safety review before integration.
 
 ## T21 — Request bounds
 **Bundle/test:** [T21 prompt](prompts/T21.md); committed `host/tests/test_request_bounds.c`. Independent host card, 30–80 production LOC. Enforces body 1..32768 bytes, depth 1..8, nodes <=64, strings <=32. Do not modify test_graph_validate; the full host suite must stay green. Await CODEOWNERS review before execution.
 
 ## T22 — Token authentication comparison
-**Bundle/test:** [T22 prompt](prompts/T22.md); committed `host/tests/test_token_auth.c`. Independent host card, 30–80 production LOC. Fixed 32-byte content loop, no early exit, bounded caller buffers. Do not modify test_graph_validate; the full host suite must stay green. Await CODEOWNERS review before execution.
+**Bundle/test:** [T22 prompt](prompts/T22.md); committed `host/tests/test_token_auth.c`. Independent host card, 30–80 production LOC. Fixed 32-byte content loop, no early exit, token padding bytes ignored, lengths 0/1/32/>32 covered. Do not modify test_graph_validate; the full host suite must stay green. Await CODEOWNERS review before execution.
 
 ## T07b — Protection storage and provisioning
 **State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
@@ -76,3 +76,4 @@ Before beginning, the task bundle must give: one objective; exact paths; immutab
 5. Host logic has no ESP-IDF/hardware dependency.
 6. Human/hardware gates are clearly blocked, never guessed.
 7. Retry protocol is bounded and output is diff-only.
+

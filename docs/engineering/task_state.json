@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-plan-overhaul-v2",
     "base_commit": "f13984ed6577f28804298ab74203755d3ecca255",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_API_INSPECTION; graph validator and host flags reviewed; no local checkout or C test execution; hardware unverified"
+    "verification": "LIVE_PR_HEADS_VERIFIED_VIA_GITHUB_API; python tools/check.py HOST_VERIFIED_PASS in remediation worktrees; fixtures remain unregistered and no C implementation test was executable because GCC and Clang are unavailable; hardware unverified"
   },
   "active_task": null,
   "decisions": [
@@ -32,7 +32,7 @@
     {
       "id": "ADR-0011",
       "status": "planning-accepted",
-      "approval": "CODEOWNERS required before implementation"
+      "approval": "CODEOWNERS and human safety review required before implementation; response input-channel and PUT transaction semantics were clarified in remediation"
     }
   ],
   "items": [
@@ -91,7 +91,7 @@
         "ADR-0011"
       ],
       "human_decisions": [
-        "maintainer approves internal seam"
+        "CODEOWNERS and maintainer approve internal response seam and denominator convention"
       ]
     },
     {
@@ -105,7 +105,8 @@
         "ADR-0011"
       ],
       "human_decisions": [
-        "graph response propagation API and vectors approved"
+        "CODEOWNERS approval of graph response API",
+        "human approval of input-channel semantics and response vectors"
       ]
     },
     {
@@ -178,9 +179,12 @@
     },
     {
       "id": "T19",
-      "state": "queued",
+      "state": "awaiting_approval",
       "depends_on": [],
-      "human_decisions": []
+      "human_decisions": [
+        "CODEOWNERS review of fault transitions",
+        "human safety review of terminal FAULT_MUTED behavior"
+      ]
     },
     {
       "id": "T20",
@@ -207,3 +211,4 @@
   ],
   "completion_record": null
 }
+
