@@ -1,3 +1,4 @@
+#include "dspgraph.h"
 #include "dspgraph_protect.h"
 
 #include <math.h>
