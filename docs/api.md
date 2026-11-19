@@ -1,8 +1,6 @@
 # API contracts
 
-Status: PROPOSED. Frozen at the review of task T06; after that, changes need an
-ADR (AGENTS.md C5). Names are proposals; an agent may refine them in the task
-that implements them, in the same PR, if the contract here is updated.
+Status: FROZEN for existing DSP APIs. Graph build/runtime contract is ADR 0007; implementation requires CODEOWNERS review.
 
 ## 1. Error codes (shared by C and HTTP)
 | code | meaning |
@@ -91,30 +89,25 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
     typedef struct dspg dspg_t;
     typedef struct { char code[20]; char path[48]; char msg[96]; } dspg_issue_t;
     typedef struct { dspg_issue_t items[8]; uint8_t n; } dspg_report_t;
-    typedef struct { char out_id[16]; float max_gain_db;
+    typedef struct { char out_id[32]; float max_gain_db;
                      float stop_below_hz, atten_below_db;
                      float stop_above_hz, atten_above_db; } dspg_protect_t;
-
+    typedef struct { void *memory; size_t size; } dspg_arena_t;
+    typedef struct { uint16_t output_mask; uint16_t max_frames; size_t required_bytes; } dspg_info_t;
     #define DSPG_MAX_ISSUES 8U
-    /* core 0. Parse and validate only (T06a3, ADR 0006). 0 = valid, -1 = rejected;
-       the report lists up to 8 issues. dspg_build calls this first. */
+
+    /* core 0; 0 valid, -1 rejected. Existing API, ADR 0006. */
     int dspg_validate(const char *json, size_t len, dspg_report_t *report);
+    /* core 0; caller arena aligned to max_align_t; *out NULL on any failure. ADR 0007. */
+    int dspg_build(const char *json, size_t len, const dspg_protect_t *protect,
+                   size_t n_protect, dspg_arena_t arena, dspg_t **out,
+                   dspg_info_t *info, dspg_report_t *report);
+    /* DSP owner only; 1..64 frames; planar; no aliasing or allocation. */
+    int dspg_process(dspg_t *g, const float *const input[2],
+                     float *const output[8], uint32_t n_frames);
+    void dspg_reset(dspg_t *g);
 
-    /* core 0. Parses, validates, designs filters, applies protection.
-       On failure returns NULL and fills the report; never touches the live graph. */
-    dspg_t *dspg_build(const char *json, size_t len,
-                       const dspg_protect_t *protect, size_t n_protect,
-                       dspg_report_t *report);
-    int  dspg_set_var(dspg_t *g, const char *name, double value, dspg_report_t *r);
-    int  dspg_eval(const dspg_t *g, const char *out_id, double f_hz, double *re, double *im);
-    void dspg_free(dspg_t *g);
-
-    /* engine: submit from core 0, consumed by the DSP task at a block boundary */
-    int  dspg_engine_submit(dspg_t *g);                 /* E_BUSY if a swap is pending */
-    /* RT (file dspg_rt.c): float planar buffers, n_frames <= 64 */
-    void dspg_engine_process(const float *const in[2], float *const out[8], uint32_t n_frames);
-    typedef struct { uint32_t blocks, underruns, clips, faults, max_cycles, p999_cycles; } dspg_stats_t;
-    void dspg_engine_stats(dspg_stats_t *s);
+Build requires one valid protection record for each output and cannot bypass evaluation. Disabled-band encoding is edge=0.0f and matching attenuation=0.0f; see ADR 0008. Arena reclaim only follows owner acknowledgment; no graph free API exists.
 
 ### 2.3 audiosrc
     int  audiosrc_init(size_t ring_frames);             /* internal SRAM ring */
@@ -179,3 +172,7 @@ only plots. mDNS name `xover.local`. Max 4 concurrent connections.
 Config JSON is stored in the `xocfg_a` / `xocfg_b` partitions (64 KB each) with a
 header {magic, version, length, crc32}. The inactive slot is written first, then
 `active_slot` flips; a bad CRC at boot falls back to the other slot.
+
+## Frozen planning authority
+
+ADR 0007 defines the only graph runtime API; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
