@@ -1,7 +1,9 @@
 #include "audiosrc_ring.h"
 
 #include <pthread.h>
+#include <sched.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); return 1; } } while (0)
@@ -25,6 +27,7 @@ static void *threaded_writer(void *opaque)
             ++value;
         } else {
             ++attempts;
+            sched_yield();
         }
     }
     if (value <= THREAD_FRAMES) atomic_store(&ctx->failed, true);
@@ -46,6 +49,7 @@ static void *threaded_reader(void *opaque)
             ++expected;
         } else {
             ++attempts;
+            sched_yield();
         }
     }
     if (expected <= THREAD_FRAMES) atomic_store(&ctx->failed, true);
