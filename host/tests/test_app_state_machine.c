@@ -45,7 +45,7 @@ int main(void)
     STEP(SM_EV_RAMP_DONE, SM_FAULT_MUTED);
     STEP(SM_EV_START, SM_FAULT_MUTED);
     CHECK(app_sm_step(NULL, SM_EV_START) == -1);
-    CHECK(app_sm_step(&sm, (app_sm_event_t)99) == -1);
+    CHECK(app_sm_step(&sm, (app_sm_event_t)99) == -1 && sm.state == SM_FAULT_MUTED);
     puts("PASS: fail-closed state transitions");
     return 0;
 }
