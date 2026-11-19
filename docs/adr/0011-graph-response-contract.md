@@ -78,8 +78,18 @@ the swap does the application publish the new active-slot selector and report
 success. If the owner rejects the swap, the old graph remains active and the
 selector remains on the old slot; the staged inactive slot is ignored at boot.
 A selector-write failure after an acknowledged swap is a storage fault: mute
-and enter the fail-closed fault path; do not report success. Power loss before
-the selector update boots the previous slot. No network/API path can alter the
+and enter the fail-closed fault path; do not report success. The response is a
+non-2xx error, the new graph is live but muted by the fault path, and the
+selector still names the old slot, so recovery after review boots the previous
+config and ignores the verified staged slot. The owner must acknowledge the
+swap within 250 ms (planning value, requires human review). On timeout the
+swap state is unknown because the owner may still complete it, so the
+application treats it as a fault exactly like a storage fault: mute, enter the
+fail-closed fault path, never publish the selector, do not report success. The
+transaction gate is released in every outcome (success, rejection, storage
+fault, timeout). While the latched fault state is active, config mutations
+return `E_BUSY`, so a released gate cannot race an unresolved swap. Power loss
+before the selector update boots the previous slot. No network/API path can alter the
 protection snapshot. This transaction ordering is a planning contract and
 requires human safety review before implementation.
 
@@ -89,7 +99,11 @@ swap leaves the old graph and selector active and the staged slot is ignored
 at boot; when one config mutation holds the gate, a concurrent POST or PUT
 returns `E_BUSY` and leaves graph, candidate state, slot contents, and selector
 unchanged; a selector-write failure after swap acknowledgment enters the muted
-fault path and the request does not report success.
+fault path, the request does not report success, the selector keeps naming
+the old slot, and a reboot after review selects it; an owner acknowledgment
+that does not arrive within 250 ms enters the same muted fault path, the
+selector is never written, and the gate is released; while the fault is
+latched, a POST or PUT returns `E_BUSY` and builds and writes nothing.
 
 ### Stats seam
 `dspg_stats_t` is a snapshot of graph-runtime counters only:
