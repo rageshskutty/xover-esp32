@@ -40,7 +40,8 @@
       "id": "T07a1",
       "state": "queued",
       "depends_on": [
-        "ADR-0010"
+        "ADR-0010",
+        "ADR-0011"
       ],
       "human_decisions": [
         "CODEOWNERS contract approval"
