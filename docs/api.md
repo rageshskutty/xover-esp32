@@ -1,6 +1,6 @@
 # API contracts
 
-Status: FROZEN for existing DSP APIs. Graph build/runtime contract is ADR 0007; implementation requires CODEOWNERS review.
+Status: FROZEN planning contract. Graph build/runtime is ADR 0007; response, variable update, and graph stats are ADR 0011. Public header changes require CODEOWNERS review.
 
 ## 1. Error codes (shared by C and HTTP)
 | code | meaning |
@@ -89,6 +89,7 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
     typedef struct dspg dspg_t;
     typedef struct { char code[20]; char path[48]; char msg[96]; } dspg_issue_t;
     typedef struct { dspg_issue_t items[8]; uint8_t n; } dspg_report_t;
+    /* Public device protection record; normative bounds and encoding: ADR 0008. */
     typedef struct { char out_id[32]; float max_gain_db;
                      float stop_below_hz, atten_below_db;
                      float stop_above_hz, atten_above_db; } dspg_protect_t;
@@ -107,7 +108,24 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
                      float *const output[8], uint32_t n_frames);
     void dspg_reset(dspg_t *g);
 
-Build requires one valid protection record for each output and cannot bypass evaluation. Disabled-band encoding is edge=0.0f and matching attenuation=0.0f; see ADR 0008. Arena reclaim only follows owner acknowledgment; no graph free API exists.
+    /* Core 0, creates a new unpublished graph; never mutates active. ADR 0011. */
+    int dspg_set_var(const dspg_t *active, const char *name, double value,
+                     dspg_arena_t candidate_arena, dspg_t **candidate,
+                     dspg_info_t *info, dspg_report_t *report);
+    /* Core 0, read-only complex response evaluation. ADR 0011. */
+    int dspg_eval(const dspg_t *g, const char *out_id,
+                  const double *frequency_hz, size_t n_frequencies,
+                  double *magnitude_db, double *phase_deg,
+                  dspg_report_t *report);
+    typedef struct {
+        uint32_t blocks_processed, nonfinite_faults, clips, underruns;
+        uint64_t cycles_total;
+        uint32_t cycles_max;
+    } dspg_stats_t;
+    /* DSP owner only; copies a graph-runtime counter snapshot. ADR 0011. */
+    int dspg_get_stats(const dspg_t *g, dspg_stats_t *stats);
+
+Build requires one valid public `dspg_protect_t` record for each output and cannot bypass evaluation. Disabled-band encoding is edge=0.0f and matching attenuation=0.0f; see ADR 0008. Arena reclaim only follows owner acknowledgment; no graph free API exists. Variable updates build a new protected candidate and publish it only after persistence and owner acknowledgment. See ADR 0011 for response propagation and state ownership.
 
 ### 2.3 audiosrc
     int  audiosrc_init(size_t ring_frames);             /* internal SRAM ring */
@@ -155,9 +173,12 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 | POST | /mute | {mute:bool} | 200 | 401 |
 | GET | /limits | - | 200 the device protection records (read-only) | - |
 
-Rules: a failed POST or PUT leaves the running config untouched. `/response`
-is computed by the device from its real coefficients (`dspg_eval`), so the page
-only plots. mDNS name `xover.local`. Max 4 concurrent connections.
+Rules: a failed POST or PUT leaves the running config untouched. `PUT /vars/{name}` constructs a complete protected candidate using `dspg_set_var`;
+it persists the candidate, then requests the normal owner-acknowledged graph
+swap. Failure leaves the active config and graph untouched. `/response` uses
+`dspg_eval` and returns the active graph's real complex response; response
+frequencies are finite, strictly increasing, and in [10, 20000] Hz. mDNS name
+`xover.local`. Max 4 concurrent connections.
 
 ## 5. NVS layout
 | namespace | key | value |
@@ -175,4 +196,4 @@ header {magic, version, length, crc32}. The inactive slot is written first, then
 
 ## Frozen planning authority
 
-ADR 0007 defines the only graph runtime API; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
+ADR 0007 defines graph build/runtime ownership; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries; ADR 0011 defines response, variable-update, stats, and per-channel state APIs. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
