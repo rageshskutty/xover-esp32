@@ -33,6 +33,7 @@ int main(void)
     n.casc.sos[0].b0 = 0.9419532704755859f;
     n.casc.sos[0].b1 = -1.7521412913270318f;
     n.casc.sos[0].b2 = 0.8253071789851647f;
+    /* Denominator is 1 + a1*z^-1 + a2*z^-2; use stored signs as-is. */
     n.casc.sos[0].a1 = -1.7521412913270318f;
     n.casc.sos[0].a2 = 0.7672604494607507f;
     CHECK(magnitude_is(&n, -6.000003627305285) == 0);
@@ -41,6 +42,23 @@ int main(void)
     CHECK(dspg_node_response(NULL, 48000.0, 1000.0, &re, &im) == -1);
     n.kind = K_INPUT;
     CHECK(dspg_node_response(&n, 48000.0, NAN, &re, &im) == -1);
+    CHECK(re == 7.0 && im == 8.0);
+    CHECK(dspg_node_response(NULL, 48000.0, 1000.0, &re, &im) == -1);
+    CHECK(re == 7.0 && im == 8.0);
+    CHECK(dspg_node_response(&n, 0.0, 1000.0, &re, &im) == -1);
+    CHECK(dspg_node_response(&n, INFINITY, 1000.0, &re, &im) == -1);
+    CHECK(dspg_node_response(&n, 48000.0, 0.0, &re, &im) == -1);
+    CHECK(dspg_node_response(&n, 48000.0, 24000.0, &re, &im) == -1);
+    CHECK(dspg_node_response(&n, 48000.0, INFINITY, &re, &im) == -1);
+    CHECK(dspg_node_response(&n, 48000.0, 1000.0, NULL, &im) == -1);
+    CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, NULL) == -1);
+    n.kind = K_CASCADE; n.casc.n = 0U;
+    CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, &im) == -1);
+    CHECK(re == 7.0 && im == 8.0);
+    n.kind = K_GAIN; n.gain = NAN;
+    CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, &im) == -1);
+    CHECK(re == 7.0 && im == 8.0);
     puts("PASS: compiled node response contract");
     return 0;
 }
+
