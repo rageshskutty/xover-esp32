@@ -1,0 +1,51 @@
+#include "app_state_machine.h"
+
+#include <stdio.h>
+
+#define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); return 1; } } while (0)
+#define STEP(e, s) do { CHECK(app_sm_step(&sm, (e)) == 0); CHECK(sm.state == (s)); } while (0)
+
+int main(void)
+{
+    app_sm_t sm;
+    app_sm_init(&sm);
+    CHECK(sm.state == SM_MUTED);
+    STEP(SM_EV_START, SM_MUTED);
+    STEP(SM_EV_PROTECTION_VALID, SM_MUTED);
+    STEP(SM_EV_START, SM_MUTED);
+    STEP(SM_EV_CONFIG_VALID, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_STOP, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_SWAP_REQUEST, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_SWAP_WAIT);
+    STEP(SM_EV_SWAP_ACK, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_SWAP_REQUEST, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_SWAP_WAIT);
+    STEP(SM_EV_SWAP_FAIL, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_CONFIG_INVALID, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_MUTED);
+    STEP(SM_EV_PROTECTION_VALID, SM_MUTED);
+    STEP(SM_EV_CONFIG_VALID, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_PROTECTION_INVALID, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_MUTED);
+    STEP(SM_EV_PROTECTION_VALID, SM_READY_MUTED);
+    STEP(SM_EV_START, SM_RAMP_UP);
+    STEP(SM_EV_RAMP_DONE, SM_RUNNING);
+    STEP(SM_EV_FAULT, SM_RAMP_DOWN);
+    STEP(SM_EV_RAMP_DONE, SM_FAULT_MUTED);
+    STEP(SM_EV_START, SM_FAULT_MUTED);
+    CHECK(app_sm_step(NULL, SM_EV_START) == -1);
+    CHECK(app_sm_step(&sm, (app_sm_event_t)99) == -1);
+    puts("PASS: fail-closed state transitions");
+    return 0;
+}
