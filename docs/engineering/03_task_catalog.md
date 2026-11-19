@@ -13,7 +13,7 @@ List exact files changed, production LOC count, test names, command lines and ex
 
 ## T07a1 — Protection record validator
 **Bundle/test:** [T07a1 prompt](prompts/T07a1.md); committed `host/tests/test_protect_record.c`.
-**Dependency:** T07a0. Implements shared field validation and record/output set validation. Comparator and grid cards reuse dspg_protect_fields_valid.
+**Dependency:** T07a0. Implements shared field validation and record/output set validation. The fixture includes isolated NaN-edge and empty-record-ID vectors. It remains unregistered in this planning PR; ASan/UBSan verification is pending the implementation task registering/linking it. Comparator and grid cards reuse dspg_protect_fields_valid.
 
 ## T07a2 — Protection curve comparator
 **Bundle/test:** [T07a2 prompt](prompts/T07a2.md); committed `host/tests/test_protect.c`.
