@@ -40,13 +40,16 @@ def docs_text():
 
 
 def planned_symbol(stderr, docs):
+    # gcc says "'true' is defined in header '<stdbool.h>'" for standard names:
+    # those are missing includes in the fixture, never planned project API.
+    standard = set(re.findall(r"'(\w+)' is defined in header", stderr))
     for line in stderr.splitlines():
         if " error: " not in line:
             continue
         m = (re.search(r"'(\w+)' undeclared", line) or
              re.search(r"unknown type name '?(\w+)'?", line) or
              re.search(r"implicit declaration of function '?(\w+)'?", line))
-        if m and re.search(r"\b%s\b" % re.escape(m.group(1)), docs):
+        if m and m.group(1) not in standard and re.search(r"\b%s\b" % re.escape(m.group(1)), docs):
             return m.group(1)
         return None
     return None
