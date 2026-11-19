@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-plan-overhaul-v2",
     "base_commit": "f13984ed6577f28804298ab74203755d3ecca255",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_API_INSPECTION; no local checkout or C test execution; hardware unverified; dependent planning PRs must land before task implementation"
+    "verification": "REMOTE_GITHUB_API_INSPECTION; graph validator and host flags reviewed; no local checkout or C test execution; hardware unverified"
   },
   "active_task": null,
   "decisions": [
@@ -37,29 +37,41 @@
   ],
   "items": [
     {
-      "id": "T07a1",
-      "state": "queued",
+      "id": "T07a0",
+      "state": "awaiting_approval",
       "depends_on": [
-        "ADR-0010",
         "ADR-0011"
       ],
       "human_decisions": [
-        "CODEOWNERS contract approval"
+        "CODEOWNERS public header approval"
+      ]
+    },
+    {
+      "id": "T07a1",
+      "state": "awaiting_approval",
+      "depends_on": [
+        "T07a0"
+      ],
+      "human_decisions": [
+        "CODEOWNERS record validation approval"
       ]
     },
     {
       "id": "T07a2",
-      "state": "blocked",
+      "state": "awaiting_approval",
       "depends_on": [
-        "T07a1"
+        "T07a1",
+        "ADR-0010"
       ],
-      "human_decisions": []
+      "human_decisions": [
+        "CODEOWNERS comparator approval"
+      ]
     },
     {
       "id": "T07a3",
       "state": "blocked",
       "depends_on": [
-        "T07a2"
+        "T07a1"
       ],
       "human_decisions": []
     },
@@ -86,7 +98,6 @@
       "id": "T07a6",
       "state": "blocked",
       "depends_on": [
-        "T07a1",
         "T07a2",
         "T07a3",
         "T07a4",
@@ -179,7 +190,7 @@
     },
     {
       "id": "T21",
-      "state": "queued",
+      "state": "awaiting_approval",
       "depends_on": [],
       "human_decisions": [
         "CODEOWNERS review"
@@ -187,7 +198,7 @@
     },
     {
       "id": "T22",
-      "state": "queued",
+      "state": "awaiting_approval",
       "depends_on": [],
       "human_decisions": [
         "CODEOWNERS review"

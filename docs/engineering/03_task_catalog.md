@@ -1,32 +1,35 @@
 # 7B execution catalog (planning iteration 2)
 
-**Authority:** ADRs 0007–0011 and docs/api.md. Catalog owns task dependencies and status; each linked prompt is the complete implementation work order. If a card disagrees with an ADR/header, stop and report; never edit the interface.
-**Baseline:** branch parent `architecture/7b-executable-engineering-plan` at `d8ce744e06edf0c05a50734d7e2ec13c764cebf2`; T06b1 code is present. No runtime graph execution or protection evaluator exists.
+**Authority:** ADRs 0007–0011 and docs/api.md. Catalog owns task dependencies and status; each linked prompt is the complete implementation work order. If a card disagrees with an ADR/header, stop and report; never edit the interface. `awaiting_approval` means the prompt and test are ready, but every listed human decision in task_state.json must be recorded as approved before work starts. `queued` means dependencies are complete and no human decision is open. `blocked` means a dependency or executable bundle is missing.
+**Baseline:** branch `architecture/7b-plan-overhaul-v2` at `f13984ed6577f28804298ab74203755d3ecca255`; T06b1 code is present. No runtime graph execution or protection evaluator exists.
 **Card sizing:** one card changes one behavior in one module. Target 30–80 handwritten production LOC; tests/golden data and generated files excluded. If estimation exceeds 80 production LOC, split before coding. The planning model commits every test before implementation; the 7B only registers that test and writes production code to make it pass. All task tests stay unregistered until their card begins. The sole exception is test-only T07a4, whose baseline is expected to pass.
 
 ## Required completion evidence (every card)
 List exact files changed, production LOC count, test names, command lines and exit codes, expected baseline evidence, final test output, diff summary, and deviations. Run `python tools/check.py`, host build and CTest. Run sanitizer host suite when the card touches parsing/graph math. Hardware results are UNVERIFIED unless an owner records them in bringup-log.md. No golden regeneration to make a failure pass.
 
-## T07a1 — Protection curve comparator
-**Bundle/test:** [T07a1 prompt](prompts/T07a1.md); committed `host/tests/test_protect.c`.
-**Goal/dependency:** implement ADR 0010 pure comparator; depends on ADR 0010, ADR 0011, and CODEOWNERS contract approval.
-**Fixed behavior:** zero outputs or frequencies reject; non-finite response returns -1 with zeroed failure; malformed input leaves empty `out_id`; validate every record/input before any compare; require a true one-to-one ID mapping (outputs `{o,o}`, records `{o,p}` rejects). Comparator production <=80 LOC. Public `dspg_protect_t` belongs in `dspgraph.h`; no internal duplicate.
+## T07a0 — Public protection record type
+**Bundle/test:** [T07a0 prompt](prompts/T07a0.md); committed `host/tests/test_protect_layout.c`.
+**Dependency:** ADR 0011. Adds the public type to dspgraph.h and matches docs/api.md §2.2; no logic. CODEOWNERS approval required.
 
-## T07a2 — Protection record validator
-**Bundle/test:** [T07a2 prompt](prompts/T07a2.md); committed `host/tests/test_protect_record.c`.
-**Dependency:** T07a1. Internal API includes explicit `n_records`; validate complete one-to-one record/output set, bounded IDs, finite values, limits, and disabled-band encoding. Production 30–80 LOC.
+## T07a1 — Protection record validator
+**Bundle/test:** [T07a1 prompt](prompts/T07a1.md); committed `host/tests/test_protect_record.c`.
+**Dependency:** T07a0. Implements shared field validation and record/output set validation. Comparator and grid cards reuse dspg_protect_fields_valid.
+
+## T07a2 — Protection curve comparator
+**Bundle/test:** [T07a2 prompt](prompts/T07a2.md); committed `host/tests/test_protect.c`.
+**Dependency:** T07a1. Validates complete inputs before comparison and delegates record checks to dspg_protect_record_valid. Production comparator <=80 LOC.
 
 ## T07a3 — Protection frequency sample list
 **Bundle/test:** [T07a3 prompt](prompts/T07a3.md); committed `host/tests/test_protect_grid.c`.
-**Dependency:** T07a2. Use 1054-point base grid plus exact endpoints/edges; max 1070. Capacity fixture uses two records with four distinct interior edges (100, 500, 2000, 8000), yielding 1058 unique values; capacity 1057 rejects without modifying output. Production 30–80 LOC.
+**Dependency:** T07a1. Uses 1054-point base grid plus exact endpoints/edges; maximum 1070. Capacity fixture uses four distinct interior edges (100, 500, 2000, 8000), yielding 1058 unique values; capacity 1057 rejects unchanged. Production 30–80 LOC.
 
 ## T07a4 — SOS response vectors (test-only)
 **Bundle/test:** [T07a4 prompt](prompts/T07a4.md); committed `host/tests/test_sos_response.c`.
-**Dependency:** T07a3. Adds only tests for existing `dsp_sos_eval`; expected baseline is pass after registration. No production LOC.
+**Dependency:** T07a3. Tests existing dsp_sos_eval; baseline should pass after registration. No production LOC.
 
 ## T07a5 — Compiled-node response evaluator
 **Bundle/test:** [T07a5 prompt](prompts/T07a5.md); committed `host/tests/test_node_response.c`.
-**Dependencies:** T07a4, ADR 0011, and maintainer approval of the internal seam. Single-node response only; no graph walk or mix. Reuses the verified `rbj_eq.json` golden (-6.000003627305285 dB); never regenerate it. Production 30–80 LOC.
+**Dependencies:** T07a4, ADR 0011, and maintainer approval of the internal seam. Single-node response only. Reuses the rbj_eq.json golden (-6.000003627305285 dB); never regenerate it.
 
 ## T07a6 — Protection comparator integration
 **State:** blocked; no executable bundle yet. Depends on T07a1–a5 and ADR 0011 graph response semantics and signature. Do not start until graph propagation tests and CODEOWNERS review are complete.
