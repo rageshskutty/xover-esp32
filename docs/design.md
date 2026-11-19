@@ -111,13 +111,13 @@ Ramps: down >= 5 ms, up >= 20 ms. v1 swaps by mute-ramp-swap-ramp
 | I2S DMA | 4..6 descriptors x 64 frames; latency about 5 ms |
 | Core 0 | Wi-Fi, lwIP, HTTP, decoder, graph build, logging |
 | Memory (internal SRAM) | graph pool <= 32 KB; filter state ~1 KB per 6 ch x 20 sections |
-| Block time target | p99.9 <= 0.60 ms (45%), max <= 1.00 ms (75%), 1 h soak, Wi-Fi active |
+| Block time target | DSP execution p99.9 <= 0.60 ms (45%), max <= 1.00 ms (75%); full service/deadline measured separately per ADR 0009 |
 | Underruns | 0 in a 1 h soak |
 | DSP noise floor | <= -110 dBFS unweighted 20 Hz-20 kHz, full graph (G4) |
 | Swap click | no step above -60 dBFS (G5) |
 | Allowed blocking calls in RT | i2s_channel_write, ring read with timeout |
 
-Float32 precision (ADR 0005, HOST-VERIFIED): crossover denominators are stored
+Timing boundaries and gate interpretation are defined by ADR 0009; these are targets, not measured results.\n\nFloat32 precision (ADR 0005, HOST-VERIFIED): crossover denominators are stored
 as float32 hi + lo pairs and `dsp_sos_process` runs the recursion in delta form
 (a1 = -2 + p, a2 = 1 - q), which met the 0.01 dB gate at 70 Hz. EQ blocks are
 still plain float32 and are not covered. An LR4 at 70 Hz, fs = 48 kHz has poles

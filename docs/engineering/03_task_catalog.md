@@ -27,7 +27,7 @@ List exact files changed, production LOC count, test names, command lines and ex
 **Goal:** add deterministic sample list from `dsp_log_grid` and exact enabled band edges.
 **Dependencies:** T07a2.
 **Files:** protection source/internal header/tests only.
-**Behavior:** internal function `dspg_protect_grid(records,n_records,out_freqs,capacity,out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1 without writing partial count. Max count 1058.
+**Behavior:** internal function `dspg_protect_grid(records,n_records,out_freqs,capacity,out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1 without writing partial count. Maximum count is 1054 plus unique enabled edges, at most 1070 for eight outputs.
 **Tests:** no bands => 1054 values; both unique edges => count 1056; edges at 10/20000 deduplicate; sorted strict; capacity 1057 for 1058 unique fails. Verify endpoints exactly 10.0 and 20000.0.
 
 ## T07a4 — Single SOS response curve golden vectors
