@@ -34,8 +34,13 @@ including every path and mix contribution in declared edge order. Thus a
 stereo graph is evaluated as separate input-to-output transfers; it is never
 implicitly collapsed into one response. Each filter uses its designed
 coefficients; gain, polarity and delay apply their corresponding complex
-transfer. Fan-out reuses the upstream complex result. Return magnitude in dB
-and phase in degrees in [-180,180); zero magnitude is -300 dB and 0 degrees.
+transfer. Fan-out reuses the upstream complex result. Magnitude is
+`20*log10(max(|H|, 1e-15))` in dB, so any |H| below 1e-15 (including exact
+zero) reports -300 dB and phase 0 degrees. Otherwise phase is
+`atan2(imag, real)` in degrees, and a result >= 180.0 is mapped to -180.0 so
+the range is exactly [-180,180). `atan2` returns +180 for a real negative
+value with +0.0 imaginary part and -180 with -0.0, so the mapping is
+required: a lone inverted path reports -180 degrees for either sign of zero.
 Invalid IDs, input channels, dimensions, frequencies, or non-finite
 intermediate/output values fail closed and do not return partial arrays. This
 function is for host/HTTP response reporting; protection evaluation remains
@@ -48,7 +53,11 @@ way. A 0.5 linear gain on the selected path returns -6.020599913 dB within
 1e-5 dB. A mix of two same-phase unity paths from the selected channel returns
 6.020599913 dB within 1e-5 dB; adding an inverted unity path cancels to
 -300 dB/0 degrees. Mix sums complex path responses in declared edge order
-before converting to dB/phase. `input_channel=2` is rejected and leaves
+before converting to dB/phase. A single inverted unity path (gain -1 or inverted polarity)
+returns 0 dB and exactly -180 degrees, tested with the imaginary part
++0.0 and -0.0. A path whose |H| is 1e-16 returns -300 dB and 0 degrees; one
+whose |H| is 1e-14 returns -280 dB and its true phase.
+`input_channel=2` is rejected and leaves
 output arrays untouched.
 
 ### Variable update
