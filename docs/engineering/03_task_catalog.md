@@ -9,7 +9,7 @@ List exact files changed, production LOC count, test names, command lines and ex
 
 ## T07a1 — Protection curve comparator
 **Bundle/test:** [T07a1 prompt](prompts/T07a1.md); committed `host/tests/test_protect.c`.
-**Goal/dependency:** implement ADR 0010 pure comparator; depends on ADR 0010 and CODEOWNERS contract approval.
+**Goal/dependency:** implement ADR 0010 pure comparator; depends on ADR 0010, ADR 0011, and CODEOWNERS contract approval.
 **Fixed behavior:** zero outputs or frequencies reject; non-finite response returns -1 with zeroed failure; malformed input leaves empty `out_id`; validate every record/input before any compare; require a true one-to-one ID mapping (outputs `{o,o}`, records `{o,p}` rejects). Comparator production <=80 LOC. Public `dspg_protect_t` belongs in `dspgraph.h`; no internal duplicate.
 
 ## T07a2 — Protection record validator
