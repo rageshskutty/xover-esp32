@@ -18,7 +18,7 @@ void dspg_reset(dspg_t *g);
 ```
 Builder is core-0-only; sets *out=NULL on every failure; never mutates a published graph. Caller supplies max_align_t-aligned memory. Required bytes are reported exactly; insufficient capacity fails before publication. Graph, coefficients and state fit wholly in arena; hidden allocation is forbidden. Build always validates protection; there is no bypass flag.
 Process is DSP-owner-only, allocation-free and bounded, frames 1..64. Inputs/outputs are planar, 2 input and 8 output pointers; unused output pointers may be NULL, active output-mask pointers may not. Aliasing is forbidden. On non-finite output return -1 and zero every provided output buffer for the requested frames. Arena lifetime remains caller-owned; reclaim only after DSP owner acknowledges generation switch. No free function.
-Stable topological order breaks ties by original node array order. Mix input order is JSON edge-array order and float32 accumulation is left-to-right. Each node state is isolated by channel and output path; fanout shares immutable result. No implicit routing, polarity, delay, or channel duplication.
+Stable topological order breaks ties by original node array order. Mix input order is JSON edge-array order and float32 accumulation is left-to-right. Each stateful node owns one state per audio channel that reaches it and is processed once per block; fan-out reuses the computed block. ADR 0011 supersedes any earlier per-output-path reading of this rule. No implicit routing, polarity, delay, or channel duplication.
 
 ## Rejected
 Return-pointer allocation API hides ownership; unspecified allocator options permit interpretation; immediate free after swap races in-flight blocks.
