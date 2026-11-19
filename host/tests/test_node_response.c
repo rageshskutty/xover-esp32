@@ -39,6 +39,7 @@ int main(void)
     n.kind = K_MIX; re = 7.0; im = 8.0;
     CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, &im) == -1 && re == 7.0 && im == 8.0);
     CHECK(dspg_node_response(NULL, 48000.0, 1000.0, &re, &im) == -1);
+    n.kind = K_INPUT;
     CHECK(dspg_node_response(&n, 48000.0, NAN, &re, &im) == -1);
     puts("PASS: compiled node response contract");
     return 0;
