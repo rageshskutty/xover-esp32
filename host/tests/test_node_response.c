@@ -58,6 +58,9 @@ int main(void)
     n.kind = K_GAIN; n.gain = NAN;
     CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, &im) == -1);
     CHECK(re == 7.0 && im == 8.0);
+    n.kind = K_CASCADE; n.casc.n = 1U; n.casc.sos[0].b0 = NAN;
+    CHECK(dspg_node_response(&n, 48000.0, 1000.0, &re, &im) == -1);
+    CHECK(re == 7.0 && im == 8.0);
     puts("PASS: compiled node response contract");
     return 0;
 }
