@@ -1,33 +1,140 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "basis": {
     "repository": "rageshskutty/xover-esp32",
-    "base_branch": "main",
-    "base_commit": "cd2ae0d598fe7c414f4d128655083b0ffc5ec57d",
-    "inspected_at": "2026-11-18",
-    "verification": "REMOTE_SOURCE_INSPECTION_ONLY; no local checkout/build/hardware"
+    "base_branch": "architecture/7b-executable-engineering-plan",
+    "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
+    "inspected_at": "2026-11-19",
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; no local checkout or test execution; hardware unverified"
   },
   "active_task": null,
-  "items": [
-    {"id":"T06b1","state":"done","depends_on":[],"evidence":"Merged in main; current baseline."},
-    {"id":"T07a","state":"queued","depends_on":["T06b1"],"human_decisions":[]},
-    {"id":"T07b","state":"blocked","depends_on":["T07a"],"human_decisions":["protection record schema/limits owner review"]},
-    {"id":"T08a","state":"blocked","depends_on":["T06b1"],"human_decisions":["D1 module flash/PSRAM","D2 IDF version","D4 GPIO map","D5 PCM5122 board/straps","D6 protection limits"]},
-    {"id":"T08b","state":"blocked","depends_on":["T08a","T07b"],"human_decisions":["verified board pins/slots/registers and safe limits"]},
-    {"id":"T09a","state":"blocked","depends_on":["T06b1","accepted graph runtime API ADR"],"human_decisions":["review/freeze graph runtime API and arena sizing contract"]},
-    {"id":"T09b","state":"blocked","depends_on":["T09a","T07b","T08b","block-size/timing ADR"],"human_decisions":["resolve timing measurement definition and deadline margin"]},
-    {"id":"T10a","state":"blocked","depends_on":["T09b"],"human_decisions":["D2 IDF","D3 Arduino pairing","D8 source scope"]},
-    {"id":"T10b","state":"blocked","depends_on":["T10a","T09b","T08b"],"human_decisions":["approved source/dependency"]},
-    {"id":"T11","state":"blocked","depends_on":["T07b","T09a","T09b","T08a"],"human_decisions":["IDF/pin and NVS owner decisions"]},
-    {"id":"T12","state":"blocked","depends_on":["T11","T09a"],"human_decisions":["T11/T09a completion"]},
-    {"id":"T13","state":"blocked","depends_on":["T03","T04"],"human_decisions":["VituixCAD version/input vector"]},
-    {"id":"T14","state":"blocked","depends_on":["T08b","T10b","T11","T12","T13"],"human_decisions":["human hardware bring-up log"]},
-    {"id":"T15","state":"blocked","depends_on":["T14"],"human_decisions":["D7 license","all measured gates"]}
+  "decisions": [
+    {
+      "id": "ADR-0007",
+      "status": "planning-accepted",
+      "approval": "CODEOWNERS required"
+    },
+    {
+      "id": "ADR-0008",
+      "status": "planning-accepted",
+      "approval": "human safety review required"
+    },
+    {
+      "id": "ADR-0009",
+      "status": "planning-accepted",
+      "approval": "hardware measurement required"
+    },
+    {
+      "id": "ADR-0010",
+      "status": "planning-accepted",
+      "approval": "CODEOWNERS required"
+    }
   ],
-  "critical_conflicts": [
-    {"id":"C1","description":"docs/design.md specifies a 64-frame period (1.333 ms at 48 kHz); PLAN G4 gives p99.9 <=0.60 ms and max <=1.00 ms, apparently execution-time limits. Define measurement boundaries and deadline margin before runtime timing work."},
-    {"id":"C2","description":"Config/schema lists Bessel while device compilation rejects it as E_UNSUPPORTED; preserve rejection until normalization/implementation decision."},
-    {"id":"C3","description":"Repo says three PCM5122 on TDM, but pins/addresses/slot mapping and exact IDF/TDM driver compatibility are not confirmed."}
+  "items": [
+    {
+      "id": "T07a1",
+      "state": "queued",
+      "depends_on": [
+        "ADR-0010"
+      ],
+      "human_decisions": [
+        "CODEOWNERS contract approval"
+      ]
+    },
+    {
+      "id": "T07a2",
+      "state": "blocked",
+      "depends_on": [
+        "T07a1"
+      ],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a3",
+      "state": "blocked",
+      "depends_on": [
+        "T07a2"
+      ],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a4",
+      "state": "blocked",
+      "depends_on": [
+        "T07a3"
+      ],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a5",
+      "state": "blocked",
+      "depends_on": [
+        "T07a4"
+      ],
+      "human_decisions": [
+        "maintainer approves internal seam",
+        "existing golden fixture availability"
+      ]
+    },
+    {
+      "id": "T07a6",
+      "state": "blocked",
+      "depends_on": [
+        "T07a5"
+      ],
+      "human_decisions": [
+        "response propagation ADR and exact graph API"
+      ]
+    },
+    {
+      "id": "T07b",
+      "state": "blocked",
+      "depends_on": [
+        "T07a6"
+      ],
+      "human_decisions": [
+        "owner-approved protection limits",
+        "NVS/provisioning format"
+      ]
+    },
+    {
+      "id": "T08",
+      "state": "blocked",
+      "depends_on": [],
+      "human_decisions": [
+        "board/model/memory",
+        "IDF version",
+        "pins",
+        "DAC address/straps/registers",
+        "slot map",
+        "protection limits"
+      ]
+    },
+    {
+      "id": "T09",
+      "state": "blocked",
+      "depends_on": [
+        "ADR-0007"
+      ],
+      "human_decisions": [
+        "CODEOWNERS API approval",
+        "arena sizing vectors",
+        "graph response semantics vectors"
+      ]
+    },
+    {
+      "id": "T10-T15",
+      "state": "blocked",
+      "depends_on": [
+        "T07b",
+        "T08",
+        "T09"
+      ],
+      "human_decisions": [
+        "dependency/license/source scope",
+        "target evidence and human bring-up"
+      ]
+    }
   ],
   "completion_record": null
 }
