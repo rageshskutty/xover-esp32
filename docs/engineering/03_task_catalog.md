@@ -27,14 +27,14 @@ List exact files changed, production LOC count, test names, command lines and ex
 **Goal:** add deterministic sample list from `dsp_log_grid` and exact enabled band edges.
 **Dependencies:** T07a2.
 **Files:** protection source/internal header/tests only.
-**Behavior:** internal function `dspg_protect_grid(records,n_records,out_freqs,capacity,out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1 without writing partial count. Maximum count is 1054 plus unique enabled edges, at most 1070 for eight outputs.
+**Behavior:** exact internal signature: `int dspg_protect_grid(const dspg_protect_t *records, size_t n_records, double *out_freqs, size_t capacity, size_t *out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1, set *out_count=0, and leave out_freqs unchanged. Maximum count is 1054 plus unique enabled edges, at most 1070 for eight outputs.
 **Tests:** no bands => 1054 values; both unique edges => count 1056; edges at 10/20000 deduplicate; sorted strict; capacity 1057 for 1058 unique fails. Verify endpoints exactly 10.0 and 20000.0.
 
 ## T07a4 — Single SOS response curve golden vectors
 **Goal:** prove existing SOS complex evaluation can produce dB samples without graph API.
 **Dependencies:** T07a3.
 **Files:** `host/tests/test_protect.c` and test build registration only.
-**Behavior:** test harness calls current `dsp_sos_eval` for a one-section unity biquad (b=[1,0,0], a=[0,0]); expected 0 dB / 0 degrees at 10, 1000, 20000 Hz. Add constant gain -6.020599913 dB fixture; expected magnitude within 1e-5 dB. This card adds no production implementation; if dsp_sos_eval cannot represent a fixture, stop and propose a contract change.
+**Behavior:** test harness calls current `dsp_sos_eval` for a one-section unity biquad (b=[1,0,0], a=[0,0]); expected 0 dB at 10, 1000, 20000 Hz. Add constant gain using b0=0.5,b1=b2=a1=a2=0; expected -6.020599913 dB within 1e-5 dB. This card adds no production implementation; if dsp_sos_eval cannot represent a fixture, stop and propose a contract change.
 **Size:** test-only, no golden generator or SciPy dependency.
 
 ## T07a5 — Compiled-node response evaluator seam
@@ -42,7 +42,7 @@ List exact files changed, production LOC count, test names, command lines and ex
 **Dependencies:** T07a4 green; design approval by maintainer because a new internal seam is required.
 **Files:** internal dspgraph response source/header, host test, CMake.
 **Fixed behavior:** use node's already-compiled SOS cascade and existing `dsp_sos_eval`; identity for input/output/gain(0)/polarity(non-inverted); multiply section responses in cascade order. Any unsupported node kind or non-finite result returns error. No graph walk, mix, or mutation.
-**Golden:** identity 0 dB; -6.020599913 dB gain vector; one RBJ fixture is taken verbatim from existing golden JSON/header, never regenerated. If no existing fixture matches, stop and request big-model-owned vector.
+**Golden:** identity 0 dB; -6.020599913 dB gain vector; use host/tests/golden/rbj_eq.json entry type=peq, f0_hz=1000, q=0.7, gain_db=-6.0, and its 1000-Hz sample expected -6.000003627305285 dB within 0.001 dB. Never regenerate it.
 **Size:** only one compiled node.
 
 ## T07a6 — Protection comparator integration
