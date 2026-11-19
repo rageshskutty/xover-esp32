@@ -39,18 +39,18 @@ int main(void)
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r = rec("o"); r.stop_below_hz = 10.0f; r.atten_below_db = 0.0f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
-    r.stop_below_hz = 20000.0f; r.atten_below_db = 120.0f;
+    r.stop_below_hz = 9.99f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_below_hz = 20000.0f; r.atten_below_db = 120.0f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.stop_below_hz = 20000.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    r.stop_below_hz = 9.99f;
-    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    r = rec("o"); r.stop_above_hz = 20000.0f; r.atten_above_db = 120.0f;
-    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
-    r.stop_above_hz = 10.0f; r.atten_above_db = 0.0f;
+    r = rec("o"); r.stop_above_hz = 10.0f; r.atten_above_db = 0.0f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.stop_above_hz = 9.99f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_above_hz = 20000.0f; r.atten_above_db = 120.0f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.stop_above_hz = 20000.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
 
@@ -58,12 +58,20 @@ int main(void)
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.atten_above_db = 0.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    r = rec("o"); r.stop_below_hz = 100.0f; r.atten_below_db = -0.01f;
+    r = rec("o"); r.stop_below_hz = 100.0f; r.atten_below_db = 0.0f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
+    r.atten_below_db = -0.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_below_hz = 100.0f; r.atten_below_db = 120.0f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.atten_below_db = 120.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    r = rec("o"); r.stop_above_hz = 100.0f; r.atten_above_db = -0.01f;
+    r = rec("o"); r.stop_above_hz = 100.0f; r.atten_above_db = 0.0f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
+    r.atten_above_db = -0.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_above_hz = 100.0f; r.atten_above_db = 120.0f;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.atten_above_db = 120.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.max_gain_db = NAN;
@@ -79,7 +87,8 @@ int main(void)
         char id31[32];
         const char *const ids31[] = {id31};
         memset(id31, 'x', 31U); id31[31] = '\0';
-        r = rec("x");
+        r = rec(id31);
+        CHECK(dspg_protect_record_valid(&r, 1U, ids31, 1U) == 1);
         memset(r.out_id, 'x', sizeof(r.out_id));
         CHECK(dspg_protect_record_valid(&r, 1U, ids31, 1U) == 0);
     }
@@ -97,6 +106,8 @@ int main(void)
         dspg_protect_t one[] = {rec("o")};
         dspg_protect_t dup[] = {rec("o"), rec("o")};
         dspg_protect_t unknown[] = {rec("o"), rec("x")};
+        dspg_protect_t valid_two[] = {rec("o"), rec("p")};
+        CHECK(dspg_protect_record_valid(valid_two, 2U, two_ids, 2U) == 1);
         CHECK(dspg_protect_record_valid(one, 1U, two_ids, 2U) == 0);
         CHECK(dspg_protect_record_valid(dup, 2U, two_ids, 2U) == 0);
         CHECK(dspg_protect_record_valid(unknown, 2U, two_ids, 2U) == 0);
