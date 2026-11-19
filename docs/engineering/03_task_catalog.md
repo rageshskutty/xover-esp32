@@ -1,55 +1,56 @@
 # 7B execution catalog (planning iteration 2)
 
-**Authority:** ADR 0007 (graph lifecycle), ADR 0008 (protection semantics), ADR 0009 (timing), ADR 0010 (protection comparison seam). Existing implemented DSP contracts remain in docs/api.md. If a card disagrees with an ADR/header, stop and report; never edit the interface.
+**Authority:** ADRs 0007–0011 and docs/api.md. Catalog owns task dependencies and status; each linked prompt is the complete implementation work order. If a card disagrees with an ADR/header, stop and report; never edit the interface.
 **Baseline:** branch parent `architecture/7b-executable-engineering-plan` at `d8ce744e06edf0c05a50734d7e2ec13c764cebf2`; T06b1 code is present. No runtime graph execution or protection evaluator exists.
-**Card sizing:** one card changes one behavior in one module. Target 30–80 handwritten production LOC; tests/golden data and generated files excluded. If estimation exceeds 80 production LOC, split before coding. All cards require test-first execution inside the same reviewable change: add the exact assertions, run and record the expected failing baseline, implement, rerun. Do not submit a red branch as complete.
+**Card sizing:** one card changes one behavior in one module. Target 30–80 handwritten production LOC; tests/golden data and generated files excluded. If estimation exceeds 80 production LOC, split before coding. The planning model commits every test before implementation; the 7B only registers that test and writes production code to make it pass. All task tests stay unregistered until their card begins. The sole exception is test-only T07a4, whose baseline is expected to pass.
 
 ## Required completion evidence (every card)
-List exact files changed, production LOC count, test names, command lines and exit codes, first-fail evidence before implementation, final test output, diff summary, and any deviations. Run `python tools/check.py`, host build and CTest. Run sanitizer host suite when the card touches parsing/graph math. Hardware results are UNVERIFIED unless an owner records them in bringup-log.md. No golden regeneration to make a failure pass.
+List exact files changed, production LOC count, test names, command lines and exit codes, expected baseline evidence, final test output, diff summary, and deviations. Run `python tools/check.py`, host build and CTest. Run sanitizer host suite when the card touches parsing/graph math. Hardware results are UNVERIFIED unless an owner records them in bringup-log.md. No golden regeneration to make a failure pass.
 
 ## T07a1 — Protection curve comparator
-**Goal:** implement the exact pure comparator from ADR 0010; no graph traversal.
-**Dependencies:** ADR 0010 accepted; host baseline.
-**Files:** `firmware/components/dspgraph/dspgraph_protect.c`, `firmware/components/dspgraph/internal/dspgraph_protect.h`, `host/tests/test_protect.c`, `host/CMakeLists.txt`, `firmware/components/dspgraph/CMakeLists.txt`.
-**Fixed API:** use the exact `dspg_protect_check(...)` declaration in ADR 0010. Do not rename fields or add options.
-**Behavior:** validate pointer/length pairs, record ID correspondence, finite fields/curves and strictly increasing frequencies; compare ceiling and enabled band thresholds. Threshold equality passes. Deterministic failure order is output array order then increasing sample index. Success zeroes failure output.
-**Tests first:** exact vectors in ADR 0008 plus max ceiling equality and just-over (0.00001 dB), NaN, infinity, duplicate/missing/unknown ID, disabled attenuation mismatch, duplicate or descending frequency, null pointers, output ordering.
-**Size:** comparator only; if >80 production LOC split validation from comparison under maintainer direction.
+**Bundle/test:** [T07a1 prompt](prompts/T07a1.md); committed `host/tests/test_protect.c`.
+**Goal/dependency:** implement ADR 0010 pure comparator; depends on ADR 0010 and CODEOWNERS contract approval.
+**Fixed behavior:** zero outputs or frequencies reject; non-finite response returns -1 with zeroed failure; malformed input leaves empty `out_id`; validate every record/input before any compare; require a true one-to-one ID mapping (outputs `{o,o}`, records `{o,p}` rejects). Comparator production <=80 LOC. Public `dspg_protect_t` belongs in `dspgraph.h`; no internal duplicate.
 
 ## T07a2 — Protection record validator
-**Goal:** isolate record validity so malformed protection never reaches DSP math.
-**Dependencies:** T07a1.
-**Files:** same protection source/header and test file only.
-**Behavior:** expose internal `dspg_protect_record_valid(const dspg_protect_t*, const char *const *output_ids, size_t n_outputs)`; returns 1 iff exact output/record set, IDs NUL-terminated within 32 bytes, all fields finite, max_gain [-120,+24], band edge 0 or [10,20000], enabled attenuation [0,120], disabled attenuation exactly 0.0f. This internal function is not public API.
-**Tests:** each lower/upper bound, one below/above, empty ID, 31-byte ID plus NUL, unterminated ID, duplicate output, missing and unknown IDs, disabled-band inconsistency.
+**Bundle/test:** [T07a2 prompt](prompts/T07a2.md); committed `host/tests/test_protect_record.c`.
+**Dependency:** T07a1. Internal API includes explicit `n_records`; validate complete one-to-one record/output set, bounded IDs, finite values, limits, and disabled-band encoding. Production 30–80 LOC.
 
 ## T07a3 — Protection frequency sample list
-**Goal:** add deterministic sample list from `dsp_log_grid` and exact enabled band edges.
-**Dependencies:** T07a2.
-**Files:** protection source/internal header/tests only.
-**Behavior:** exact internal signature: `int dspg_protect_grid(const dspg_protect_t *records, size_t n_records, double *out_freqs, size_t capacity, size_t *out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1, set *out_count=0, and leave out_freqs unchanged. Maximum count is 1054 plus unique enabled edges, at most 1070 for eight outputs.
-**Tests:** no bands => 1054 values; both unique edges => count 1056; edges at 10/20000 deduplicate; sorted strict; capacity 1057 for 1058 unique fails. Verify endpoints exactly 10.0 and 20000.0.
+**Bundle/test:** [T07a3 prompt](prompts/T07a3.md); committed `host/tests/test_protect_grid.c`.
+**Dependency:** T07a2. Use 1054-point base grid plus exact endpoints/edges; max 1070. Capacity fixture uses two records with four distinct interior edges (100, 500, 2000, 8000), yielding 1058 unique values; capacity 1057 rejects without modifying output. Production 30–80 LOC.
 
-## T07a4 — Single SOS response curve golden vectors
-**Goal:** prove existing SOS complex evaluation can produce dB samples without graph API.
-**Dependencies:** T07a3.
-**Files:** `host/tests/test_protect.c` and test build registration only.
-**Behavior:** test harness calls current `dsp_sos_eval` for a one-section unity biquad (b=[1,0,0], a=[0,0]); expected 0 dB at 10, 1000, 20000 Hz. Add constant gain using b0=0.5,b1=b2=a1=a2=0; expected -6.020599913 dB within 1e-5 dB. This card adds no production implementation; if dsp_sos_eval cannot represent a fixture, stop and propose a contract change.
-**Size:** test-only, no golden generator or SciPy dependency.
+## T07a4 — SOS response vectors (test-only)
+**Bundle/test:** [T07a4 prompt](prompts/T07a4.md); committed `host/tests/test_sos_response.c`.
+**Dependency:** T07a3. Adds only tests for existing `dsp_sos_eval`; expected baseline is pass after registration. No production LOC.
 
-## T07a5 — Compiled-node response evaluator seam
-**Goal:** add host-only internal function for one compiled node's complex response.
-**Dependencies:** T07a4 green; design approval by maintainer because a new internal seam is required.
-**Files:** internal dspgraph response source/header, host test, CMake.
-**Fixed behavior:** use node's already-compiled SOS cascade and existing `dsp_sos_eval`; identity for input/output/gain(0)/polarity(non-inverted); multiply section responses in cascade order. Any unsupported node kind or non-finite result returns error. No graph walk, mix, or mutation.
-**Golden:** identity 0 dB; -6.020599913 dB gain vector; use host/tests/golden/rbj_eq.json entry type=peq, f0_hz=1000, q=0.7, gain_db=-6.0, and its 1000-Hz sample expected -6.000003627305285 dB within 0.001 dB. Never regenerate it.
-**Size:** only one compiled node.
+## T07a5 — Compiled-node response evaluator
+**Bundle/test:** [T07a5 prompt](prompts/T07a5.md); committed `host/tests/test_node_response.c`.
+**Dependencies:** T07a4, ADR 0011, and maintainer approval of the internal seam. Single-node response only; no graph walk or mix. Reuses the verified `rbj_eq.json` golden (-6.000003627305285 dB); never regenerate it. Production 30–80 LOC.
 
 ## T07a6 — Protection comparator integration
-**Goal:** call the pure comparator from graph build only after graph curves exist.
-**Dependencies:** T07a1–a5, graph curve propagation design ADR approved, all golden vectors committed.
-**Files:** graph build/protection source, host tests, CMake, docs/api.md.
-**Stop rule:** current repository has no final response-curve-by-output seam. Do not invent fanout/mix semantics. A maintainer must add and approve that ADR and exact signature before this card is considered queued.
+**State:** blocked; no executable bundle yet. Depends on T07a1–a5 and ADR 0011 graph response semantics and signature. Do not start until graph propagation tests and CODEOWNERS review are complete.
+
+## T16 — SPSC audio frame ring
+**Bundle/test:** [T16 prompt](prompts/T16.md); committed `host/tests/test_spsc_ring.c`. Independent host card, 30–80 production LOC. Caller-owned storage, C11 acquire/release, immediate partial read/write; caller owns blocking/backpressure.
+
+## T17 — Pure TDM slot packer
+**Bundle/test:** [T17 prompt](prompts/T17.md); committed `host/tests/test_tdm_pack.c`. Independent host card, 30–80 production LOC. Six planar channels map to slots 0–5 in design.md order; slots 6–7 are zero. Retain the invalid-slot rejection regression in `test_graph_validate` (`duplicate_slot.json`, E_SLOT).
+
+## T18 — S7 ramp duration helper
+**Bundle/test:** [T18 prompt](prompts/T18.md); committed `host/tests/test_s7_ramp.c`. Independent host card, 30–80 production LOC. At 48 kHz, directional minima are 240/960 samples; linear gain delta is at most 0.001 per sample.
+
+## T19 — Fail-closed application state machine
+**Bundle/test:** [T19 prompt](prompts/T19.md); committed `host/tests/test_app_state_machine.c`. Independent host card, 30–80 production LOC. No transition can enter RUNNING without valid protection and config; ramps and owner acknowledgments remain caller events.
+
+## T20 — Config CRC and A/B slot selection
+**Bundle/test:** [T20 prompt](prompts/T20.md); committed `host/tests/test_config_slot.c`. Independent host card, 30–80 production LOC. CRC-32/ISO-HDLC plus pure header validation and active/fallback selection; no flash or NVS access.
+
+## T21 — Request bounds
+**Bundle/test:** [T21 prompt](prompts/T21.md); committed `host/tests/test_request_bounds.c`. Independent host card, 30–80 production LOC. Enforces body 1..32768 bytes, depth 1..8, nodes <=64, strings <=32; retains E_NODE_PARAM rejection regression.
+
+## T22 — Token authentication comparison
+**Bundle/test:** [T22 prompt](prompts/T22.md); committed `host/tests/test_token_auth.c`. Independent host card, 30–80 production LOC. Fixed 32-byte content loop, no early exit, bounded caller buffers; retains E_NODE_PARAM rejection regression.
 
 ## T07b — Protection storage and provisioning
 **State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
