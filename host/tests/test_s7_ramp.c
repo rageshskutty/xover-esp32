@@ -21,6 +21,8 @@ int main(void)
     CHECK(check(0.5f, 0.75f, 960U) == 0);
     CHECK(check(0.5f, 0.1f, 400U) == 0);
     CHECK(check(0.1f, 0.099f, 240U) == 0);
+    CHECK(check(0.0f, 0.24f, 240U) == 0);
+    CHECK(check(0.0f, nextafterf(0.24f, INFINITY), 241U) == 0);
     CHECK(check(0.5f, 0.5f, 0U) == 0);
     CHECK(dsp_s7_ramp_frames(NAN, 0.0f, &frames) == -1 && frames == 55U);
     CHECK(dsp_s7_ramp_frames(0.0f, 1.1f, &frames) == -1 && frames == 55U);
@@ -28,3 +30,4 @@ int main(void)
     puts("PASS: S7 ramp duration");
     return 0;
 }
+
