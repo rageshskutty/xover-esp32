@@ -168,14 +168,14 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 | GET | /status | - | 200 {fw, fs, state, cfg_crc32, cpu_p999_pct, underruns, clips, faults, protect: "ok"/"missing"} | - |
 | GET | /config | - | 200 the active JSON | 404 none |
 | POST | /config | application/json <= 32 KB | 200 {ok:true, crc32} | 400 E_JSON, 401 E_AUTH, 409 E_BUSY, 413, 422 {ok:false, errors:[{code,path,msg}]} |
-| PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 422 E_LIMIT or E_PROTECT |
+| PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 409 E_BUSY, 422 E_LIMIT or E_PROTECT |
 | GET | /response?out=<id>&input_channel=0&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
 | POST | /mute | {mute:bool} | 200 | 401 |
 | GET | /limits | - | 200 the device protection records (read-only) | - |
 
-Rules: a failed POST or PUT leaves the running config untouched. Config PUTs
-are serialized; a concurrent PUT returns `E_BUSY` without building or writing
-a candidate. `PUT /vars/{name}` constructs a complete protected candidate
+Rules: a failed POST or PUT leaves the running config untouched. Config
+mutations are serialized; a concurrent POST or PUT returns `E_BUSY` without
+building or writing a candidate. `PUT /vars/{name}` constructs a complete protected candidate
 using `dspg_set_var`, writes and verifies the inactive slot, then requests the
 normal owner-acknowledged graph swap. The active-slot selector changes only
 after swap acknowledgment. A swap rejection leaves the old graph and selector

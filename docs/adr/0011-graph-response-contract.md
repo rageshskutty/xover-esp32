@@ -41,6 +41,14 @@ intermediate/output values fail closed and do not return partial arrays. This
 function is for host/HTTP response reporting; protection evaluation remains
 governed by ADRs 0008/0010.
 
+Required response vectors: an identity route from input channel 0 to an output
+returns 0 dB/0 degrees for input_channel=0 and -300 dB/0 degrees when only
+input channel 1 reaches that output; evaluate the reciprocal route the same
+way. A 0.5 linear gain on the selected path returns -6.020599913 dB within
+1e-5 dB. A mix sums complex path responses for the selected input channel in
+declared edge order before converting to dB/phase. `input_channel=2` is
+rejected and leaves output arrays untouched.
+
 ### Variable update
 `dspg_set_var` never mutates the active graph. It creates a complete candidate
 graph from the active graph's retained validated config and protection-record
@@ -48,20 +56,29 @@ snapshot, applying one declared variable override within its declared limits.
 It reuses the same parser, validator, builder, and protection evaluator as
 `dspg_build`. The candidate is unpublished and has fresh node-channel state.
 On every failure, candidate output is NULL and the active graph is unchanged.
-The application serializes config mutations: while one PUT transaction is
-building, persisting, or swapping a candidate, another PUT returns `E_BUSY`
-before building or writing anything. The winning transaction derives its
-candidate from the active generation it observed after acquiring that
-serialization gate. It writes and reads back the inactive A/B slot and checks
-its CRC before requesting the owner-acknowledged graph swap. Only after the
-owner acknowledges the swap does the application publish the new active-slot
-selector and report success. If the owner rejects the swap, the old graph
-remains active and the selector remains on the old slot; the staged inactive
-slot is ignored at boot. A selector-write failure after an acknowledged swap
-is a storage fault: mute and enter the fail-closed fault path; do not report
-success. Power loss before the selector update boots the previous slot. No
-network/API path can alter the protection snapshot. This transaction ordering
-is a planning contract and requires human safety review before implementation.
+The application serializes all config mutations (`POST /config` and
+`PUT /vars/{name}`) through one transaction gate: while one transaction is
+building, persisting, or swapping a candidate, another config mutation returns
+`E_BUSY` before building or writing anything. The winning transaction derives
+its candidate from the active generation it observed after acquiring that
+gate. It writes and reads back the inactive A/B slot and checks its CRC before
+requesting the owner-acknowledged graph swap. Only after the owner acknowledges
+the swap does the application publish the new active-slot selector and report
+success. If the owner rejects the swap, the old graph remains active and the
+selector remains on the old slot; the staged inactive slot is ignored at boot.
+A selector-write failure after an acknowledged swap is a storage fault: mute
+and enter the fail-closed fault path; do not report success. Power loss before
+the selector update boots the previous slot. No network/API path can alter the
+protection snapshot. This transaction ordering is a planning contract and
+requires human safety review before implementation.
+
+Required transaction vectors: an inactive-slot write, readback, or CRC
+failure does not request a graph swap or change the selector; a rejected owner
+swap leaves the old graph and selector active and the staged slot is ignored
+at boot; when one config mutation holds the gate, a concurrent POST or PUT
+returns `E_BUSY` and leaves graph, candidate state, slot contents, and selector
+unchanged; a selector-write failure after swap acknowledgment enters the muted
+fault path and the request does not report success.
 
 ### Stats seam
 `dspg_stats_t` is a snapshot of graph-runtime counters only:
