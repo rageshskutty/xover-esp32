@@ -112,8 +112,8 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
     int dspg_set_var(const dspg_t *active, const char *name, double value,
                      dspg_arena_t candidate_arena, dspg_t **candidate,
                      dspg_info_t *info, dspg_report_t *report);
-    /* Core 0, read-only complex response evaluation. ADR 0011. */
-    int dspg_eval(const dspg_t *g, const char *out_id,
+    /* Core 0, response from one unit-stimulus input channel to an output. ADR 0011. */
+    int dspg_eval(const dspg_t *g, const char *out_id, uint8_t input_channel,
                   const double *frequency_hz, size_t n_frequencies,
                   double *magnitude_db, double *phase_deg,
                   dspg_report_t *report);
@@ -169,15 +169,25 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 | GET | /config | - | 200 the active JSON | 404 none |
 | POST | /config | application/json <= 32 KB | 200 {ok:true, crc32} | 400 E_JSON, 401 E_AUTH, 409 E_BUSY, 413, 422 {ok:false, errors:[{code,path,msg}]} |
 | PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 422 E_LIMIT or E_PROTECT |
-| GET | /response?out=<id>&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
+| GET | /response?out=<id>&input_channel=0&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
 | POST | /mute | {mute:bool} | 200 | 401 |
 | GET | /limits | - | 200 the device protection records (read-only) | - |
 
-Rules: a failed POST or PUT leaves the running config untouched. `PUT /vars/{name}` constructs a complete protected candidate using `dspg_set_var`;
-it persists the candidate, then requests the normal owner-acknowledged graph
-swap. Failure leaves the active config and graph untouched. `/response` uses
-`dspg_eval` and returns the active graph's real complex response; response
-frequencies are finite, strictly increasing, and in [10, 20000] Hz. mDNS name
+Rules: a failed POST or PUT leaves the running config untouched. Config PUTs
+are serialized; a concurrent PUT returns `E_BUSY` without building or writing
+a candidate. `PUT /vars/{name}` constructs a complete protected candidate
+using `dspg_set_var`, writes and verifies the inactive slot, then requests the
+normal owner-acknowledged graph swap. The active-slot selector changes only
+after swap acknowledgment. A swap rejection leaves the old graph and selector
+active; a selector-write failure after acknowledgment is a storage fault and
+must mute/fail closed. A staged inactive slot without an active-selector
+change is ignored at boot. This ordering requires human safety review before
+implementation. `/response` uses `dspg_eval`; the request names `out` and
+`input_channel` (0 or 1), and the result is the transfer from a unit stimulus
+on that input channel, with the other input channel zero, to the selected
+output. Mixed paths on that channel are summed in declared edge order. It does
+not combine the two input channels into one response. Response frequencies
+are finite, strictly increasing, and in [10, 20000] Hz. mDNS name
 `xover.local`. Max 4 concurrent connections.
 
 ## 5. NVS layout
@@ -197,3 +207,4 @@ header {magic, version, length, crc32}. The inactive slot is written first, then
 ## Frozen planning authority
 
 ADR 0007 defines graph build/runtime ownership; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries; ADR 0011 defines response, variable-update, stats, and per-channel state APIs. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
+

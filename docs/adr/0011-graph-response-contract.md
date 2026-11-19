@@ -24,15 +24,22 @@ no state. Reset clears every allocated node-channel state.
 
 ### Response evaluation
 `dspg_eval` is core-0-only and read-only. It evaluates the active graph's
-linear complex response, in stable topological order, at caller-supplied
-finite, strictly increasing frequencies in [10, 20000] Hz. Each filter uses
-its designed coefficients; gain, polarity and delay apply their corresponding
-complex transfer. Mix complex-sums input responses in declared edge order.
-Fan-out reuses the upstream complex result. Return magnitude in dB and phase
-in degrees in [-180,180); zero magnitude is -300 dB and 0 degrees. Invalid
-IDs, dimensions, frequencies, or non-finite intermediate/output values fail
-closed and do not return partial arrays. This function is for host/HTTP
-response reporting; protection evaluation remains governed by ADRs 0008/0010.
+linear complex response in stable topological order at caller-supplied finite,
+strictly increasing frequencies in [10, 20000] Hz. The caller selects
+`input_channel` (0 or 1) as well as `out_id`. For each frequency, the selected
+input channel is driven with a unit complex signal and the other input channel
+with zero; all input nodes assigned to the selected channel receive that same
+unit signal. The result is the transfer from that channel to the named output,
+including every path and mix contribution in declared edge order. Thus a
+stereo graph is evaluated as separate input-to-output transfers; it is never
+implicitly collapsed into one response. Each filter uses its designed
+coefficients; gain, polarity and delay apply their corresponding complex
+transfer. Fan-out reuses the upstream complex result. Return magnitude in dB
+and phase in degrees in [-180,180); zero magnitude is -300 dB and 0 degrees.
+Invalid IDs, input channels, dimensions, frequencies, or non-finite
+intermediate/output values fail closed and do not return partial arrays. This
+function is for host/HTTP response reporting; protection evaluation remains
+governed by ADRs 0008/0010.
 
 ### Variable update
 `dspg_set_var` never mutates the active graph. It creates a complete candidate
@@ -41,9 +48,20 @@ snapshot, applying one declared variable override within its declared limits.
 It reuses the same parser, validator, builder, and protection evaluator as
 `dspg_build`. The candidate is unpublished and has fresh node-channel state.
 On every failure, candidate output is NULL and the active graph is unchanged.
-The caller persists the candidate config through the A/B slot protocol and
-publishes it only at the existing owner-acknowledged swap boundary. No
-network/API path can alter the protection snapshot.
+The application serializes config mutations: while one PUT transaction is
+building, persisting, or swapping a candidate, another PUT returns `E_BUSY`
+before building or writing anything. The winning transaction derives its
+candidate from the active generation it observed after acquiring that
+serialization gate. It writes and reads back the inactive A/B slot and checks
+its CRC before requesting the owner-acknowledged graph swap. Only after the
+owner acknowledges the swap does the application publish the new active-slot
+selector and report success. If the owner rejects the swap, the old graph
+remains active and the selector remains on the old slot; the staged inactive
+slot is ignored at boot. A selector-write failure after an acknowledged swap
+is a storage fault: mute and enter the fail-closed fault path; do not report
+success. Power loss before the selector update boots the previous slot. No
+network/API path can alter the protection snapshot. This transaction ordering
+is a planning contract and requires human safety review before implementation.
 
 ### Stats seam
 `dspg_stats_t` is a snapshot of graph-runtime counters only:
@@ -75,13 +93,14 @@ typedef struct {
 int dspg_set_var(const dspg_t *active, const char *name, double value,
                  dspg_arena_t candidate_arena, dspg_t **candidate,
                  dspg_info_t *info, dspg_report_t *report);
-int dspg_eval(const dspg_t *g, const char *out_id,
+int dspg_eval(const dspg_t *g, const char *out_id, uint8_t input_channel,
               const double *frequency_hz, size_t n_frequencies,
               double *magnitude_db, double *phase_deg,
               dspg_report_t *report);
 int dspg_get_stats(const dspg_t *g, dspg_stats_t *stats);
 ```
-These signatures are normative. `dspg_protect_t` is declared in the public
+`input_channel` is exactly 0 or 1 and selects the unit stimulus described
+above. These signatures are normative. `dspg_protect_t` is declared in the public
 header and is not duplicated in an internal header. `dspg_build` remains as
 specified in ADR 0007. `dspg_set_var` and `dspg_eval` return 0 on success and
 -1 on failure. `dspg_get_stats` is called only by the DSP owner and returns
@@ -89,3 +108,4 @@ specified in ADR 0007. `dspg_set_var` and `dspg_eval` return 0 on success and
 
 ## Verification
 Planning contract only. No implementation or response vectors verified.
+
