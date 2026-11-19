@@ -7,7 +7,6 @@
 
 static int at_gain(float b0, double f_hz, double expected_db)
 {
-    const double frequencies[] = {10.0, 1000.0, 20000.0};
     dsp_sos_t s = {0};
     double re = 0.0, im = 0.0;
     s.b0 = b0;

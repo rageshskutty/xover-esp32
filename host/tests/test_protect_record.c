@@ -25,11 +25,11 @@ int main(void)
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.max_gain_db = 24.0f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
-    r.max_gain_db = -120.01f;
+    r = rec("o"); r.max_gain_db = -120.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.max_gain_db = 24.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    /* Both bands disabled, lower only, upper only, and both enabled. */
+    r = rec("o");
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
     r.stop_below_hz = 100.0f; r.atten_below_db = 20.0f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 1);
@@ -66,15 +66,23 @@ int main(void)
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r.atten_above_db = 120.01f;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    r.max_gain_db = NAN;
+    r = rec("o"); r.max_gain_db = NAN;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_above_hz = 100.0f; r.atten_above_db = NAN;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.stop_below_hz = INFINITY;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
 
     r = rec("");
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
-    memset(r.out_id, 'x', sizeof(r.out_id));
-    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    {
+        char id31[32];
+        const char *const ids31[] = {id31};
+        memset(id31, 'x', 31U); id31[31] = '\0';
+        r = rec("x");
+        memset(r.out_id, 'x', sizeof(r.out_id));
+        CHECK(dspg_protect_record_valid(&r, 1U, ids31, 1U) == 0);
+    }
     {
         char long_id[32];
         const char *const long_ids[] = {long_id};
