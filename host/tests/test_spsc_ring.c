@@ -1,8 +1,56 @@
 #include "audiosrc_ring.h"
 
+#include <pthread.h>
+#include <stdatomic.h>
 #include <stdio.h>
 
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); return 1; } } while (0)
+
+#define THREAD_FRAMES 100000
+#define THREAD_ATTEMPT_LIMIT ((size_t)THREAD_FRAMES * 100U)
+
+typedef struct {
+    audiosrc_ring_t *ring;
+    atomic_bool failed;
+} threaded_ring_t;
+
+static void *threaded_writer(void *opaque)
+{
+    threaded_ring_t *ctx = opaque;
+    size_t attempts = 0U;
+    int32_t value = 1;
+    while (value <= THREAD_FRAMES && attempts < THREAD_ATTEMPT_LIMIT) {
+        const audiosrc_frame_t f = {value, -value};
+        if (audiosrc_ring_write(ctx->ring, &f, 1U) == 1U) {
+            ++value;
+        } else {
+            ++attempts;
+        }
+    }
+    if (value <= THREAD_FRAMES) atomic_store(&ctx->failed, true);
+    return NULL;
+}
+
+static void *threaded_reader(void *opaque)
+{
+    threaded_ring_t *ctx = opaque;
+    size_t attempts = 0U;
+    int32_t expected = 1;
+    while (expected <= THREAD_FRAMES && attempts < THREAD_ATTEMPT_LIMIT) {
+        audiosrc_frame_t f;
+        if (audiosrc_ring_read(ctx->ring, &f, 1U) == 1U) {
+            if (f.left != expected || f.right != -expected) {
+                atomic_store(&ctx->failed, true);
+                return NULL;
+            }
+            ++expected;
+        } else {
+            ++attempts;
+        }
+    }
+    if (expected <= THREAD_FRAMES) atomic_store(&ctx->failed, true);
+    return NULL;
+}
 
 static audiosrc_frame_t frame(int32_t n)
 {
@@ -41,6 +89,7 @@ int main(void)
     CHECK(audiosrc_ring_init(NULL, storage, 4U) == -1);
     CHECK(audiosrc_ring_init(&ring, NULL, 4U) == -1);
     CHECK(audiosrc_ring_init(&ring, storage, 1U) == -1);
+    CHECK(audiosrc_ring_init(&ring, storage, SIZE_MAX / 2U + 1U) == -1);
     CHECK(audiosrc_ring_write(NULL, in, 1U) == 0U);
     CHECK(audiosrc_ring_read(&ring, NULL, 1U) == 0U);
     CHECK(audiosrc_ring_init(&ring, storage, 4U) == 0);
@@ -49,6 +98,21 @@ int main(void)
     CHECK(audiosrc_ring_read(&ring, out, 3U) == 3U);
     CHECK(out[0].left == in[0].left && out[2].left == in[2].left);
     CHECK(audiosrc_ring_count(&ring) == 0U);
+
+    {
+        audiosrc_frame_t threaded_storage[64];
+        audiosrc_ring_t threaded;
+        threaded_ring_t ctx = {&threaded, ATOMIC_VAR_INIT(false)};
+        pthread_t writer, reader;
+        CHECK(audiosrc_ring_init(&threaded, threaded_storage, 64U) == 0);
+        CHECK(pthread_create(&writer, NULL, threaded_writer, &ctx) == 0);
+        CHECK(pthread_create(&reader, NULL, threaded_reader, &ctx) == 0);
+        CHECK(pthread_join(writer, NULL) == 0);
+        CHECK(pthread_join(reader, NULL) == 0);
+        CHECK(!atomic_load(&ctx.failed));
+        CHECK(audiosrc_ring_count(&threaded) == 0U);
+    }
     puts("PASS: SPSC audio ring");
     return 0;
 }
+
