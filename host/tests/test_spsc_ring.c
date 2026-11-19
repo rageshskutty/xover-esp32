@@ -95,6 +95,7 @@ int main(void)
     CHECK(audiosrc_ring_init(&ring, storage, 4U) == 0);
     atomic_store(&ring.head, 7U); atomic_store(&ring.tail, 7U);
     CHECK(audiosrc_ring_write(&ring, in, 3U) == 3U);
+    CHECK(audiosrc_ring_count(&ring) == 3U);
     CHECK(audiosrc_ring_read(&ring, out, 3U) == 3U);
     CHECK(out[0].left == in[0].left && out[2].left == in[2].left);
     CHECK(audiosrc_ring_count(&ring) == 0U);
