@@ -102,6 +102,7 @@ int main(void)
 
     {
         const char *const dup_ids[] = {"o", "o"};
+        const char *const empty_output[] = {""};
         const char *const two_ids[] = {"o", "p"};
         dspg_protect_t one[] = {rec("o")};
         dspg_protect_t dup[] = {rec("o"), rec("o")};
@@ -111,10 +112,12 @@ int main(void)
         CHECK(dspg_protect_record_valid(one, 1U, two_ids, 2U) == 0);
         CHECK(dspg_protect_record_valid(dup, 2U, two_ids, 2U) == 0);
         CHECK(dspg_protect_record_valid(unknown, 2U, two_ids, 2U) == 0);
-        CHECK(dspg_protect_record_valid(dup, 2U, dup_ids, 2U) == 0);
+        CHECK(dspg_protect_record_valid(valid_two, 2U, dup_ids, 2U) == 0);
+        CHECK(dspg_protect_record_valid(one, 1U, empty_output, 1U) == 0);
         CHECK(dspg_protect_record_valid(NULL, 1U, ids, 1U) == 0);
         CHECK(dspg_protect_record_valid(&r, 1U, NULL, 1U) == 0);
         CHECK(dspg_protect_record_valid(&r, 0U, ids, 1U) == 0);
+        CHECK(dspg_protect_record_valid(&r, 0U, ids, 0U) == 0);
     }
     puts("PASS: protection record validator contract");
     return 0;
