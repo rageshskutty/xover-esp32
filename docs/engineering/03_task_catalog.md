@@ -29,13 +29,13 @@ List exact files changed, production LOC count, test names, command lines and ex
 
 ## T07a5 — Compiled-node response evaluator
 **Bundle/test:** [T07a5 prompt](prompts/T07a5.md); committed `host/tests/test_node_response.c`.
-**Dependencies:** T07a4, ADR 0011, and CODEOWNERS/maintainer approval of the internal seam before implementation. Single-node response only. Reuses the rbj_eq.json golden (-6.000003627305285 dB); denominator convention is `1 + a1*z^-1 + a2*z^-2` with stored signs unchanged. Test invalid pointers, frequencies, sample rates, empty cascades, non-finite results, and unchanged output sentinels; never regenerate the golden.
+**Dependencies:** T07a4, ADR 0011, and CODEOWNERS/maintainer approval of the internal seam before implementation. Single-node response only. Reuses the rbj_eq.json golden (-6.000003627305285 dB); denominator convention is `1 + a1*z^-1 + a2*z^-2` with stored signs unchanged. Test invalid pointers, frequencies, sample rates, empty cascades, non-finite gain/coefficients/results, and unchanged output sentinels; never regenerate the golden.
 
 ## T07a6 — Protection comparator integration
 **State:** blocked; no executable bundle yet. Depends on T07a1–a5 and ADR 0011 graph response semantics and signature. Do not start until graph propagation tests and CODEOWNERS review are complete.
 
 ## T16 — SPSC audio frame ring
-**Bundle/test:** [T16 prompt](prompts/T16.md); committed `host/tests/test_spsc_ring.c`. Independent host card, 30–80 production LOC. Caller-owned storage, C11 acquire/release, immediate partial read/write; overflow-safe modulo-2*capacity count; threaded producer/consumer stress under TSan with `Threads::Threads` linkage and a reproducible sanitizer command. Caller owns blocking/backpressure.
+**Bundle/test:** [T16 prompt](prompts/T16.md); committed `host/tests/test_spsc_ring.c`. Independent host card, 30–80 production LOC. Caller-owned storage, C11 acquire/release, immediate partial read/write; overflow-safe modulo-2*capacity count exercised across counter wrap; threaded producer/consumer stress under TSan with `Threads::Threads` linkage and a reproducible sanitizer command. Caller owns blocking/backpressure.
 
 ## T17 — Pure TDM slot packer
 **Bundle/test:** [T17 prompt](prompts/T17.md); committed `host/tests/test_tdm_pack.c`. Independent host card, 30–80 production LOC. Six planar channels map to slots 0–5 in design.md order; slots 6–7 are zero. Retain the invalid-slot rejection regression in `test_graph_validate` (`duplicate_slot.json`, E_SLOT).
