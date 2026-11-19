@@ -76,6 +76,8 @@ int main(void)
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.max_gain_db = NAN;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    r = rec("o"); r.stop_below_hz = NAN;
+    CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.stop_above_hz = 100.0f; r.atten_above_db = NAN;
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
     r = rec("o"); r.stop_below_hz = INFINITY;
@@ -83,6 +85,12 @@ int main(void)
 
     r = rec("");
     CHECK(dspg_protect_record_valid(&r, 1U, ids, 1U) == 0);
+    CHECK(dspg_protect_fields_valid(&r) == 0);
+    {
+        const char *const empty_ids[] = {""};
+        r = rec("");
+        CHECK(dspg_protect_record_valid(&r, 1U, empty_ids, 1U) == 0);
+    }
     {
         char id31[32];
         const char *const ids31[] = {id31};
@@ -122,3 +130,4 @@ int main(void)
     puts("PASS: protection record validator contract");
     return 0;
 }
+
