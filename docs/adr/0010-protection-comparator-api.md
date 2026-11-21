@@ -81,7 +81,7 @@ this seam.
 
 ## Required test vectors
 
-The prototype must include:
+The independent reference oracle and its reviewed vector set must include:
 - one-input unity transfer exactly at the limit: pass;
 - one-input transfer just above the limit: fail;
 - two same-phase unity inputs with weights 0.5 and 0.5: conservative bound
@@ -98,9 +98,9 @@ The prototype must include:
 - deterministic first-failure ordering;
 - failure record zeroing for every malformed input.
 
-The prototype must also prove that a missing curve knot or an attempted
+The reference tests must also prove that a missing curve knot or an attempted
 out-of-range interpolation cannot silently disable protection.
 
 ## Verification status
 
-Contract proposal only. No comparator implementation or tests have been run.
+Contract proposal only. The independent Python reference oracle is implemented and exercised in CI; no production C comparator has been implemented. The numeric conventions and public C seam remain unapproved.
