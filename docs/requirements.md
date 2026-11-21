@@ -80,7 +80,7 @@
   and slot mapping.
 - Driver protection limits and cited driver data.
 - Amplifier voltage/clip data, hardware gain setting, and supply budget.
-- Limiter detector constants, attack/release behavior, and any look-ahead.
+- Protected `lim_bounds` and `lim_default` values for attack/release, sourced\n  from owner-approved safety data. The designer may choose only attack/release\n  shape within those bounds; omitted values use the protected defaults.\n  Non-zero look-ahead is rejected in v1.
 - Flash endurance budget and final commit/persistence ordering.
 - Hardware measurements and target timing/CPU budget.
 
