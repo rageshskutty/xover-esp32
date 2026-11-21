@@ -1,21 +1,50 @@
 # Contracts and verification
 
-## Authority
-Existing public source headers are authoritative for implemented DSP modules. ADR 0007 is the sole planned dspgraph build/process/lifetime contract; ADR 0008 and 0010 govern protection semantics/API; ADR 0009 defines timing. The former proposed graph signatures in this document are retired. Public header changes require an ADR, docs/api.md update, and CODEOWNERS review.
+## Authority and architecture
+
+The product planning architecture is chain-per-output v1, not a graph/DAG runtime. ADR 0012 defines the ordered-chain architecture; ADR 0013 defines the protected block and mandatory output-protection pipeline; ADR 0008 defines the conservative per-output response bound and limit curves; ADR 0010 defines the pure comparator behavior; ADR 0011 defines configuration mutation and response ownership.
+
+These ADRs are proposals, not approved implementation authority. ADR 0008, ADR 0010, ADR 0012, and ADR 0013 require human safety review and CODEOWNERS approval before implementation. Existing public DSP source headers remain authoritative for implemented modules. Public header changes require an ADR, docs/api.md update, and CODEOWNERS review.
 
 ## Implemented interfaces
-- dspblocks: see `firmware/components/dspblocks/include/dspblocks.h`. In particular response APIs are `dsp_sos_eval(const dsp_sos_t*,size_t,double,double,double*,double*)` and `dsp_log_grid(double,double,double*,size_t)`; both are core-0-only.
-- dspgraph: current public API is `dspg_validate(const char*,size_t,dspg_report_t*)`, see `firmware/components/dspgraph/include/dspgraph.h`. The internal `dspg_compile_node` contract is in `firmware/components/dspgraph/internal/dspgraph_build.h`; it compiles one validated node and is not a runtime graph.
-- JSON v1: schema in `configs/schema.json`; 48 kHz, at most 64 nodes, body <=32 KiB, depth <=8, IDs <=31 characters. Existing config error taxonomy is in `docs/api.md`.
 
-## Planned graph contract (not implemented)
-ADR 0007 defines the one build signature, caller-owned aligned arena, 1..64 frame planar processing, alias prohibition and acknowledged lifetime. Do not use any signatures from the retired `docs/engineering/05_proposed_module_interfaces.md`.
+- dspblocks: see `firmware/components/dspblocks/include/dspblocks.h`. Response APIs include `dsp_sos_eval(...)` and `dsp_log_grid(...)`; both are core-0-only.
+- dspgraph: retained legacy code and tests only; it is not the product execution architecture and must not receive new graph features.
+- chain-v1 JSON: schema in `configs/schema.json`; 48 kHz, at most 64 blocks per chain, 1–8 outputs, declared input channels and ordered output chains. This is a schema/guardrail contract only; no chain compiler or runtime exists.
 
-## Planned protection contract (not implemented)
-ADR 0008 defines one record per output, zero-edge disabled bands and sample points. ADR 0010 defines the exact `dspg_protect_check` comparator signature. Graph-path complex response construction is not yet specified; T07a6 is blocked until a maintainer-approved response propagation ADR exists. Never publish a graph without all outputs passing protection.
+## Protection contract status
+
+The normative planning direction is the conservative per-output sum `Σ |w_i| · |H_i(f)|`, with no phase-cancellation credit. The pure comparator receives already validated response magnitudes, weights, frequencies, and per-output curve values. It does not parse JSON, design filters, access hardware, derive driver limits, or run runtime limiters.
+
+The current comparator ADR is incomplete for implementation: exact C layouts/signatures, maximum dimensions and memory budget, zero-transfer dB floor, curve interpolation, and complete grid rules must be frozen. Driver/amplifier/supply-to-limit-curve derivation and real protected values require human safety evidence; agents must not invent them. `auto_trim` is not part of the current JSON schema and is disabled/deferred for chain v1; no user gain may be silently changed.
+
+The current subsonic check in `tools/check.py` is only a temporary presence heuristic, not a response calculation. It must not be treated as evidence that attenuation at `min_freq_hz` is satisfied. Static protection acceptance remains blocked until a real response evaluator is implemented and verified.
 
 ## Verification
-Host commands: `python tools/check.py`; `cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release`; `cmake --build host/build`; `ctest --test-dir host/build --output-on-failure`. CI also compares SciPy response, runs sanitizers and coverage. These commands were not run in this planning session: UNVERIFIED. Target/hardware results require human-authored bring-up evidence.
+
+CI workflow `.github/workflows/ci.yml` runs:
+- `python tools/check.py`;
+- CMake configure/build and CTest;
+- `tools/test_scipy_compare.py`, which compares existing compiled `dsp_sos_eval` filter responses against SciPy on the 1054-point 10 Hz–20 kHz grid;
+- ASan/UBSan host tests;
+- the dspblocks coverage gate.
+
+Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 static protection oracle and does not generate the protection comparator's golden vectors. A separate NumPy/SciPy reference oracle is required.
+
+The following commands are the host verification sequence:
+```sh
+python tools/check.py
+cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release
+cmake --build host/build
+ctest --test-dir host/build --output-on-failure
+python tools/test_scipy_compare.py --library host/build/libdspblocks_eval.so
+cmake -S host -B host/build-san -DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON
+cmake --build host/build-san
+ctest --test-dir host/build-san --output-on-failure
+```
+
+CI pass is evidence only for the exact commit and jobs shown in GitHub Actions. Remote source inspection is not a local test run. Target/hardware results require human-authored bring-up evidence.
 
 ## Evidence labels
-HOST-VERIFIED only for commands actually run; HW-VERIFIED only with owner-authored bringup-log entry; otherwise UNVERIFIED. Remote source inspection is not a test run.
+
+HOST-VERIFIED only for commands actually run successfully. CI-VERIFIED only for named jobs that passed on the exact commit. HW-VERIFIED only with owner-authored bring-up evidence. Otherwise UNVERIFIED.
