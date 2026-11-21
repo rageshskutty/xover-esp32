@@ -47,7 +47,7 @@
     {
       "id": "ADR-0014",
       "status": "proposed",
-      "approval": "human approval required: VituixCAD 48 kHz golden export/profile, numeric conventions and measured float32 error, coefficient/delay bounds, ESP32-S3 module/memory budget, and ADR approval"
+      "approval": "human approval required: parametric filter formula conventions and VituixCAD response comparison, designer protection formulas/RMS reference/excursion envelope, measured float32 error, delay bounds, ESP32-S3 module/memory budget"
     }
   ],
   "items": [
@@ -150,8 +150,8 @@
       ],
       "human_decisions": [
         "human approval of ADR-0014 and schema",
-        "VituixCAD 48 kHz golden export and canonical coefficient convention",
-        "approved SOS stability/bounds and detector numerical conventions",
+        "filter coefficient formula/convention and designer UI comparison with VituixCAD",
+        "designer protection formulas, RMS calibration and excursion envelope fit",
         "measured float32 response error and approved tolerance",
         "selected ESP32-S3 module and approved memory budget",
         "protection firmware implementation and bench safety review"
@@ -209,32 +209,32 @@
       "schema": "configs/schema.json",
       "schema_authority": "single source of truth; task cards reference JSON Pointer or generate excerpts from schema",
       "example": "configs/example_2way_sub.json",
-      "oracle": "tools/protection_oracle.py retained as designer-side base-chain margin report and double-precision reference for C SOS/limiter math; excludes runtime user-EQ boosts; limiter-specific vectors remain future work",
-      "trust_boundary": "firmware validates structure and bounds only; designer owns physical correctness",
+      "oracle": "tools/protection_oracle.py retained as designer-side base-chain margin report and double-precision reference for parametric coefficient calculation, runtime biquad response and limiter math; excludes runtime user-EQ boosts; limiter-specific vectors remain future work",
+      "trust_boundary": "Firmware validates structure, finite parameters, declared bounds, and computed coefficient validity/stability; designer owns physical correctness and all driver/amp/PSU modelling.",
       "hardware_verification": "NONE — no bench or hardware verification performed",
       "remaining_human_gates": [
-        "VituixCAD 48 kHz DSP profile and golden export",
-        "SOS coefficient convention/bounds and strict stability validation",
-        "measured float32 DF2T error and approved response tolerance",
-        "delay rounding/max policy",
+        "approve filter coefficient formulas/conventions, especially shelf Q semantics and comparison with VituixCAD plots",
+        "approve designer protection formulas, RMS full-scale-sine reference, margins, excursion envelope fit and physical input quality",
+        "measured float32 DF2T error and approval of proposed ±0.05 dB / ±0.5 degree response tolerance; decide whether fixed-point evaluation is needed",
+        "delay maximum and rounding/UI report policy",
         "exact ESP32-S3 module and memory budget",
         "ADR-0014 approval"
       ],
-      "filter_execution": "All filters use imported normalized SOS; firmware has no filter-design code; output chain is runtime read-only and only complete validated configuration replacement is allowed",
+      "filter_execution": "JSON stores parametric filter stacks (type/f_hz/q/gain_db); firmware calculates normalized biquad coefficients in double at complete config load and audio path executes prepared sections only; output chain is runtime read-only and only complete validated config replacement is allowed",
       "sample_rate_hz": 48000,
       "proposed_host_tolerance": {
-        "magnitude_db": 0.1,
-        "phase_deg": 1,
+        "magnitude_db": 0.05,
+        "phase_deg": 0.5,
         "frequency_hz": [
           20,
           20000
         ],
         "status": "proposal pending measured float32 error and human approval"
       },
-      "vituixcad": "VituixCAD 3.0 help documents Digital Biquad and Active Buffer gain/delay/polarity export; golden 48 kHz project and importer profile still require human verification",
-      "delay": "Exporter delay in microseconds is rounded by designer tooling to integer samples; signed time and equivalent-distance error must be reported",
-      "vituixcad_delay_export": "Active-buffer parameter is microseconds; VituixCAD 3 Copy/Export Buffers option and EQ-template delay variable report already-rounded samples. Exact selected import/export path must be verified with golden project; avoid double rounding.",
-      "ci_verification": "GitHub Actions run 44947540441: guardrails, host-tests, host-sanitizers, and host-coverage all passed on 540750dce20235011436e69395b7d859113ecf16. Host CI only; no firmware target build or hardware verification."
+      "vituixcad": "No coefficient importer is assumed. Designer manually re-enters filter type/frequency/Q/gain; UI plots generated response for visual comparison because VituixCAD filter conventions may differ.",
+      "ci_verification": "GitHub Actions run 44947540441: guardrails, host-tests, host-sanitizers, and host-coverage all passed on 540750dce20235011436e69395b7d859113ecf16. Host CI only; no firmware target build or hardware verification.",
+      "protection_calculator": "docs/designer-side/protection-calculator.md; designer-only driver/amp/PSU/V0_rms inputs and formulas; no physical inputs in device JSON",
+      "rms_reference": "RMS detector reads 0 dBFS for a full-scale sine; uncorrected RMS of a peak-full-scale sine (-3.0103 dB) is not the dBFS reference."
     }
   },
   "retired_firmware_gates": {

@@ -8,11 +8,11 @@
   "pre": [
     {
       "channel": "L",
-      "sos": []
+      "filters": []
     },
     {
       "channel": "R",
-      "sos": []
+      "filters": []
     }
   ],
   "outputs": [
@@ -26,18 +26,17 @@
         }
       ],
       "chain": {
-        "sos": [
-          {
-            "b0": 0.99262254,
-            "b1": -1.98524509,
-            "b2": 0.99262254,
-            "a1": -1.98519066,
-            "a2": 0.98529951
-          }
-        ],
         "gain_db": 0,
         "polarity": 1,
-        "delay_samples": 0
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "hp2",
+            "f_hz": 35,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
       },
       "protection": {
         "peak_ceiling_dbfs": -3,
@@ -58,18 +57,17 @@
         }
       ],
       "chain": {
-        "sos": [
-          {
-            "b0": 0.99262254,
-            "b1": -1.98524509,
-            "b2": 0.99262254,
-            "a1": -1.98519066,
-            "a2": 0.98529951
-          }
-        ],
         "gain_db": 0,
         "polarity": 1,
-        "delay_samples": 0
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "hp2",
+            "f_hz": 35,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
       },
       "protection": {
         "peak_ceiling_dbfs": -3,
@@ -94,35 +92,32 @@
         }
       ],
       "chain": {
-        "sos": [
-          {
-            "b0": 0.000027213808,
-            "b1": 0.000054427616,
-            "b2": 0.000027213808,
-            "a1": -1.98519066,
-            "a2": 0.98529951
-          }
-        ],
         "gain_db": 0,
         "polarity": 1,
-        "delay_samples": 0
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "lp2",
+            "f_hz": 80,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
       },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [
           {
-            "b0": 0.99768867,
-            "b1": -1.99537735,
-            "b2": 0.99768867,
-            "a1": -1.99537201,
-            "a2": 0.99538269
+            "type": "hp2",
+            "f_hz": 25,
+            "q": 0.7071,
+            "gain_db": 0
           },
           {
-            "b0": 0.000027213808,
-            "b1": 0.000054427616,
-            "b2": 0.000027213808,
-            "a1": -1.98519066,
-            "a2": 0.98529951
+            "type": "lp2",
+            "f_hz": 80,
+            "q": 0.7071,
+            "gain_db": 0
           }
         ],
         "excursion_limit_dbfs": -6,

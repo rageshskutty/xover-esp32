@@ -1,37 +1,33 @@
 # Architecture
 
 ## Signal path
+Input channels → optional per-input user/room-EQ parametric filter pre-chain → per-output input mix → per-output parametric crossover filter stack → output gain → polarity → integer-sample delay → fixed 5 Hz DC blocker and detector taps → mandatory attenuation-only limiter → system mute/ramp → I2S TDM output.
 
-Input channels → optional per-input user/room-EQ SOS pre-chain → per-output input mix → imported per-output SOS crossover → output gain → polarity → integer-sample delay → fixed 5 Hz DC blocker and detector taps → mandatory attenuation-only limiter → system mute/ramp → I2S TDM output.
+## Filter-stack execution contract
+JSON is the source of truth and stores ordered filter objects {type,f_hz,q,gain_db}. Supported types and their exact coefficient convention are defined in ADR 0014. The same load-time coefficient calculator expands input pre-chain, output crossover, and detector-only protection weighting into normalized biquad sections.
 
-## Filter execution contract
+Firmware calculates coefficients in double precision once when loading a complete configuration. The real-time audio path executes prepared sections only; no filter design, coefficient calculation, or trigonometric work occurs per sample or per block. V1 is fixed at 48 kHz; fs_hz mismatch is a hard configuration failure.
 
-Firmware contains no filter-design code. All filters use normalized SOS coefficients b0,b1,b2,a1,a2 with a0=1 and denominator 1+a1 z^-1+a2 z^-2. The same SOS executor is used for input pre-chain EQ, output crossover, and detector-only excursion weighting. V1 runs only at 48 kHz; fs_hz mismatch is a hard configuration failure.
+Each output chain has at most eight filters, gain, polarity, and integer delay samples. Protection weighting has at most four filters. LR4 is two lp2 or hp2 sections at Q=0.7071; v1 has no macros. Filter parameter bounds and type-specific neutral values are normative in configs/schema.json.
 
-Each output chain is designer-imported and read-only during runtime. It contains at most eight SOS sections, gain, polarity, and integer delay samples. It is replaced only as part of a complete validated configuration load with integrity/CRC verification and safe publication. No partial coefficient or filter mutation API exists.
-
-SOS coefficients must be finite and bounded. The semantic validator rejects any section not satisfying abs(a2)<1 and abs(a1)<1+a2. No filter design, coefficient repair, or runtime sample-rate conversion is performed.
+The output chain is immutable during normal runtime. It is replaced only by a complete validated configuration load with CRC/integrity verification and safe publication. No partial filter mutation API exists. The load-time calculator rejects non-finite or unstable computed sections; no coefficient repair is allowed.
 
 ## Protection boundary
+Each output carries one required abstract protection object as defined by configs/schema.json. Its excursion_weighting filter stack uses the same parametric filter vocabulary and affects only the detector path. Its composite magnitude is designer-verified to be <=0 dB and to conservatively envelope the normalized X_per_V(f) curve. Firmware does not calculate driver models or validate physical correctness.
 
-Each output carries one required abstract protection object as defined by configs/schema.json. Protection excursion weighting is an SOS cascade (maximum four sections) and affects only the detector path. No separate protected driver record exists in firmware. Driver T/S data, VituixCAD excursion/thermal models, amplifier gain/clip/rail data, and PSU models are designer-side only.
-
-Firmware checks structure, finite values, enumerations, bounds, and SOS stability. It does not evaluate driver curves, infer physical limits, design filters, or decide whether designer-exported limits are safe. Unknown fields reject. Missing or invalid protection keeps the output muted.
+Driver T/S data, X_per_V curves, amplifier gain/clip/rail data, and PSU models are designer-side only. Firmware checks structure, finite values, enumerations, bounds, and computed coefficient stability. Unknown fields reject. Missing or invalid protection keeps the output muted.
 
 ## Runtime protection
+Raw peak, excursion-weighted peak, and RMS detectors produce independent attenuation requests. The RMS detector is calibrated so a full-scale sine reads 0 dBFS. Applied gain is their minimum, clamped to [0,1]. Lookahead and attack are fixed at 1 ms; the DC blocker is fixed at 5 Hz; release is per-output configuration. Gain ramps reuse T18. No bypass field exists. Boot/reset is muted and no output is enabled until every output has a valid block.
 
-Raw peak, excursion-weighted peak, and RMS detectors produce independent attenuation requests. Applied gain is their minimum, clamped to [0,1]. Lookahead and attack are fixed at 1 ms; the DC blocker is fixed at 5 Hz; release is per-output configuration. Gain ramps reuse T18. No bypass field exists. Boot/reset is muted and no output is enabled until every output has a valid block.
-
-The limiter is the last audio-processing stage and therefore covers boosts introduced by the runtime input pre-chain EQ. The designer-side static margin report covers only the imported base crossover/output chain; it does not claim to include arbitrary user/room-EQ boosts.
+The limiter is the last audio-processing stage and covers boosts introduced by the runtime input pre-chain EQ. The designer-side static margin report covers only the base crossover/output chain; it excludes arbitrary user/room-EQ boosts.
 
 ## Storage and failure behavior
-
-A/B slots are independently checked for header, version, length, CRC, parse, schema, and semantic validity. Prefer the selected active slot if fully valid; otherwise fall back only to the other fully valid slot. If neither is valid, remain muted. Candidate updates write and verify the inactive slot before changing the active selector. Never sacrifice the last known-good slot.
+A/B slots are independently checked for header, version, length, CRC, parse, schema, parameter, and computed-coefficient validity. Prefer the selected active slot if fully valid; otherwise fall back only to the other fully valid slot. If neither is valid, remain muted. Candidate updates validate and prepare a complete configuration before writing/verifying the inactive slot and changing the active selector. Never sacrifice the last known-good slot.
 
 ## Numeric risks and status
+Low-frequency/high-Q sections at 48 kHz require float32 DF2T comparison against a double-precision reference. Proposed response tolerance is ±0.05 dB and ±0.5 degree over 20 Hz–20 kHz, pending measured float32 error and human approval. Fixed-point with 64-bit accumulators is a fallback to evaluate only if float32 fails.
 
-Low-frequency/high-Q SOS sections at 48 kHz require float32 DF2T comparison against a double-precision reference. Proposed response tolerance is ±0.1 dB and ±1 degree over 20 Hz–20 kHz, pending measured float32 error and human approval. Fixed-point with 64-bit accumulators is a fallback to evaluate only if float32 fails.
-
-VituixCAD exports delay in microseconds; designer tooling rounds to integer samples and reports signed time/distance error. The device schema carries samples only.
+Delay resolution is 20.8333 μs/sample at 48 kHz; the designer UI reports nearest-sample rounding error. Manual VituixCAD-to-JSON re-entry can differ from VituixCAD's filter definitions, so the UI plots the generated response for visual overlay.
 
 This is a proposed contract, not an implementation claim. No hardware verification or bench measurement is claimed. ADR 0014 and configs/schema.json are normative.

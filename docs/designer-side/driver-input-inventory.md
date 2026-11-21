@@ -1,6 +1,6 @@
 # Designer-side input and legacy-reference inventory
 
-This docs-only migration inventory records remaining references to retired driver/amp/curve inputs. None is a firmware or device JSON contract.
+This docs-only inventory records designer-side driver/amp/curve inputs and legacy references. Physical inputs are permitted in designer tooling only; none is a firmware or device JSON contract.
 
 ## Source model file
 - docs/designer-side/driver-inputs.example.yaml contains designer-side driver model placeholders. It is not part of device JSON or a firmware configuration contract.

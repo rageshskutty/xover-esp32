@@ -20,18 +20,17 @@
         }
       ],
       "chain": {
-        "sos": [
-          {
-            "b0": 0.99262254,
-            "b1": -1.98524509,
-            "b2": 0.99262254,
-            "a1": -1.98519066,
-            "a2": 0.98529951
-          }
-        ],
         "gain_db": 0,
         "polarity": 1,
-        "delay_samples": 0
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "lp2",
+            "f_hz": 1000,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
       },
       "protection": {
         "peak_ceiling_dbfs": -3,
