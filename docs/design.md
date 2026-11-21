@@ -159,11 +159,18 @@ from 10 Hz to 20 kHz plus exact provisioned curve knots and required model
 boundaries. The final point limit and interpolation rules are frozen in the
 comparator prototype; no extrapolation may silently weaken protection.
 
-If the candidate exceeds the limit curve, report the required attenuation.
-Only when `auto_trim` is explicitly enabled may the compiler add a
-non-positive output trim and repeat the full check. Automatic trim is capped
-at 12 dB; if more is required, reject. Without opt-in, never silently alter
-the user's gain.
+The current chain-v1 schema has no `auto_trim` field. Automatic trim is
+disabled in v1: the compiler must reject an over-limit candidate and must
+never change the user's gain. A future auto-trim feature requires a separate
+human-reviewed schema and algorithm decision.
+
+The required subsonic high-pass is a structural requirement, not proof of
+attenuation. The static response evaluator must also calculate the actual
+input-to-output response at the protected `min_freq_hz` and across the full
+evaluation grid, then compare it with the provisioned curve. The temporary
+presence-only guardrail is not accepted as safety evidence; until the
+response check is integrated into the configuration validator, protected
+static acceptance fails closed.
 
 ### Mandatory runtime protection
 
