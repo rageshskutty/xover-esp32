@@ -80,7 +80,7 @@ Before beginning, the task bundle must give: one objective; exact paths; immutab
 required before this task can be marked verified.
 
 **Files:** `configs/schema.json`, `configs/example_2way_sub.json`,
-`configs/example_lr_difference.json`, `configs/invalid/*.json`,
+`configs/example_lr_difference.json`, `configs/example_weight_boundaries.json`, `configs/invalid/*.json`,
 `tools/check.py`, ADRs 0012/0013, `docs/design.md`, `docs/architecture.md`,
 `docs/requirements.md`, and `docs/api.md`.
 
