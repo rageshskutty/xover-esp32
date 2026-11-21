@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1/2/3 and the current pre-Step-4 documentation/contract-gate branch tip passed GitHub Actions run 44942498256 on commit f3b17381742ca3ef190225111b8f8139d8c88b09: guardrails, host-tests (including C-vs-SciPy and protection oracle), host-sanitizers, and host-coverage; no local test execution; hardware and safety contract remain unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; latest cleanup commits 622cc05044, 0a9535df38, and e6c35a80ad each passed GitHub Actions (guardrails, host-tests including C-vs-SciPy and protection oracle, host-sanitizers, host-coverage); no local test execution; hardware and safety contract remain unverified"
   },
   "active_task": null,
   "decisions": [
@@ -138,11 +138,11 @@
         "PRESTEP4-3"
       ],
       "human_decisions": [
-        "human/CODEOWNERS approval of proposed numerical conventions",
-        "selected target memory budget and frozen maximum combined grid/dimensions",
-        "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, and function signature",
+        "human/CODEOWNERS approval or rejection of proposed numerical conventions in docs/engineering/protection-numerical-contract-proposal.md",
+        "selected target module and verified memory budget; freeze maximum combined grid and response storage",
+        "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, dimensions, and function signature",
         "human safety review and CODEOWNERS approval of ADRs 0008/0010/0012/0013",
-        "owner-approved protected block derivation and real per-output limit curves"
+        "owner-approved protected-block derivation and real per-output limit curves, supported by cited driver/amplifier/supply evidence"
       ]
     },
     {
@@ -187,6 +187,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-1/2/3 CI_VERIFIED. PRESTEP4-4 technical proposal is documented and CI green, but remains blocked pending human approval of numeric conventions, target memory bound, exact dspchain_protect.h seam, protected-block derivation, and CODEOWNERS safety review. Step 4 must not start until these gates are satisfied."
+    "pre_step4": "PRESTEP4-1/2/3 and documentation reconciliation are CI_VERIFIED through commit e6c35a80ad. ADR 0013 now agrees that auto_trim is disabled in chain v1; ADR 0010 distinguishes the Python reference oracle from the unimplemented C comparator; docs/PLAN.md labels legacy graph-era task cards retired. PRESTEP4-4 remains BLOCKED on explicit human safety/numeric approval, target memory and C-interface freeze, and owner-approved protected data. Do not start Step 4 until these gates are closed."
   }
 }
