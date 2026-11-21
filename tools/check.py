@@ -138,6 +138,36 @@ def semantic_errors(cfg, test_protected=None):
                     errs.append("E_SCHEMA: output slot %r outside protected TDM slot count %d" %
                                 (slot, slot_count))
         bounds = test_protected.get("lim_bounds", {})
+        records = test_protected.get("records", {})
+        required_record_keys = {
+            "vpk_at_0dbfs", "clip_v", "xmax_mm", "re_ohm", "pmax_w",
+            "tau_s", "x_model", "min_freq_hz", "lim_bounds", "lim_default"
+        }
+        for out_id in ids:
+            record = records.get(out_id, {})
+            missing = set(record.get("missing_keys", []))
+            unknown = set(record.get("unknown_keys", []))
+            if missing or unknown:
+                errs.append("E_PROTECT: protected record %s has missing/unknown keys" % out_id)
+            if record.get("x_model_valid") is False:
+                errs.append("E_PROTECT: protected x_model for %s is unstable or invalid" % out_id)
+            vpk, clip_v = record.get("vpk_at_0dbfs"), record.get("clip_v")
+            if vpk is not None and clip_v is not None and vpk > clip_v:
+                errs.append("E_PROTECT: protected vpk_at_0dbfs exceeds clip_v for %s" % out_id)
+        for out in outputs:
+            out_id = out.get("id")
+            min_freq = test_protected.get("min_freq_hz", {}).get(out_id)
+            if min_freq is not None:
+                has_subsonic_hp = any(
+                    block.get("t") == "biquad" and block.get("k") == "hp"
+                    and block.get("f_hz", 0) >= min_freq
+                    for block in out.get("chain", [])
+                )
+                if not has_subsonic_hp:
+                    errs.append("E_PROTECT: output %s lacks required subsonic high-pass" % out_id)
+            static = test_protected.get("static_bounds", {}).get(out_id)
+            if static and static.get("bound", 0) > static.get("limit", 0):
+                errs.append("E_PROTECT: static response bound exceeds protected curve for %s" % out_id)
         for out in outputs:
             limits = bounds.get(out.get("id"), {})
             protect = out.get("protect", {})
@@ -194,7 +224,10 @@ def check_configs():
         test_protected = {
             "out_ids": cfg.pop("_test_protected_ids", None),
             "tdm_slot_count": cfg.pop("_test_tdm_slot_count", None),
-            "lim_bounds": cfg.pop("_test_lim_bounds", {})
+            "lim_bounds": cfg.pop("_test_lim_bounds", {}),
+            "records": cfg.pop("_test_protected_records", {}),
+            "min_freq_hz": cfg.pop("_test_min_freq_hz", {}),
+            "static_bounds": cfg.pop("_test_static_bounds", {})
         }
         errs = schema_errors(cfg, schema)
         if not errs:
