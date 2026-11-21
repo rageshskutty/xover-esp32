@@ -2,10 +2,10 @@
   "schema_version": 2,
   "basis": {
     "repository": "rageshskutty/xover-esp32",
-    "base_branch": "architecture/7b-executable-engineering-plan",
-    "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
+    "base_branch": "architecture/7b-plan-overhaul-v2",
+    "base_commit": "f13984ed6577f28804298ab74203755d3ecca255",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; no local checkout or test execution; hardware unverified"
+    "verification": "LIVE_PR_HEADS_VERIFIED_VIA_GITHUB_API; python tools/check.py passed locally; GitHub Actions repository CI passed on the preceding catalog revision; task fixtures remain unregistered and were not exercised; T07a1 ASan/UBSan verification is pending implementation registration; local C builds unavailable because GCC and Clang are absent; hardware unverified"
   },
   "active_task": null,
   "decisions": [
@@ -28,32 +28,50 @@
       "id": "ADR-0010",
       "status": "planning-accepted",
       "approval": "CODEOWNERS required"
+    },
+    {
+      "id": "ADR-0011",
+      "status": "planning-accepted",
+      "approval": "CODEOWNERS and human safety review required before implementation; response input-channel and PUT transaction semantics were clarified in remediation"
     }
   ],
   "items": [
     {
-      "id": "T07a1",
-      "state": "queued",
+      "id": "T07a0",
+      "state": "awaiting_approval",
       "depends_on": [
-        "ADR-0010"
+        "ADR-0011"
       ],
       "human_decisions": [
-        "CODEOWNERS contract approval"
+        "CODEOWNERS public header approval"
+      ]
+    },
+    {
+      "id": "T07a1",
+      "state": "awaiting_approval",
+      "depends_on": [
+        "T07a0"
+      ],
+      "human_decisions": [
+        "CODEOWNERS record validation approval"
       ]
     },
     {
       "id": "T07a2",
-      "state": "blocked",
+      "state": "awaiting_approval",
       "depends_on": [
-        "T07a1"
+        "T07a1",
+        "ADR-0010"
       ],
-      "human_decisions": []
+      "human_decisions": [
+        "CODEOWNERS comparator approval"
+      ]
     },
     {
       "id": "T07a3",
       "state": "blocked",
       "depends_on": [
-        "T07a2"
+        "T07a1"
       ],
       "human_decisions": []
     },
@@ -69,21 +87,26 @@
       "id": "T07a5",
       "state": "blocked",
       "depends_on": [
-        "T07a4"
+        "T07a4",
+        "ADR-0011"
       ],
       "human_decisions": [
-        "maintainer approves internal seam",
-        "existing golden fixture availability"
+        "CODEOWNERS and maintainer approve internal response seam and denominator convention"
       ]
     },
     {
       "id": "T07a6",
       "state": "blocked",
       "depends_on": [
-        "T07a5"
+        "T07a2",
+        "T07a3",
+        "T07a4",
+        "T07a5",
+        "ADR-0011"
       ],
       "human_decisions": [
-        "response propagation ADR and exact graph API"
+        "CODEOWNERS approval of graph response API",
+        "human approval of input-channel semantics and response vectors"
       ]
     },
     {
@@ -114,7 +137,8 @@
       "id": "T09",
       "state": "blocked",
       "depends_on": [
-        "ADR-0007"
+        "ADR-0007",
+        "ADR-0011"
       ],
       "human_decisions": [
         "CODEOWNERS API approval",
@@ -134,7 +158,57 @@
         "dependency/license/source scope",
         "target evidence and human bring-up"
       ]
+    },
+    {
+      "id": "T16",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T17",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T18",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T19",
+      "state": "awaiting_approval",
+      "depends_on": [],
+      "human_decisions": [
+        "CODEOWNERS review of fault transitions",
+        "human safety review of terminal FAULT_MUTED behavior"
+      ]
+    },
+    {
+      "id": "T20",
+      "state": "queued",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T21",
+      "state": "awaiting_approval",
+      "depends_on": [],
+      "human_decisions": [
+        "CODEOWNERS review"
+      ]
+    },
+    {
+      "id": "T22",
+      "state": "awaiting_approval",
+      "depends_on": [],
+      "human_decisions": [
+        "CODEOWNERS review"
+      ]
     }
   ],
   "completion_record": null
 }
+
