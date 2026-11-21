@@ -140,7 +140,7 @@ def semantic_errors(cfg, test_protected=None):
         bounds = test_protected.get("lim_bounds", {})
         records = test_protected.get("records", {})
         required_record_keys = {
-            "vpk_at_0dbfs", "clip_v", "xmax_mm", "re_ohm", "pmax_w",
+            "out_id", "vpk_at_0dbfs", "clip_v", "xmax_mm", "re_ohm", "pmax_w",
             "tau_s", "x_model", "min_freq_hz", "lim_bounds", "lim_default"
         }
         for out_id in ids:
