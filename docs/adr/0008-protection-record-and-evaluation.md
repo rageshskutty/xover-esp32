@@ -1,54 +1,110 @@
-# ADR 0008: Protection record encoding and pure evaluation
-- Status: Accepted for planning; safety implementation requires human CODEOWNERS review
-- Date: 2026-11-19
+# ADR 0008: Per-output protection curves and static safety evaluation
 
-## Record format
-Exactly one record per output node; unknown and duplicate IDs reject. `out_id` is
-`char[32]` including NUL. All values finite. `max_gain_db` is an absolute
-response ceiling. `stop_below_hz=0.0f` disables the lower-band check;
-`stop_above_hz=0.0f` disables the upper-band check. When disabled, its
-attenuation field MUST be `0.0f`. Enabled edges are [10, 20000] Hz;
-attenuation is a positive amount [0,120] dB. No NaN, infinity, negative edge,
-sentinel, or missing record can disable protection. Missing/malformed/duplicate
-records fail E_PROTECT and output remains unavailable/muted. Real numeric
-ranges and actual driver limits remain human-owned.
+- Status: Proposed planning contract; supersedes the former 52-byte stop-band record.
+- Date: 2026-11-21
+- Depends on: ADR 0012 and ADR 0013
+- Human safety review and CODEOWNERS approval are required before implementation.
 
-For a band, compare magnitude dB to `-atten_*_db`, including edge: lower
-applies `f<=edge`, upper `f>=edge`. `max_gain_db` applies everywhere. Zero
-magnitude maps to -300 dB. Non-finite math fails closed.
+## Decision
 
-## Pure evaluator
-Core 0 only, deterministic, read-only, no NVS/network/hardware. Requires
-validated config and records. Before comparing any response sample, validate
-the complete input and record set, including a one-to-one correspondence
-between output IDs and records. Every output must pass before publication.
-Visit outputs in config order, then ascending frequency; first response-limit
-failure reports E_PROTECT, output, frequency. Grid: existing 1054 points
-10..20000 Hz plus exact 10, 20000 and each enabled edge, exact-equality
-dedupe; max 1070 points. Edges above 20 kHz invalid.
+Protection is evaluated per physical output using a provisioned frequency-
+dependent limit curve. The former record fields
+`max_gain_db`, `stop_below_hz`, `atten_below_db`,
+`stop_above_hz`, and `atten_above_db` are retired. A zero-valued band edge
+must never be used as a way to disable protection.
 
-Input with `n_frequencies==0` or `n_outputs==0` is malformed and returns -1.
-Any non-finite response sample returns -1. On every malformed input (including
-a non-finite sample), zero the entire failure record; therefore
-`failure->out_id` is empty. A malformed record is not a response-limit
-failure and is handled before comparisons. Valid finite response-limit
-failures report the first failing output and frequency in deterministic order.
+The protection curve is derived from the separately provisioned protected
+block (`drv`, `amp`, and `supply`) described in ADR 0013. Uploaded JSON
+cannot create, replace, weaken, or disable that protected block.
 
-## Exact starter test vectors
-Passthrough is 0 dB at every point. Gain -6.020599913 dB yields -6.020599913
-dB within 1e-5 dB. Ceiling -1 rejects passthrough; ceiling 0 accepts. Lower
-edge 100 Hz / attenuation 20: passthrough rejects at 10 and exactly 100,
-accepts 100.01 if ceiling allows. Upper edge 1000 / attenuation 20: rejects
-exactly 1000 and 20000, accepts 999.99. Disabled edge zero skips only its
-corresponding check. Missing, duplicate, unknown-output, NaN, infinity and
-nonzero disabled attenuation reject. These semantics vectors are not device
-limits.
+Each configured output must have exactly one provisioned protection curve.
+Missing, duplicate, malformed, non-finite, or unknown output records reject
+the complete configuration and leave outputs muted. Every output must pass
+before any candidate can be activated.
 
-Bijection vector: output IDs `{o,o}` and record IDs `{o,p}` reject even
-though counts match; validating only each output's first matching record is
-insufficient. Also reject zero outputs, zero frequencies, non-finite response
-samples, non-monotonic frequencies, and malformed IDs. For malformed input,
-the full failure record is zero, including an empty output ID.
+## Static response bound
 
-Narrow high-Q features can fall between samples; this residual risk remains
-explicit. No task may alter this decision; conflicts stop and escalate.
+For each output and each evaluation frequency, the compiler evaluates the
+complex transfer from each configured input channel to that output, including
+the optional input pre-chain and the output's ordered user chain.
+
+For input channel (i), let (w_i) be its configured mix weight and
+(H_i(f)) its complex transfer to the output. The safety comparator uses the
+conservative bound:
+
+[
+A_{bound}(f)=\sum_i |w_i|\,|H_i(f)|
+]
+
+The comparator does not credit phase cancellation between inputs. This is
+deliberately conservative and is the required stereo-sum rule. Compare the
+bound, converted to dB, against that output's provisioned limit curve at the
+same frequency. A response that exceeds the curve rejects the candidate.
+
+The calculation includes all static user filters and gains. Runtime limiter
+action is not used to excuse a statically unsafe response. Any unsupported,
+non-finite, unstable, or un-evaluable stage fails closed.
+
+## Evaluation grid and curve validity
+
+- Frequencies are finite, positive, and strictly increasing.
+- The evaluation covers the configured audio band, initially 10 Hz to
+  20 kHz at the existing 1054-point logarithmic grid, plus exact provisioned
+  curve knots and any required exact model boundaries.
+- Duplicate frequencies are deduplicated exactly; the final evaluation list
+  is strictly increasing.
+- Curve values are finite and must cover the full evaluation range. No
+  extrapolation outside the provisioned curve is permitted.
+- The final maximum point count and interpolation rule must be frozen with
+  the comparator task before implementation. They are not to be guessed by
+  an implementation agent.
+
+## Optional automatic trim
+
+The evaluator reports the worst required attenuation when a candidate
+exceeds its curve. If `auto_trim` is explicitly enabled, the builder may add
+a single non-positive output trim and repeat the complete static evaluation.
+The trim is capped at 12 dB. If more than 12 dB is required, or the second
+evaluation still fails, reject the candidate. With `auto_trim` absent or
+false, do not silently change user gain.
+
+The exact JSON spelling and report structure are frozen in the schema and
+comparator task, not in this ADR.
+
+## Runtime protection
+
+The compiler appends mandatory protection stages after the user-authored
+output chain. Users cannot insert, remove, reorder, or bypass these stages.
+Runtime limiters are gain-only: they may attenuate but must never boost.
+The v1 protection stages are:
+1. thermal/RMS limiter;
+2. sealed-box excursion limiter where the protected driver model requires it;
+3. peak limiter;
+4. final hard clamp, followed by the system-controlled ramp/mute path.
+
+The sealed-box excursion model is a single low-pass biquad derived from the
+protected driver's `fc`, `Qtc`, and `mm_per_v` data. Unsupported driver
+models fail closed; they are not approximated by the implementer.
+
+The final clamp invariant is `abs(y) <= configured_ceiling` for every sample.
+The ceiling is bounded by the protected amplifier/supply data. No runtime
+limiter may raise the ceiling or bypass the clamp.
+
+## Required rejection cases
+
+The new schema and tests must reject at least:
+- missing or misspelled mandatory protection configuration keys;
+- unknown protection keys;
+- unstable or non-finite excursion-model coefficients;
+- a filter sample-rate mismatch;
+- a conservative stereo-sum bound above the provisioned curve;
+- a missing required subsonic high-pass stage;
+- a user-authored limiter inside an ordinary output chain;
+- `vpk_at_0dbfs > clip_v`;
+- missing, duplicate, unknown, incomplete, or non-finite provisioned output
+  curves.
+
+## Verification status
+
+Planning contract only. No new comparator, limiter, curve generator, hardware
+limit, or runtime behavior is claimed implemented or verified.
