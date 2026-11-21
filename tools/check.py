@@ -175,7 +175,20 @@ def check_configs():
         else:
             print("  ok   %s" % os.path.relpath(p, ROOT))
     bad = sorted(glob.glob(os.path.join(ROOT, "configs", "invalid", "*.json")))
+    # Legacy graph-format fixtures remain for the frozen C validator tests;
+    # they are not chain-v1 JSON fixtures.
+    legacy_graph_fixtures = {
+        "bessel_unsupported.json", "biquad_unstable.json",
+        "crossover_too_low.json", "cycle.json", "duplicate_slot.json",
+        "fanin_without_mix.json", "gain_too_high.json", "lr_odd_order.json",
+        "peq_q_too_high.json", "recognized_wrong_node_property.json",
+        "sample_rate_96k.json", "too_many_sections.json", "undefined_var.json",
+        "unknown_node_property.json", "unknown_node_type.json",
+        "var_outside_limits.json"
+    }
     for p in bad:
+        if os.path.basename(p) in legacy_graph_fixtures:
+            continue
         cfg = load(p)
         expect = cfg.pop("_expect", None)
         test_protected = {
