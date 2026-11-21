@@ -94,10 +94,15 @@ def compare_config(outputs, frequencies_hz):
     return {"pass": True}
 
 
-def _sos_row(b, a):
+def _sos_row(b, a, *, split_denominator=False):
     if len(b) != 3 or len(a) != 2:
         raise ValueError("SOS requires three numerator and two denominator coefficients")
-    row = np.asarray([b[0], b[1], b[2], 1.0, a[0], a[1]], dtype=np.float32).astype(np.float64)
+    if split_denominator:
+        row = np.asarray([np.float32(b[0]), np.float32(b[1]), np.float32(b[2]),
+                          1.0, a[0], a[1]], dtype=np.float64)
+    else:
+        row = np.asarray([b[0], b[1], b[2], 1.0, a[0], a[1]],
+                         dtype=np.float32).astype(np.float64)
     if not np.all(np.isfinite(row)):
         raise ValueError("SOS coefficients must be finite")
     poles = np.roots([1.0, row[4], row[5]])
@@ -125,7 +130,7 @@ def _design_biquad(block, fs_hz):
         a2_hi = float(np.float32(a2))
         a1 = a1_hi + float(np.float32(a1 - a1_hi))
         a2 = a2_hi + float(np.float32(a2 - a2_hi))
-        return _sos_row([b0, b1, b2], [a1, a2])
+        return _sos_row([b0, b1, b2], [a1, a2], split_denominator=True)
     if kind == "peq":
         gain = float(block["db"])
         if not math.isfinite(gain) or not -24.0 <= gain <= 12.0 or q < 0.1:
