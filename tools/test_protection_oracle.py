@@ -4,7 +4,7 @@ import numpy as np
 
 from protection_oracle import (
     ZERO_FLOOR_DB, compare_config, compare_output, interpolate_limit_curve,
-    response_magnitude, evaluate_config,
+    response_magnitude, evaluate_config, chain_response,
 )
 
 
@@ -77,6 +77,45 @@ class ProtectionOracleTests(unittest.TestCase):
                          "limit_db": [-5.0, -5.0]}}
         got = evaluate_config(config, curve, [10.0, 1000.0, 20000.0])
         self.assertTrue(got["pass"])
+
+    def test_highpass_response_is_frequency_dependent(self):
+        chain = [{"t": "biquad", "k": "hp", "f_hz": 20.0, "q": 0.707}]
+        h = chain_response(chain, [10.0, 20.0, 1000.0], 48000.0)
+        mag = np.abs(h)
+        self.assertLess(mag[0], mag[1])
+        self.assertLess(mag[1], mag[2])
+        self.assertTrue(np.all(np.isfinite(mag)))
+
+    def test_supported_static_blocks_have_finite_response(self):
+        chain = [
+            {"t": "biquad", "k": "peq", "f_hz": 1000.0, "q": 0.7, "db": -6.0},
+            {"t": "biquad", "k": "notch", "f_hz": 2000.0, "q": 2.0},
+            {"t": "biquad", "k": "allpass", "f_hz": 500.0, "q": 0.8},
+            {"t": "delay", "us": 125.0},
+            {"t": "polarity", "invert": True},
+            {"t": "gain", "db": -3.0},
+        ]
+        h = chain_response(chain, [20.0, 1000.0, 10000.0], 48000.0)
+        self.assertTrue(np.all(np.isfinite(h.real)))
+        self.assertTrue(np.all(np.isfinite(h.imag)))
+
+    def test_sos_sample_rate_mismatch_rejected(self):
+        with self.assertRaisesRegex(ValueError, "sample-rate mismatch"):
+            chain_response([{"t": "sos", "fs": 44100,
+                             "b": [1.0, 0.0, 0.0], "a": [0.0, 0.0]}],
+                           [100.0], 48000.0)
+
+    def test_duplicate_output_ids_rejected(self):
+        config = {
+            "v": 1, "fs": 48000, "inputs": ["L"],
+            "outputs": [
+                {"id": "same", "slot": 0, "in": [{"channel": "L", "weight": 1.0}], "chain": [{"t": "gain", "db": 0.0}]},
+                {"id": "same", "slot": 1, "in": [{"channel": "L", "weight": 1.0}], "chain": [{"t": "gain", "db": 0.0}]},
+            ],
+        }
+        curve = {"same": {"frequencies_hz": [10.0, 20000.0], "limit_db": [0.0, 0.0]}}
+        with self.assertRaisesRegex(ValueError, "IDs must match"):
+            evaluate_config(config, curve, [10.0, 20000.0])
 
     def test_scipy_sos_response_matches_unity(self):
         got = response_magnitude([[1.0, 0.0, 0.0, 1.0, 0.0, 0.0]],
