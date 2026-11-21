@@ -1,0 +1,10 @@
+{
+  "_expect": "E_SCHEMA",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": []
+}

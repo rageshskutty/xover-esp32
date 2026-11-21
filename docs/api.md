@@ -1,181 +1,174 @@
 # API contracts
 
-Status: PROPOSED. Frozen at the review of task T06; after that, changes need an
-ADR (AGENTS.md C5). Names are proposals; an agent may refine them in the task
-that implements them, in the same PR, if the contract here is updated.
+Status: existing `dspblocks` APIs remain frozen. The former `dspgraph`
+build/process API and graph JSON format are retired for the product
+architecture. The replacement `dspchain` API, configuration schema, and
+HTTP commit contract are pending the planned implementation-contract work.
+Public header changes require an ADR, this document update, and CODEOWNERS
+review.
 
-## 1. Error codes (shared by C and HTTP)
+## 1. Error codes
+
+The following semantic categories remain relevant to the new chain loader:
+
 | code | meaning |
 |---|---|
-| E_JSON | not parseable, too deep, too large |
-| E_SCHEMA | fails configs/schema.json (wrong type, unknown key, sample rate) |
-| E_NODE_PARAM | missing, out-of-range or unstable node parameter (a biquad whose float32 poles are not inside the unit circle) |
-| E_GRAPH_REF | duplicate id or edge to unknown id |
-| E_GRAPH_CYCLE | graph has a cycle |
-| E_GRAPH_FANIN | wrong number of incoming edges |
-| E_GRAPH_DEAD | node without an outgoing edge, or no output |
-| E_SLOT | duplicate or out-of-range slot or channel |
-| E_VAR_UNDEFINED | @var not declared |
-| E_LIMIT | variable outside its limits |
-| E_PROTECT | response violates a device protection limit |
-| E_RESOURCE | too many nodes or biquad sections |
-| E_UNSUPPORTED | valid but not implemented (for example Bessel) |
-| E_AUTH | missing or wrong token |
-| E_BUSY | a swap or upload is in progress |
+| E_JSON | not parseable, too deep, or too large |
+| E_SCHEMA | missing, unknown, wrong-type, wrong-unit, or out-of-range key |
+| E_NODE_PARAM | invalid or unstable filter/stage parameter |
+| E_CHAIN | invalid output chain or stage ordering |
+| E_INPUT_MIX | invalid input source, weight, or mix definition |
+| E_VAR_UNDEFINED | undefined variable, if retained by the final schema |
+| E_LIMIT | requested value outside declared operating limits |
+| E_PROTECT | static response or protected-block violation |
+| E_RESOURCE | too many stages, sections, or required bytes |
+| E_UNSUPPORTED | valid but unsupported stage or protected driver model |
+| E_AUTH | missing or wrong write token |
+| E_BUSY | configuration transaction or safe transition is in progress |
 
-tools/check.py implements the config-level codes and is the reference for them.
+The former graph-only codes `E_GRAPH_REF`, `E_GRAPH_CYCLE`,
+`E_GRAPH_FANIN`, and `E_GRAPH_DEAD` are retired with the DAG format.
+Final error names and HTTP mapping must be frozen with the chain loader and
+schema tasks. Existing host validator error expectations must be migrated
+without weakening unrelated validation.
 
 ## 2. C modules
 
-### 2.1 dspblocks (non-RT design, RT process)
-    typedef enum { DSP_OK = 0, DSP_E_PARAM, DSP_E_RANGE, DSP_E_UNSTABLE,
-                   DSP_E_UNSUPPORTED, DSP_E_NOMEM } dsp_err_t;
-    typedef struct { float b0, b1, b2, a1, a2, da1, da2; } dsp_sos_t; /* a0 = 1;
-                                   a1 + da1 and a2 + da2 are the double-precision
-                                   denominator (hi + lo), da* = 0 for EQ blocks */
-    typedef struct { float z1, z2; } dsp_state_t;
-    #define DSP_MAX_SOS 4                                        /* 8th order */
-    typedef struct { dsp_sos_t sos[DSP_MAX_SOS]; uint8_t n; } dsp_cascade_t;
+### 2.1 dspblocks (existing frozen DSP primitives)
 
-    /* design: core 0 only, double precision inside */
-    dsp_err_t dsp_design_xo(dsp_family_t, dsp_mode_t, unsigned order,
-                            double fc_hz, double fs_hz, dsp_cascade_t *out);
-    dsp_err_t dsp_design_peq(double f_hz, double q, double gain_db, double fs_hz, dsp_sos_t *out);
-    dsp_err_t dsp_design_shelf(dsp_shelf_t, double f_hz, double gain_db, double fs_hz, dsp_sos_t *out);
-    dsp_err_t dsp_design_allpass(double f_hz, double q, double fs_hz, dsp_sos_t *out);
-    dsp_err_t dsp_design_notch(double f_hz, double q, double fs_hz, dsp_sos_t *out);
-    dsp_err_t dsp_check_stable(const dsp_sos_t *s);
+The existing public header
+`firmware/components/dspblocks/include/dspblocks.h` remains the authority
+for filter design, SOS processing, simple blocks, numeric safety, and
+frequency-response evaluation.
 
-    /* process: RT-safe (file dsp_sos_rt.c); in == out allowed */
-    void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st, size_t n_sections,
-                         const float *in, float *out, size_t n_frames);
+The following signatures summarize the existing surface; do not change them
+without a separate ADR and CODEOWNERS review:
 
-    /* simple blocks (RT, file blocks_rt.c); in == out allowed */
-    typedef struct { float current, target, step; uint32_t remaining; } dsp_gain_t;
-    typedef struct { float *buffer; size_t capacity, delay_samples, write_pos; } dsp_delay_t;
-    #define DSP_MAX_DELAY_SAMPLES 960U
-    void dsp_gain_init(dsp_gain_t *g, float initial_gain);
-    void dsp_gain_set_target(dsp_gain_t *g, float target, uint32_t ramp_frames);
-    void dsp_gain_process(dsp_gain_t *g, const float *in, float *out, size_t n_frames);
-    void dsp_polarity_process(bool invert, const float *in, float *out, size_t n_frames);
-    dsp_err_t dsp_delay_init(dsp_delay_t *d, float *buffer, size_t capacity, size_t delay_samples);
-    dsp_err_t dsp_delay_set_delay(dsp_delay_t *d, size_t delay_samples);
-    void dsp_delay_process(dsp_delay_t *d, const float *in, float *out, size_t n_frames);
-    void dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
-                         float *out, size_t n_frames);
+```c
+typedef enum { DSP_OK = 0, DSP_E_PARAM, DSP_E_RANGE, DSP_E_UNSTABLE,
+               DSP_E_UNSUPPORTED, DSP_E_NOMEM } dsp_err_t;
+typedef struct { float b0, b1, b2, a1, a2, da1, da2; } dsp_sos_t;
+typedef struct { float z1, z2; } dsp_state_t;
+#define DSP_MAX_SOS 4
+typedef struct { dsp_sos_t sos[DSP_MAX_SOS]; uint8_t n; } dsp_cascade_t;
 
-    /* numeric safety */
-    bool dsp_check_nan_inf(const float *buf, size_t n_frames);
-    void dsp_flush_denormals(float *buf, size_t n_frames);
-    bool dsp_sanitize_block(float *buf, size_t n_frames);
-    float dsp_db_to_linear(float db);
-    float dsp_linear_to_db(float lin);
-    uint32_t dsp_delay_us_to_samples(double delay_us, double fs_hz);
+dsp_err_t dsp_design_xo(dsp_family_t, dsp_mode_t, unsigned order,
+                        double fc_hz, double fs_hz, dsp_cascade_t *out);
+dsp_err_t dsp_design_peq(double f_hz, double q, double gain_db,
+                         double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_shelf(dsp_shelf_t, double f_hz, double gain_db,
+                           double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_allpass(double f_hz, double q,
+                             double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_design_notch(double f_hz, double q,
+                           double fs_hz, dsp_sos_t *out);
+dsp_err_t dsp_check_stable(const dsp_sos_t *s);
 
-    /* response: core 0 only */
-    #define DSP_MAX_EVAL_SECTIONS 96U
-    dsp_err_t dsp_sos_eval(const dsp_sos_t *s, size_t n_sections, double fs_hz,
-                           double f_hz, double *re, double *im);
-    #define DSP_GRID_POINTS_DEFAULT 1054U
-    #define DSP_GRID_POINTS_MAX 100000U
-    dsp_err_t dsp_log_grid(double f_min_hz, double f_max_hz,
-                           double *out_freqs, size_t n_points);
+void dsp_sos_process(const dsp_sos_t *s, dsp_state_t *st,
+                     size_t n_sections, const float *in, float *out,
+                     size_t n_frames);
+```
 
-`dsp_log_grid` is core-0-only. It writes a strictly increasing logarithmic
-grid with exact endpoints; both frequencies must be finite, positive, and
-`f_max_hz > f_min_hz`. `n_points` must be in 2..`DSP_GRID_POINTS_MAX`. It
-returns `DSP_E_RANGE` if the range cannot represent every point distinctly.
-The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
+Simple block, numeric-safety, and response-evaluation declarations remain
+those in the existing public header. Core-0-only design/evaluation and
+real-time restrictions in AGENTS.md remain in force. Existing golden vectors
+must not be regenerated to make a new implementation pass.
 
-### 2.2 dspgraph
-    typedef struct dspg dspg_t;
-    typedef struct { char code[20]; char path[48]; char msg[96]; } dspg_issue_t;
-    typedef struct { dspg_issue_t items[8]; uint8_t n; } dspg_report_t;
-    typedef struct { char out_id[16]; float max_gain_db;
-                     float stop_below_hz, atten_below_db;
-                     float stop_above_hz, atten_above_db; } dspg_protect_t;
+### 2.2 dspchain (replacement component; contract pending)
 
-    #define DSPG_MAX_ISSUES 8U
-    /* core 0. Parse and validate only (T06a3, ADR 0006). 0 = valid, -1 = rejected;
-       the report lists up to 8 issues. dspg_build calls this first. */
-    int dspg_validate(const char *json, size_t len, dspg_report_t *report);
+The `dspchain` component replaces the graph-oriented build/execute role.
+Its builder will validate and compile optional per-input pre-chains and
+ordered per-output tables. Each table entry contains a precompiled stage
+function, immutable parameters, and allocated state. The DSP task executes
+each output table in declared order.
 
-    /* core 0. Parses, validates, designs filters, applies protection.
-       On failure returns NULL and fills the report; never touches the live graph. */
-    dspg_t *dspg_build(const char *json, size_t len,
-                       const dspg_protect_t *protect, size_t n_protect,
-                       dspg_report_t *report);
-    int  dspg_set_var(dspg_t *g, const char *name, double value, dspg_report_t *r);
-    int  dspg_eval(const dspg_t *g, const char *out_id, double f_hz, double *re, double *im);
-    void dspg_free(dspg_t *g);
+The exact public C types, stage descriptor, builder/loader API, memory
+ownership, maximum capacities, response API, and statistics snapshot are
+not frozen here. They are specified in the dedicated `dspchain` contract
+and task cards. Do not reuse `dspg_*` signatures or invent a new API while
+implementing an unrelated card.
 
-    /* engine: submit from core 0, consumed by the DSP task at a block boundary */
-    int  dspg_engine_submit(dspg_t *g);                 /* E_BUSY if a swap is pending */
-    /* RT (file dspg_rt.c): float planar buffers, n_frames <= 64 */
-    void dspg_engine_process(const float *const in[2], float *const out[8], uint32_t n_frames);
-    typedef struct { uint32_t blocks, underruns, clips, faults, max_cycles, p999_cycles; } dspg_stats_t;
-    void dspg_engine_stats(dspg_stats_t *s);
+The builder must append mandatory protection stages and system-owned output
+stages. User JSON cannot remove, reorder, or bypass them. See ADRs 0012 and
+0013.
 
 ### 2.3 audiosrc
-    int  audiosrc_init(size_t ring_frames);             /* internal SRAM ring */
-    /* called from the ESP32-audioI2S hook (core 0): copies, blocks when full */
-    void audiosrc_push(const int32_t *interleaved_stereo, size_t n_frames);
-    /* DSP task (core 1): returns frames read, zero-fills and counts an underrun on shortage */
-    size_t audiosrc_pull(float *l, float *r, size_t n_frames);
 
-### 2.4 tdmout
-    typedef struct { int mclk, bclk, ws, dout; uint32_t fs; uint8_t slots; } tdmout_cfg_t;
-    int  tdmout_init(const tdmout_cfg_t *cfg);          /* pins come from board_config.h only */
-    int  tdmout_write(const int32_t *frames, size_t n_frames, uint32_t timeout_ms);
-    void tdmout_mute(bool on);                          /* writes zeros, never stops clocks */
+The existing component boundary is retained. Its exact implementation and
+threading contract must be reconciled with the final DSP runtime contract.
+No decoder or network work is allowed in the DSP task.
 
-### 2.5 pcm5122
-    typedef struct { uint8_t i2c_addr; uint8_t tdm_offset_bclk; } pcm5122_cfg_t;
-    int pcm5122_init(const pcm5122_cfg_t *cfg);         /* values from board_config.h + datasheet */
-    int pcm5122_mute(uint8_t i2c_addr, bool on);
+### 2.4 tdmout and pcm5122
 
-## 3. Config file
-Normative schema: configs/schema.json. Node parameter table: docs/design.md
-section 4. Semantic rules and error codes: tools/check.py. T06 tightens the
-schema so per-type parameters are validated there too.
+The existing component boundaries are retained. Pin assignments, I2S API,
+DAC register values, I2C addresses, straps, and slot offsets remain
+human/datasheet verified inputs. Do not guess hardware values.
 
-The schema rejects keys that do not belong to a node type and constrains each
-type's required parameters, shapes, and ranges. Unknown keys and malformed JSON
-shapes report `E_SCHEMA`; missing or out-of-range node parameters retain
-`E_NODE_PARAM`. Graph-level failures retain their semantic error codes.
+## 3. Configuration file
 
-JSON parsing on host and target uses the same pinned cJSON source. The parser
-rejects malformed or trailing data, bodies over 32 KB, and nesting deeper than
-eight levels before schema validation.
+The graph JSON format in the current schema is retired. The replacement
+format uses top-level `v` for configuration version and `fs` for sample
+rate. It defines optional input pre-chains and per-output input mixes and
+ordered chains. Each output includes mandatory protection configuration.
 
-## 4. HTTP API v1
-Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
-`Authorization: Bearer <token>` (token in NVS). Write rate limit: 5 per minute.
+JSON v1 is defined in `configs/schema.json` with a 2.1 example in
+`configs/example_2way_sub.json`. It uses `v`, `fs`, `inputs`, optional `pre`,
+and `outputs` containing `id`, `slot`, `in`, `chain`, and optional `protect`.
+The schema handles closed local shapes; cross-field uniqueness, channel
+membership, protected-record joins, protected limiter bounds, and static
+response sufficiency are semantic validation. See ADRs 0012 and 0013.
 
-| Method | Path | Body | Success | Errors |
-|---|---|---|---|---|
-| GET | /status | - | 200 {fw, fs, state, cfg_crc32, cpu_p999_pct, underruns, clips, faults, protect: "ok"/"missing"} | - |
-| GET | /config | - | 200 the active JSON | 404 none |
-| POST | /config | application/json <= 32 KB | 200 {ok:true, crc32} | 400 E_JSON, 401 E_AUTH, 409 E_BUSY, 413, 422 {ok:false, errors:[{code,path,msg}]} |
-| PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 422 E_LIMIT or E_PROTECT |
-| GET | /response?out=<id>&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
-| POST | /mute | {mute:bool} | 200 | 401 |
-| GET | /limits | - | 200 the device protection records (read-only) | - |
+Unknown keys reject. Physical units are included in key names. Uploaded
+configuration cannot modify the separately provisioned `drv`, `amp`, or
+`supply` protected block.
 
-Rules: a failed POST or PUT leaves the running config untouched. `/response`
-is computed by the device from its real coefficients (`dspg_eval`), so the page
-only plots. mDNS name `xover.local`. Max 4 concurrent connections.
+## 4. HTTP and configuration lifecycle
 
-## 5. NVS layout
-| namespace | key | value |
-|---|---|---|
-| protect | ver | u8 = 1 |
-| protect | <out_id> | blob dspg_protect_t |
-| protect | crc | u32 over all records |
-| net | token | string, <= 32 chars |
-| net | wifi_ssid, wifi_pass | strings |
-| cfg | active_slot | u8 (0 = xocfg_a, 1 = xocfg_b) |
+The device control interface remains LAN-only with bounded JSON requests and
+bearer-token authentication for writes. Exact endpoint paths and payload
+shapes must be updated with the explicit-commit UI design; the old
+`PUT /vars/{name}` graph endpoint is not normative.
 
-Config JSON is stored in the `xocfg_a` / `xocfg_b` partitions (64 KB each) with a
-header {magic, version, length, crc32}. The inactive slot is written first, then
-`active_slot` flips; a bad CRC at boot falls back to the other slot.
+All configuration mutations share one transaction gate. Concurrent mutation
+returns `E_BUSY` before building a candidate or writing storage. Preview or
+slider movement must not persist configuration. Flash persistence occurs
+only on an explicit user commit.
+
+A committed candidate must pass schema, semantic, static protection, and
+resource validation before activation. The DSP owner acknowledges activation
+at a safe boundary. A rejected or uncertain transition fails closed. The
+proposed 250 ms acknowledgement timeout is provisional and requires human
+approval. See ADR 0011 for the transaction ordering and unresolved preview /
+apply / commit details.
+
+No HTTP or network path can modify protected data or provisioned limit curves.
+
+## 5. Persistent storage
+
+- The `drv`, `amp`, and `supply` protected block is stored separately
+  from ordinary user configuration and is writable only through the
+  owner-controlled provisioning process.
+- User configuration uses the existing A/B slot concept, with header,
+  version, length, and CRC validation.
+- An inactive slot is not considered active merely because it was staged.
+  Selector publication follows the human-approved explicit-commit protocol.
+- The flash endurance budget and final commit ordering are open human
+  decisions. A one-second write-rate floor is not accepted as proof of flash
+  endurance.
+
+Exact partition sizes and flash facts remain unverified until confirmed for
+the selected module.
+
+## Frozen planning authority
+
+- ADR 0012: chain-per-output architecture and compiled execution tables.
+- ADR 0013: protected block and mandatory protection pipeline.
+- ADR 0008: per-output limit curves and static conservative response bound.
+- ADR 0010: pure protection comparator contract and Step 4 prototype.
+- ADR 0011: configuration mutation, explicit commit, and response ownership.
+- ADR 0009 timing material, if present in the approved planning baseline,
+  remains separate from the chain architecture.
+
+On conflict between this document, an ADR, source headers, or a task bundle,
+stop and escalate. No implementation task may infer a missing signature or
+safety value.

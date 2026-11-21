@@ -1,0 +1,35 @@
+{
+  "_expect": "E_PROTECT",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "out_a",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 35,
+          "q": 0.707
+        }
+      ]
+    }
+  ],
+  "_test_protected_records": {
+    "out_a": {
+      "vpk_at_0dbfs": 3.2,
+      "clip_v": 3
+    }
+  }
+}

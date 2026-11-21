@@ -1,0 +1,54 @@
+{
+  "_expect": "E_SCHEMA",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "out_a",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        },
+        {
+          "channel": "R",
+          "weight": 2
+        },
+        {
+          "channel": "C",
+          "weight": 3
+        },
+        {
+          "channel": "LFE",
+          "weight": 4
+        },
+        {
+          "channel": "SL",
+          "weight": 5
+        },
+        {
+          "channel": "SR",
+          "weight": 6
+        },
+        {
+          "channel": "L",
+          "weight": 7
+        },
+        {
+          "channel": "R",
+          "weight": 8
+        },
+        {
+          "channel": "C",
+          "weight": 9
+        }
+      ],
+      "chain": []
+    }
+  ]
+}

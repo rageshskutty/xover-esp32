@@ -1,0 +1,44 @@
+{
+  "_expect": "E_SCHEMA",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "out_a",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 25,
+          "q": 0.707
+        }
+      ],
+      "protect": {
+        "attack_ms": 2
+      }
+    }
+  ],
+  "_test_lim_bounds": {
+    "out_a": {
+      "attack": [
+        5,
+        20
+      ],
+      "release": [
+        20,
+        200
+      ]
+    }
+  }
+}

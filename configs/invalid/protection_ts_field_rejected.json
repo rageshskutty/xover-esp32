@@ -1,0 +1,173 @@
+{
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "pre": [
+    {
+      "channel": "L",
+      "chain": []
+    },
+    {
+      "channel": "R",
+      "chain": []
+    }
+  ],
+  "outputs": [
+    {
+      "id": "left_woofer",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 20,
+          "q": 0.707
+        },
+        {
+          "t": "biquad",
+          "k": "lp",
+          "f_hz": 80,
+          "q": 0.707
+        },
+        {
+          "t": "gain",
+          "db": -3
+        }
+      ]
+    },
+    {
+      "id": "right_woofer",
+      "slot": 1,
+      "in": [
+        {
+          "channel": "R",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 20,
+          "q": 0.707
+        },
+        {
+          "t": "biquad",
+          "k": "lp",
+          "f_hz": 80,
+          "q": 0.707
+        }
+      ]
+    },
+    {
+      "id": "subwoofer",
+      "slot": 2,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 0.5
+        },
+        {
+          "channel": "R",
+          "weight": 0.5
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 20,
+          "q": 0.707
+        },
+        {
+          "t": "biquad",
+          "k": "lp",
+          "f_hz": 80,
+          "q": 0.707
+        }
+      ]
+    }
+  ],
+  "protection": {
+    "outputs": [
+      {
+        "id": "left_woofer",
+        "weighting_biquads": [],
+        "peak_threshold_dbfs": -6,
+        "lookahead_ms": 1.5,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "attack_ms": 2,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "right_woofer",
+        "weighting_biquads": [],
+        "peak_threshold_dbfs": -6,
+        "lookahead_ms": 1.5,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "attack_ms": 2,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "subwoofer",
+        "weighting_biquads": [
+          {
+            "b": [
+              0.0000153360084,
+              0.0000306720167,
+              0.0000153360084
+            ],
+            "a": [
+              -1.99155461,
+              0.991639156
+            ]
+          },
+          {
+            "b": [
+              1,
+              -2,
+              1
+            ],
+            "a": [
+              -1.99728362,
+              0.997292456
+            ]
+          }
+        ],
+        "peak_threshold_dbfs": -6,
+        "lookahead_ms": 1.5,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "attack_ms": 2,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "subsonic_hp": {
+          "b": [
+            0.99833531,
+            -1.99667061,
+            0.99833531
+          ],
+          "a": [
+            -1.99666784,
+            0.99667338
+          ]
+        },
+        "Qts": 0.38
+      }
+    ]
+  },
+  "_expect": "E_SCHEMA"
+}

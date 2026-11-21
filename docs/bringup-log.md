@@ -14,6 +14,11 @@ instrument, numbers, pass/fail against the gate in docs/PLAN.md.
 - Result: PASS / FAIL (HW-VERIFIED)
 - Notes:
 
-## Protection limits provisioned (required before the S3 cap is lifted)
-| output | stop_below_hz | atten_below_db | stop_above_hz | atten_above_db | max_gain_db | source (datasheet/measurement) |
-|---|---|---|---|---|---|---|
+## Protected block and per-output curves (human-owned; required before output enable)
+
+The retired stop-band fields are not authoritative. Record source evidence
+for every driver, amplifier, and supply value before deriving any output
+curve. Agents must not fill this table with estimates.
+
+| output | driver/model source | xmax_mm | re_ohm | pmax_w | tau_s | min_freq_hz | amp source | vpk_at_0dbfs | clip_v | supply source | curve revision/source |
+|---|---|---:|---:|---:|---:|---:|---|---:|---:|---|---|

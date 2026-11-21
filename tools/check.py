@@ -80,129 +80,103 @@ def resolve(value, variables):
     return None, None
 
 
-def semantic_errors(cfg):
+def semantic_errors(cfg, test_protected=None):
+    """Chain-v1 cross-field checks. Hardware limits are supplied only by a
+    separately provisioned protected record; tests may pass synthetic metadata."""
     errs = []
-    nodes = cfg.get("nodes", [])
-    edges = cfg.get("edges", [])
-    variables = cfg.get("vars", {})
-    limits = cfg.get("limits", {})
-    by_id = {}
-    if cfg.get("sample_rate_hz") != FS:
-        errs.append("E_SCHEMA: sample_rate_hz must be %d" % FS)
-    if len(nodes) > MAX_NODES:
-        errs.append("E_RESOURCE: %d nodes > %d" % (len(nodes), MAX_NODES))
-    for n in nodes:
-        if n["id"] in by_id:
-            errs.append("E_GRAPH_REF: duplicate id %s" % n["id"])
-        by_id[n["id"]] = n
-    for name, lim in limits.items():
-        if name not in variables:
-            errs.append("E_VAR_UNDEFINED: limit for unknown var %s" % name)
-            continue
-        if lim["min"] >= lim["max"]:
-            errs.append("E_LIMIT: %s min >= max" % name)
-        if not lim["min"] <= variables[name] <= lim["max"]:
-            errs.append("E_LIMIT: var %s=%s outside [%s, %s]" %
-                        (name, variables[name], lim["min"], lim["max"]))
-    incoming, outgoing = defaultdict(list), defaultdict(list)
-    for a, b in edges:
-        if a not in by_id or b not in by_id or a == b:
-            errs.append("E_GRAPH_REF: bad edge %s -> %s" % (a, b))
-            continue
-        outgoing[a].append(b)
-        incoming[b].append(a)
-    indeg = {i: len(incoming[i]) for i in by_id}
-    queue = [i for i, d in indeg.items() if d == 0]
-    seen = 0
-    while queue:
-        x = queue.pop()
-        seen += 1
-        for y in outgoing[x]:
-            indeg[y] -= 1
-            if indeg[y] == 0:
-                queue.append(y)
-    if seen != len(by_id):
-        errs.append("E_GRAPH_CYCLE: graph is not a DAG")
-    slots, channels = [], []
-    total_sections = 0
-    for n in nodes:
-        t, i = n["type"], n["id"]
-        total_sections += sections(n)
-        for fld in NUMERIC_FIELDS:
-            if fld in n:
-                val, undefined = resolve(n[fld], variables)
-                if undefined:
-                    errs.append("E_VAR_UNDEFINED: %s.%s uses @%s" % (i, fld, undefined))
-                elif isinstance(n[fld], str) and val is None:
-                    errs.append("E_NODE_PARAM: %s.%s is not a number or @var" % (i, fld))
-                elif val is not None and fld == "frequency_hz" and not 10 <= val <= 0.45 * FS:
-                    errs.append("E_NODE_PARAM: %s.frequency_hz %s outside 10..%.0f" %
-                                (i, val, 0.45 * FS))
-        if t == "input":
-            if incoming[i]:
-                errs.append("E_GRAPH_FANIN: input %s has an incoming edge" % i)
-            channels.append(n.get("channel"))
-        elif t == "mix":
-            if len(incoming[i]) < 2 or len(incoming[i]) != len(n.get("gains", [])):
-                errs.append("E_GRAPH_FANIN: mix %s needs one gain per incoming edge (>=2)" % i)
-        elif len(incoming[i]) != 1:
-            errs.append("E_GRAPH_FANIN: %s (%s) must have exactly 1 incoming edge, has %d" %
-                        (i, t, len(incoming[i])))
-        if t == "output":
-            slots.append(n.get("slot"))
-            if outgoing[i]:
-                errs.append("E_GRAPH_DEAD: output %s has an outgoing edge" % i)
-        elif not outgoing[i]:
-            errs.append("E_GRAPH_DEAD: %s (%s) has no outgoing edge" % (i, t))
-        for fld, lo, hi, types in (("q", 0.1, 20, ("peq", "allpass", "notch")),
-                                   ("db", -24, 12, ("peq", "shelf")),
-                                   ("db", -60, 12, ("gain",))):
-            if t in types and fld in n:
-                val, _ = resolve(n[fld], variables)
-                if val is not None and not lo <= val <= hi:
-                    errs.append("E_NODE_PARAM: %s.%s %s outside %s..%s" %
-                                (i, fld, val, lo, hi))
-        if t == "crossover":
-            fam, order = n.get("family"), n.get("order")
-            if fam == "Bessel":
-                errs.append("E_UNSUPPORTED: %s Bessel normalisation undecided (design.md section 3)" % i)
-            elif fam not in FAMILIES:
-                errs.append("E_NODE_PARAM: %s family %r not in %s" % (i, fam, FAMILIES))
-            elif fam == "Linkwitz-Riley" and order not in (2, 4, 6, 8):
-                errs.append("E_NODE_PARAM: %s Linkwitz-Riley order %r must be 2,4,6 or 8" % (i, order))
-            elif fam != "Linkwitz-Riley" and not (isinstance(order, int) and 1 <= order <= 8):
-                errs.append("E_NODE_PARAM: %s order %r must be 1..8" % (i, order))
-            if "frequency_hz" not in n or "mode" not in n:
-                errs.append("E_NODE_PARAM: %s needs mode and frequency_hz" % i)
-        elif t == "peq" and not all(k in n for k in ("frequency_hz", "q", "db")):
-            errs.append("E_NODE_PARAM: peq %s needs frequency_hz, q, db" % i)
-        elif t == "shelf" and not (all(k in n for k in ("frequency_hz", "db")) and n.get("shape") in ("low", "high")):
-            errs.append("E_NODE_PARAM: shelf %s needs frequency_hz, db, shape low|high" % i)
-        elif t in ("allpass", "notch") and not all(k in n for k in ("frequency_hz", "q")):
-            errs.append("E_NODE_PARAM: %s %s needs frequency_hz, q" % (t, i))
-        elif t == "biquad":
-            b, a = n.get("b"), n.get("a")
-            ok = (isinstance(b, list) and len(b) == 3 and isinstance(a, list) and len(a) == 2
-                  and n.get("sample_rate_hz") == FS)
-            if not ok:
-                errs.append("E_NODE_PARAM: biquad %s needs b[3], a[2], sample_rate_hz=%d" % (i, FS))
-            elif not biquad_stable(b, a):
-                errs.append("E_NODE_PARAM: biquad %s is unstable or not finite float32" % i)
-        elif t == "gain" and "db" not in n:
-            errs.append("E_NODE_PARAM: gain %s needs db" % i)
-        elif t == "delay":
-            d = n.get("delay_us")
-            if not isinstance(d, (int, float)) or not 0 <= d <= MAX_DELAY_US:
-                errs.append("E_NODE_PARAM: delay %s needs delay_us in 0..%d" % (i, MAX_DELAY_US))
-    if len(slots) != len(set(slots)) or any(
-            not isinstance(s, int) or not 0 <= s < N_SLOTS for s in slots):
-        errs.append("E_SLOT: output slots must be unique integers 0..%d" % (N_SLOTS - 1))
-    if len(channels) != len(set(channels)):
-        errs.append("E_SLOT: duplicate input channel")
-    if not slots:
-        errs.append("E_GRAPH_DEAD: no output node")
-    if total_sections > MAX_SECTIONS:
-        errs.append("E_RESOURCE: %d biquad sections > %d" % (total_sections, MAX_SECTIONS))
+    inputs = cfg.get("inputs", [])
+    pre = cfg.get("pre", [])
+    outputs = cfg.get("outputs", [])
+    if len(inputs) != len(set(inputs)):
+        errs.append("E_SCHEMA: duplicate declared input")
+    declared = set(inputs)
+
+    pre_channels = []
+    for item in pre:
+        ch = item.get("channel")
+        pre_channels.append(ch)
+        if ch not in declared:
+            errs.append("E_SCHEMA: pre channel %r is not declared in inputs" % ch)
+    if len(pre_channels) != len(set(pre_channels)):
+        errs.append("E_SCHEMA: pre channel must be unique")
+
+    ids = [o.get("id") for o in outputs]
+    slots = [o.get("slot") for o in outputs]
+    if len(ids) != len(set(ids)):
+        errs.append("E_SCHEMA: output id must be unique")
+    if len(slots) != len(set(slots)):
+        errs.append("E_SCHEMA: output slot must be unique")
+
+    for out in outputs:
+        seen = set()
+        for item in out.get("in", []):
+            ch = item.get("channel")
+            if ch not in declared:
+                errs.append("E_SCHEMA: output %s references undeclared input %r" %
+                            (out.get("id"), ch))
+            if ch in seen:
+                errs.append("E_SCHEMA: output %s repeats input channel %r" %
+                            (out.get("id"), ch))
+            seen.add(ch)
+            w = item.get("weight")
+            if (isinstance(w, bool) or not isinstance(w, (int, float))
+                    or not math.isfinite(w) or w == 0 or abs(w) > 4):
+                errs.append("E_SCHEMA: output %s has invalid mix weight %r" %
+                            (out.get("id"), w))
+        if not out.get("chain"):
+            errs.append("E_PROTECT: output %s has empty chain; attenuation below protected min_freq_hz is not established" %
+                        out.get("id"))
+
+    if test_protected:
+        protected_ids = test_protected.get("out_ids")
+        if protected_ids is not None and set(ids) != set(protected_ids):
+            errs.append("E_PROTECT: designer output ids do not match protected out_id set")
+        slot_count = test_protected.get("tdm_slot_count")
+        if slot_count is not None:
+            for slot in slots:
+                if not isinstance(slot, int) or slot < 0 or slot >= slot_count:
+                    errs.append("E_SCHEMA: output slot %r outside protected TDM slot count %d" %
+                                (slot, slot_count))
+        bounds = test_protected.get("lim_bounds", {})
+        records = test_protected.get("records", {})
+        required_record_keys = {
+            "out_id", "vpk_at_0dbfs", "clip_v", "xmax_mm", "re_ohm", "pmax_w",
+            "tau_s", "x_model", "min_freq_hz", "lim_bounds", "lim_default"
+        }
+        for out_id in ids:
+            record = records.get(out_id, {})
+            missing = set(record.get("missing_keys", []))
+            if "present_keys" in record:
+                missing |= required_record_keys - set(record["present_keys"])
+            unknown = set(record.get("unknown_keys", []))
+            if missing or unknown:
+                errs.append("E_PROTECT: protected record %s has missing/unknown keys" % out_id)
+            if "x_model" in record:
+                # The sealed-box model-to-coefficient derivation is not frozen.
+                # Do not trust fixture booleans or accept unverified model data.
+                errs.append("E_PROTECT: protected x_model for %s cannot be validated until its model contract is approved" % out_id)
+            vpk, clip_v = record.get("vpk_at_0dbfs"), record.get("clip_v")
+            if vpk is not None and clip_v is not None and vpk > clip_v:
+                errs.append("E_PROTECT: protected vpk_at_0dbfs exceeds clip_v for %s" % out_id)
+        for out in outputs:
+            out_id = out.get("id")
+            min_freq = test_protected.get("min_freq_hz", {}).get(out_id)
+            if min_freq is not None:
+                # Fail closed until the chain response evaluator is integrated.
+                # Merely finding an HP block cannot prove attenuation at min_freq.
+                errs.append("E_PROTECT: output %s static response check is not implemented; cannot prove attenuation at min_freq_hz" % out_id)
+            # Static response metadata is deliberately not evaluated here.
+            # Numerical comparison is covered by tools/protection_oracle.py.
+        for out in outputs:
+            limits = bounds.get(out.get("id"), {})
+            protect = out.get("protect", {})
+            for field, key in (("attack_ms", "attack"), ("release_ms", "release")):
+                if field not in protect:
+                    continue
+                pair = limits.get(key)
+                if pair is not None and not pair[0] <= protect[field] <= pair[1]:
+                    errs.append("E_LIMIT: output %s %s=%s outside protected bounds [%s,%s]" %
+                                (out.get("id"), field, protect[field], pair[0], pair[1]))
     return errs
 
 
@@ -230,14 +204,32 @@ def check_configs():
         else:
             print("  ok   %s" % os.path.relpath(p, ROOT))
     bad = sorted(glob.glob(os.path.join(ROOT, "configs", "invalid", "*.json")))
+    # Legacy graph-format fixtures remain for the frozen C validator tests;
+    # they are not chain-v1 JSON fixtures.
+    legacy_graph_fixtures = {
+        "bessel_unsupported.json", "biquad_unstable.json",
+        "crossover_too_low.json", "cycle.json", "duplicate_slot.json",
+        "fanin_without_mix.json", "gain_too_high.json", "lr_odd_order.json",
+        "peq_q_too_high.json", "recognized_wrong_node_property.json",
+        "sample_rate_96k.json", "too_many_sections.json", "undefined_var.json",
+        "unknown_node_property.json", "unknown_node_type.json",
+        "var_outside_limits.json"
+    }
     for p in bad:
+        if os.path.basename(p) in legacy_graph_fixtures:
+            continue
         cfg = load(p)
         expect = cfg.pop("_expect", None)
-        # Schema failures use E_SCHEMA; semantic fixtures also check that a
-        # range failure retains its public E_NODE_PARAM classification.
+        test_protected = {
+            "out_ids": cfg.pop("_test_protected_ids", None),
+            "tdm_slot_count": cfg.pop("_test_tdm_slot_count", None),
+            "lim_bounds": cfg.pop("_test_lim_bounds", {}),
+            "records": cfg.pop("_test_protected_records", {}),
+            "min_freq_hz": cfg.pop("_test_min_freq_hz", {}),
+        }
         errs = schema_errors(cfg, schema)
-        if expect != "E_SCHEMA":
-            errs += semantic_errors(cfg)
+        if not errs:
+            errs += semantic_errors(cfg, test_protected)
         codes = {e.split(":")[0] for e in errs}
         name = os.path.relpath(p, ROOT)
         if expect is None:
@@ -249,6 +241,8 @@ def check_configs():
     return failures
 
 
+
+# Restored from the last complete guardrail implementation on main.
 BANNED_CALLS = (
     "malloc", "calloc", "realloc", "free", "strdup", "printf", "snprintf", "puts",
     "vTaskDelay", "xSemaphoreTake", "xQueueSend", "xQueueReceive", "xQueueSendToBack",
@@ -334,6 +328,7 @@ def main():
         print("jsonschema missing: pip install -r tools/requirements.txt")
         return 2
     failures = []
+    print("NOTICE: protected min_freq_hz checks fail closed until chain response evaluation is integrated.")
     for title, fn in (("scanner self-test", selftest_rt_scan), ("configs", check_configs),
                       ("real-time scan", check_rt_files), ("secrets", check_secrets)):
         print("[%s]" % title)
