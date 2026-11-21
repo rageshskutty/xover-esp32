@@ -217,11 +217,8 @@ def check_configs():
         "unknown_node_property.json", "unknown_node_type.json",
         "var_outside_limits.json"
     }
-    deferred_static_oracle = {"static_sum_bound_exceeded.json"}
-    if deferred_static_oracle:
-        print("  deferred %s: requires numerical reference oracle" % ", ".join(sorted(deferred_static_oracle)))
     for p in bad:
-        if os.path.basename(p) in legacy_graph_fixtures | deferred_static_oracle:
+        if os.path.basename(p) in legacy_graph_fixtures:
             continue
         cfg = load(p)
         expect = cfg.pop("_expect", None)
