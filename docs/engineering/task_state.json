@@ -138,7 +138,11 @@
         "PRESTEP4-3"
       ],
       "human_decisions": [
-        "approved numerical conventions and maximum grid/memory bound"
+        "human/CODEOWNERS approval of proposed numerical conventions",
+        "selected target memory budget and frozen maximum combined grid/dimensions",
+        "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, and function signature",
+        "human safety review and CODEOWNERS approval of ADRs 0008/0010/0012/0013",
+        "owner-approved protected block derivation and real per-output limit curves"
       ]
     },
     {
