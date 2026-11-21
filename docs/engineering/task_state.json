@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1/PRESTEP4-2 CI passed; protection oracle, guardrails, host tests, sanitizers, SciPy comparison and coverage passed on commit e8b4aa033ada63c51d17e8ed2f4aa0ca39f2d73e; later documentation-only commits pending CI; no local test execution; hardware and safety contract unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1/PRESTEP4-2 and PRESTEP4-3 guardrails, host-tests, host-sanitizers, SciPy comparison, protection oracle, and coverage passed on commit 79a34dd9bffd49f56de1e06ca0d1451e54f45988; later documentation/contract-gate commits pending CI; no local test execution; hardware and safety contract unverified"
   },
   "active_task": null,
   "decisions": [
@@ -187,6 +187,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-3 CI_VERIFIED: independent SciPy chain-response and conservative comparator oracle with deterministic vectors is in CI. PRESTEP4-4 remains blocked on human approval of numeric conventions, target memory bound, and exact C seam. Step 4 remains blocked on PRESTEP4-4 and human safety/CODEOWNERS review."
+    "pre_step4": "PRESTEP4-1/2/3 CI_VERIFIED. PRESTEP4-4 technical proposal is documented; it is blocked pending human approval of numeric conventions, target memory bound, exact dspchain_protect.h seam, protected-block derivation, and CODEOWNERS safety review. Step 4 must not start until these gates are satisfied."
   }
 }
