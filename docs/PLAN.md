@@ -25,6 +25,10 @@ Rules for working on this plan are in AGENTS.md. Design is in docs/design.md,
 contracts in docs/api.md. Take the lowest-numbered unblocked task. One task =
 one branch = one PR.
 
+## Retired driver-protection scope
+
+All legacy D6/T07 driver-protection and curve-provisioning work below is historical only. Driver T/S, amplifier, and PSU inputs belong to external designer-side tooling; they are not firmware or device-JSON inputs under ADR 0014. Do not execute or generate tasks from those legacy items.
+
 ## 1. Human decisions (agents do not decide these)
 | id | decision | blocks |
 |---|---|---|

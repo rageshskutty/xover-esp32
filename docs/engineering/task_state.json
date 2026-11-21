@@ -117,7 +117,7 @@
       "id": "T10-T15",
       "state": "blocked",
       "depends_on": [
-        "T07b",
+        "PROTECTION-CHAIN",
         "T08",
         "T09-chain"
       ],
@@ -160,7 +160,7 @@
       "state": "blocked",
       "depends_on": [
         "ADR-0012",
-        "ADR-0013"
+        "ADR-0014"
       ],
       "human_decisions": [
         "reviewed dspchain component contract: execution-table layout, bounded memory, ownership, response API, and DSP-task processing"
@@ -198,7 +198,7 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-1/2/3 and documentation reconciliation are CI_VERIFIED through commit e6c35a80ad. ADR 0013 now agrees that auto_trim is disabled in chain v1; ADR 0010 distinguishes the Python reference oracle from the unimplemented C comparator; docs/PLAN.md labels legacy graph-era task cards retired. PRESTEP4-4 remains BLOCKED on explicit human safety/numeric approval, target memory and C-interface freeze, and owner-approved protected data. Do not start Step 4 until these gates are closed.",
+    "pre_step4": "Legacy comparator work is retired by ADR 0014. The SciPy oracle remains designer-side for margin reporting and numerical reference testing. No firmware C comparator or sourced driver-data gate remains.",
     "protection_contract": {
       "status": "PROPOSED",
       "adr": "docs/adr/0014-abstract-protection-block.md",

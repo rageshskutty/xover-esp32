@@ -17,6 +17,10 @@ These files exercise the retired separately provisioned driver/amp/curve validat
 
 These fixtures are retained only as migration evidence until separate host-tool/fixture cleanup. They must never be uploaded to a device or used as positive schema examples.
 
+## Historical planning references
+- docs/PLAN.md contains retired D6/driver-protection planning text and synthetic-record references. The file is explicitly a retired legacy plan; those tasks are not firmware gates and any source driver data is designer-side only.
+- docs/engineering/task_state.json now retires the old comparator and sourced-driver firmware gates; current protection work is governed by ADR 0014.
+
 ## Host tooling references
 - tools/check.py contains legacy host-only test_protected handling and names such as vpk_at_0dbfs, clip_v, xmax_mm, re_ohm, pmax_w, x_model, min_freq_hz, lim_bounds, and lim_default. It is not firmware code or the device JSON schema. It is explicitly retired from defining protection semantics and is pending later host-tool cleanup.
 - tools/protection_oracle.py and tools/test_protection_oracle.py consume designer-supplied abstract response curves and min_freq_hz boundaries. They are designer-side reference tools, not firmware inputs. Retain and re-scope them as described in ADR 0014.
