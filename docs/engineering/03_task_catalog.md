@@ -7,49 +7,9 @@
 ## Required completion evidence (every card)
 List exact files changed, production LOC count, test names, command lines and exit codes, first-fail evidence before implementation, final test output, diff summary, and any deviations. Run `python tools/check.py`, host build and CTest. Run sanitizer host suite when the card touches parsing/graph math. Hardware results are UNVERIFIED unless an owner records them in bringup-log.md. No golden regeneration to make a failure pass.
 
-## T07a1 — Protection curve comparator
-**Goal:** implement the exact pure comparator from ADR 0010; no graph traversal.
-**Dependencies:** ADR 0010 accepted; host baseline.
-**Files:** `firmware/components/dspgraph/dspgraph_protect.c`, `firmware/components/dspgraph/internal/dspgraph_protect.h`, `host/tests/test_protect.c`, `host/CMakeLists.txt`, `firmware/components/dspgraph/CMakeLists.txt`.
-**Fixed API:** use the exact `dspg_protect_check(...)` declaration in ADR 0010. Do not rename fields or add options.
-**Behavior:** validate pointer/length pairs, record ID correspondence, finite fields/curves and strictly increasing frequencies; compare ceiling and enabled band thresholds. Threshold equality passes. Deterministic failure order is output array order then increasing sample index. Success zeroes failure output.
-**Tests first:** exact vectors in ADR 0008 plus max ceiling equality and just-over (0.00001 dB), NaN, infinity, duplicate/missing/unknown ID, disabled attenuation mismatch, duplicate or descending frequency, null pointers, output ordering.
-**Size:** comparator only; if >80 production LOC split validation from comparison under maintainer direction.
+## Retired graph-era protection cards (T07a1–T07a6)
 
-## T07a2 — Protection record validator
-**Goal:** isolate record validity so malformed protection never reaches DSP math.
-**Dependencies:** T07a1.
-**Files:** same protection source/header and test file only.
-**Behavior:** expose internal `dspg_protect_record_valid(const dspg_protect_t*, const char *const *output_ids, size_t n_outputs)`; returns 1 iff exact output/record set, IDs NUL-terminated within 32 bytes, all fields finite, max_gain [-120,+24], band edge 0 or [10,20000], enabled attenuation [0,120], disabled attenuation exactly 0.0f. This internal function is not public API.
-**Tests:** each lower/upper bound, one below/above, empty ID, 31-byte ID plus NUL, unterminated ID, duplicate output, missing and unknown IDs, disabled-band inconsistency.
-
-## T07a3 — Protection frequency sample list
-**Goal:** add deterministic sample list from `dsp_log_grid` and exact enabled band edges.
-**Dependencies:** T07a2.
-**Files:** protection source/internal header/tests only.
-**Behavior:** exact internal signature: `int dspg_protect_grid(const dspg_protect_t *records, size_t n_records, double *out_freqs, size_t capacity, size_t *out_count)`; start with 1054 values from 10 to 20000 Hz, append 10/20000 and enabled edges, exact-float deduplicate, ascending sort. On insufficient capacity return -1, set *out_count=0, and leave out_freqs unchanged. Maximum count is 1054 plus unique enabled edges, at most 1070 for eight outputs.
-**Tests:** no bands => 1054 values; both unique edges => count 1056; edges at 10/20000 deduplicate; sorted strict; capacity 1057 for 1058 unique fails. Verify endpoints exactly 10.0 and 20000.0.
-
-## T07a4 — Single SOS response curve golden vectors
-**Goal:** prove existing SOS complex evaluation can produce dB samples without graph API.
-**Dependencies:** T07a3.
-**Files:** `host/tests/test_protect.c` and test build registration only.
-**Behavior:** test harness calls current `dsp_sos_eval` for a one-section unity biquad (b=[1,0,0], a=[0,0]); expected 0 dB at 10, 1000, 20000 Hz. Add constant gain using b0=0.5,b1=b2=a1=a2=0; expected -6.020599913 dB within 1e-5 dB. This card adds no production implementation; if dsp_sos_eval cannot represent a fixture, stop and propose a contract change.
-**Size:** test-only, no golden generator or SciPy dependency.
-
-## T07a5 — Compiled-node response evaluator seam
-**Goal:** add host-only internal function for one compiled node's complex response.
-**Dependencies:** T07a4 green; design approval by maintainer because a new internal seam is required.
-**Files:** internal dspgraph response source/header, host test, CMake.
-**Fixed behavior:** use node's already-compiled SOS cascade and existing `dsp_sos_eval`; identity for input/output/gain(0)/polarity(non-inverted); multiply section responses in cascade order. Any unsupported node kind or non-finite result returns error. No graph walk, mix, or mutation.
-**Golden:** identity 0 dB; -6.020599913 dB gain vector; use host/tests/golden/rbj_eq.json entry type=peq, f0_hz=1000, q=0.7, gain_db=-6.0, and its 1000-Hz sample expected -6.000003627305285 dB within 0.001 dB. Never regenerate it.
-**Size:** only one compiled node.
-
-## T07a6 — Protection comparator integration
-**Goal:** call the pure comparator from graph build only after graph curves exist.
-**Dependencies:** T07a1–a5, graph curve propagation design ADR approved, all golden vectors committed.
-**Files:** graph build/protection source, host tests, CMake, docs/api.md.
-**Stop rule:** current repository has no final response-curve-by-output seam. Do not invent fanout/mix semantics. A maintainer must add and approve that ADR and exact signature before this card is considered queued.
+These cards are retained in Git history only. They specify graph-era APIs and dependencies that do not exist in chain-per-output v1. They are not queued, blocked implementation work, and must not be used as 7B instructions. In particular, do not implement `dspg_protect_check`, `dspg_protect_record_valid`, `dspg_protect_grid`, or `dspg_node_response` from these cards. A replacement chain-v1 protection plan requires a reviewed numerical contract and oracle before cards are authored.
 
 ## T07b — Protection storage and provisioning
 **State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
