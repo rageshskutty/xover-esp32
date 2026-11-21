@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1 and PRESTEP4-2 CI passed; PRESTEP4-3 guardrails passed on in-progress oracle commits; full CI pending; no local test execution; hardware and safety contract remain unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1/PRESTEP4-2 CI passed; protection oracle, guardrails, host tests, sanitizers, SciPy comparison and coverage passed on commit e8b4aa033ada63c51d17e8ed2f4aa0ca39f2d73e; later documentation-only commits pending CI; no local test execution; hardware and safety contract unverified"
   },
   "active_task": null,
   "decisions": [
@@ -16,8 +16,8 @@
     },
     {
       "id": "ADR-0008",
-      "status": "planning-accepted",
-      "approval": "human safety review required"
+      "status": "proposed",
+      "approval": "human safety review and CODEOWNERS approval required"
     },
     {
       "id": "ADR-0009",
@@ -26,8 +26,8 @@
     },
     {
       "id": "ADR-0010",
-      "status": "planning-accepted",
-      "approval": "CODEOWNERS required"
+      "status": "proposed",
+      "approval": "human safety review and CODEOWNERS approval required"
     },
     {
       "id": "ADR-0011",
@@ -127,7 +127,7 @@
     },
     {
       "id": "PRESTEP4-3",
-      "state": "in_progress",
+      "state": "ci_verified",
       "depends_on": [],
       "human_decisions": []
     },
@@ -183,6 +183,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-3 in progress: reconcile protection docs and implement an independent numerical oracle; Step 4 blocked until oracle vectors, comparator seam, and human safety review are complete"
+    "pre_step4": "PRESTEP4-3 CI_VERIFIED: independent SciPy chain-response and conservative comparator oracle with deterministic vectors is in CI. PRESTEP4-4 remains blocked on human approval of numeric conventions, target memory bound, and exact C seam. Step 4 remains blocked on PRESTEP4-4 and human safety/CODEOWNERS review."
   }
 }
