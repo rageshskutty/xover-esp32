@@ -5,14 +5,14 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1 and PRESTEP4-2 CI passed; no local checkout or local test execution; hardware and safety contract remain unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1 and PRESTEP4-2 CI passed; PRESTEP4-3 guardrails passed on in-progress oracle commits; full CI pending; no local test execution; hardware and safety contract remain unverified"
   },
   "active_task": null,
   "decisions": [
     {
       "id": "ADR-0007",
-      "status": "planning-accepted",
-      "approval": "CODEOWNERS required"
+      "status": "superseded",
+      "approval": "superseded for product architecture by ADR-0012; retained for graph history"
     },
     {
       "id": "ADR-0008",
@@ -28,6 +28,21 @@
       "id": "ADR-0010",
       "status": "planning-accepted",
       "approval": "CODEOWNERS required"
+    },
+    {
+      "id": "ADR-0011",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0012",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0013",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
     }
   ],
   "items": [
@@ -93,15 +108,9 @@
     },
     {
       "id": "T09",
-      "state": "blocked",
-      "depends_on": [
-        "ADR-0007"
-      ],
-      "human_decisions": [
-        "CODEOWNERS API approval",
-        "arena sizing vectors",
-        "graph response semantics vectors"
-      ]
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
     },
     {
       "id": "T10-T15",
@@ -109,7 +118,7 @@
       "depends_on": [
         "T07b",
         "T08",
-        "T09"
+        "T09-chain"
       ],
       "human_decisions": [
         "dependency/license/source scope",
@@ -141,6 +150,17 @@
       ],
       "human_decisions": [
         "human safety review and CODEOWNERS approval"
+      ]
+    },
+    {
+      "id": "T09-chain",
+      "state": "blocked",
+      "depends_on": [
+        "ADR-0012",
+        "ADR-0013"
+      ],
+      "human_decisions": [
+        "reviewed dspchain component contract: execution-table layout, bounded memory, ownership, response API, and DSP-task processing"
       ]
     }
   ],
