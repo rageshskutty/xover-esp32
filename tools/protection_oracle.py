@@ -165,8 +165,8 @@ def chain_response(chain, frequencies_hz, fs_hz):
         kind = block.get("t")
         if kind == "biquad":
             row = _design_biquad(block, fs_hz)
-            total *= response_magnitude([row], f, fs_hz) * np.exp(
-                1j * np.angle(sosfreqz([row], worN=f, fs=fs_hz)[1]))
+            _, h = sosfreqz([row], worN=f, fs=fs_hz)
+            total *= h
         elif kind == "sos":
             if block.get("fs") != fs_hz:
                 raise ValueError("SOS sample-rate mismatch")
