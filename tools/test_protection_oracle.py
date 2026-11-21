@@ -63,6 +63,21 @@ class ProtectionOracleTests(unittest.TestCase):
         self.assertEqual(got["output_id"], "out_a")
         self.assertAlmostEqual(got["bound_db"], 1.0, places=6)
 
+    def test_exact_curve_knots_are_added_to_evaluation_grid(self):
+        config = {
+            "v": 1, "fs": 48000, "inputs": ["L"],
+            "outputs": [{
+                "id": "out", "slot": 0,
+                "in": [{"channel": "L", "weight": 1.0}],
+                "chain": [{"t": "gain", "db": 1.0}],
+            }],
+        }
+        curve = {"out": {"frequencies_hz": [10.0, 100.0, 20000.0],
+                         "limit_db": [2.0, 0.0, 2.0]}}
+        got = evaluate_config(config, curve, [10.0, 20000.0])
+        self.assertFalse(got["pass"])
+        self.assertEqual(got["frequency_hz"], 100.0)
+
     def test_pre_chain_and_output_chain_are_both_included(self):
         config = {
             "v": 1, "fs": 48000, "inputs": ["L"],
