@@ -105,6 +105,29 @@ names. The sample rate must match the device's fixed supported rate. A
 biquad or model whose declared sample rate differs from the active sample
 rate is rejected.
 
+## Frozen JSON v1 shape (Step 3)
+
+The top-level object is closed and contains:
+- `v: 1` and `fs: 48000` (both constants in v1);
+- `inputs`, a non-empty unique array drawn from `L, R, C, LFE, SL, SR`;
+- optional `pre`, an array of `{ "channel": "<input>", "chain": [...] }`;
+- `outputs`, 1–8 output objects.
+
+Each output has `id`, `slot`, `in`, and `chain`. `id` is the join key to the protected record's `out_id`. The sets must match one-to-one: no missing output record and no orphan protected record. `slot` has only a schema sanity range of 0–31; the provisioned TDM slot count is authoritative and is checked by semantic validation.
+
+The `pre` and `in` arrays use explicit channel names. `pre[].channel` is unique. Each `in[].channel` must be declared in top-level `inputs` and is unique within its output. An input channel with no `pre` entry is an identity path. An `in` entry therefore selects the post-pre-chain signal for that channel. This exact signal is used when calculating the per-input transfer and the conservative protection sum.
+
+Each output has 1–8 `in` entries. Every weight is finite, non-zero, and in [-4, 4]; negative weights are valid. Protection uses the absolute weight, never its sign. Output IDs and slots are unique. These cross-field and uniqueness rules are semantic validation rules and report `E_SCHEMA`.
+
+The ordered `chain` contains closed block objects:
+- biquad: `{ "t": "biquad", "k": "lp|hp|peq|notch|allpass", "f_hz": number, "q": number }`; PEQ additionally requires `db` and may include optional `role`. `role` is not accepted on other block kinds;
+- gain: `{ "t": "gain", "db": number }`;
+- delay: `{ "t": "delay", "us": number }`;
+- polarity: `{ "t": "polarity", "invert": boolean }`;
+- SOS: `{ "t": "sos", "fs": 48000, "b": [b0,b1,b2], "a": [a1,a2] }`.
+
+The exact field bounds and closed object definitions are in `configs/schema.json`. The schema permits an empty `chain`; semantic protection validation rejects it with `E_PROTECT` because no attenuation below the protected `min_freq_hz` can be established. More generally, static protection validation—not JSON Schema—must establish adequate attenuation below each output's protected minimum frequency.
+
 ## Non-goals
 
 - A user-authored DAG or arbitrary graph editor.
