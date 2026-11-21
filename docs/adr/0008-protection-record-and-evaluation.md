@@ -59,17 +59,23 @@ non-finite, unstable, or un-evaluable stage fails closed.
   the comparator task before implementation. They are not to be guessed by
   an implementation agent.
 
-## Optional automatic trim
+## Automatic trim (deferred; disabled in chain v1)
 
-The evaluator reports the worst required attenuation when a candidate
-exceeds its curve. If `auto_trim` is explicitly enabled, the builder may add
-a single non-positive output trim and repeat the complete static evaluation.
-The trim is capped at 12 dB. If more than 12 dB is required, or the second
-evaluation still fails, reject the candidate. With `auto_trim` absent or
-false, do not silently change user gain.
+The current chain-v1 JSON schema has no `auto_trim` key. Therefore chain v1
+does not perform automatic trim and must never change user gain to make a
+candidate pass protection. A future revision may propose automatic trim, but
+it requires a separate human-reviewed decision, an explicit schema/API
+contract, a deterministic trim algorithm, and tests. The 12 dB value in the
+superseded planning text is not an implementation authorization.
 
-The exact JSON spelling and report structure are frozen in the schema and
-comparator task, not in this ADR.
+## Numerical conventions still requiring approval
+
+The following comparator details are intentionally not frozen by this ADR:
+maximum combined evaluation-point count, maximum output/input dimensions and
+memory budget, zero-transfer dB floor, curve interpolation convention, and
+exact C data layout/signature. These must be fixed in the comparator contract
+and reviewed against the target memory budget before implementation. The
+implementation agent must not choose these values independently.
 
 ## Runtime protection
 
