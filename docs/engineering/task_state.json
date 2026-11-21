@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; documentation and CMake edits pending CI; no local checkout or test execution; hardware unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; PRESTEP4-1 and PRESTEP4-2 CI passed; no local checkout or local test execution; hardware and safety contract remain unverified"
   },
   "active_task": null,
   "decisions": [
@@ -70,12 +70,12 @@
     {
       "id": "T07b",
       "state": "blocked",
-      "depends_on": [
-        "T07a6"
-      ],
+      "depends_on": [],
       "human_decisions": [
-        "owner-approved protection limits",
-        "NVS/provisioning format"
+        "human safety review and CODEOWNERS approval of ADR 0008/0010/0012/0013",
+        "owner-approved protected block derivation and per-output limit curves",
+        "frozen comparator numeric conventions, dimensions, memory bound, and C interface",
+        "human-approved driver/amplifier/supply data and provisioning process"
       ]
     },
     {
@@ -115,6 +115,33 @@
         "dependency/license/source scope",
         "target evidence and human bring-up"
       ]
+    },
+    {
+      "id": "PRESTEP4-3",
+      "state": "in_progress",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "PRESTEP4-4",
+      "state": "blocked",
+      "depends_on": [
+        "PRESTEP4-3"
+      ],
+      "human_decisions": [
+        "approved numerical conventions and maximum grid/memory bound"
+      ]
+    },
+    {
+      "id": "STEP4",
+      "state": "blocked",
+      "depends_on": [
+        "PRESTEP4-4",
+        "T07b"
+      ],
+      "human_decisions": [
+        "human safety review and CODEOWNERS approval"
+      ]
     }
   ],
   "completion_record": null,
@@ -135,6 +162,7 @@
       ],
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
-    }
+    },
+    "pre_step4": "PRESTEP4-3 in progress: reconcile protection docs and implement an independent numerical oracle; Step 4 blocked until oracle vectors, comparator seam, and human safety review are complete"
   }
 }
