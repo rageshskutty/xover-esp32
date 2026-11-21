@@ -1,0 +1,29 @@
+{
+  "_expect": "E_SCHEMA",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "X"
+  ],
+  "outputs": [
+    {
+      "id": "out_a",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 25,
+          "q": 0.707
+        }
+      ]
+    }
+  ]
+}
