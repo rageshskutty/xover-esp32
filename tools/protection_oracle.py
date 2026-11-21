@@ -94,6 +94,149 @@ def compare_config(outputs, frequencies_hz):
     return {"pass": True}
 
 
+def _sos_row(b, a):
+    if len(b) != 3 or len(a) != 2:
+        raise ValueError("SOS requires three numerator and two denominator coefficients")
+    row = np.asarray([b[0], b[1], b[2], 1.0, a[0], a[1]], dtype=np.float32).astype(np.float64)
+    if not np.all(np.isfinite(row)):
+        raise ValueError("SOS coefficients must be finite")
+    poles = np.roots([1.0, row[4], row[5]])
+    if np.any(np.abs(poles) >= 1.0):
+        raise ValueError("SOS denominator is unstable")
+    return row
+
+
+def _design_biquad(block, fs_hz):
+    kind, f, q = block["k"], float(block["f_hz"]), float(block["q"])
+    if not (math.isfinite(f) and 10.0 <= f <= 0.45 * fs_hz and
+            math.isfinite(q) and 0.0 < q <= 20.0):
+        raise ValueError("invalid biquad frequency or Q")
+    w = 2.0 * math.pi * f / fs_hz
+    if kind in ("lp", "hp"):
+        k = math.tan(math.pi * f / fs_hz)
+        n = 1.0 + k / q + k * k
+        b0 = (k * k if kind == "lp" else 1.0) / n
+        b1 = (2.0 if kind == "lp" else -2.0) * b0
+        b2 = b0
+        a1 = 2.0 * (k * k - 1.0) / n
+        a2 = (1.0 - k / q + k * k) / n
+        # Mirror the C implementation's split float32 denominator.
+        a1_hi = float(np.float32(a1))
+        a2_hi = float(np.float32(a2))
+        a1 = a1_hi + float(np.float32(a1 - a1_hi))
+        a2 = a2_hi + float(np.float32(a2 - a2_hi))
+        return _sos_row([b0, b1, b2], [a1, a2])
+    if kind == "peq":
+        gain = float(block["db"])
+        if not math.isfinite(gain) or not -24.0 <= gain <= 12.0 or q < 0.1:
+            raise ValueError("invalid PEQ gain or Q")
+        alpha = math.sin(w) / (2.0 * q)
+        A = 10.0 ** (gain / 40.0)
+        c = math.cos(w)
+        a0 = 1.0 + alpha / A
+        b = [(1.0 + alpha * A) / a0, -2.0 * c / a0,
+             (1.0 - alpha * A) / a0]
+        a = [-2.0 * c / a0, (1.0 - alpha / A) / a0]
+        return _sos_row(b, a)
+    if kind == "notch":
+        alpha = math.sin(w) / (2.0 * q)
+        a0 = 1.0 + alpha
+        b = [1.0 / a0, -2.0 * math.cos(w) / a0, 1.0 / a0]
+        a = [-2.0 * math.cos(w) / a0, (1.0 - alpha) / a0]
+        return _sos_row(b, a)
+    if kind == "allpass":
+        alpha = math.sin(w) / (2.0 * q)
+        a0 = 1.0 + alpha
+        b0 = (1.0 - alpha) / a0
+        b1 = -2.0 * math.cos(w) / a0
+        b = [b0, b1, 1.0]
+        a = [b1, b0]
+        return _sos_row(b, a)
+    raise ValueError(f"unsupported biquad kind: {kind}")
+
+
+def chain_response(chain, frequencies_hz, fs_hz):
+    """Evaluate an ordered chain independently using NumPy/SciPy."""
+    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
+    if f.size == 0 or np.any(f <= 0.0) or np.any(f > fs_hz / 2.0):
+        raise ValueError("invalid chain evaluation frequencies")
+    total = np.ones(f.size, dtype=np.complex128)
+    for block in chain:
+        kind = block.get("t")
+        if kind == "biquad":
+            row = _design_biquad(block, fs_hz)
+            total *= response_magnitude([row], f, fs_hz) * np.exp(
+                1j * np.angle(sosfreqz([row], worN=f, fs=fs_hz)[1]))
+        elif kind == "sos":
+            if block.get("fs") != fs_hz:
+                raise ValueError("SOS sample-rate mismatch")
+            row = _sos_row(block["b"], block["a"])
+            _, h = sosfreqz([row], worN=f, fs=fs_hz)
+            total *= h
+        elif kind == "gain":
+            db = float(block["db"])
+            if not math.isfinite(db) or not -60.0 <= db <= 12.0:
+                raise ValueError("invalid gain")
+            total *= 10.0 ** (db / 20.0)
+        elif kind == "delay":
+            us = float(block["us"])
+            if not math.isfinite(us) or not 0.0 <= us <= 20000.0:
+                raise ValueError("invalid delay")
+            total *= np.exp(-2j * np.pi * f * us * 1e-6)
+        elif kind == "polarity":
+            total *= -1.0 if block["invert"] else 1.0
+        else:
+            raise ValueError(f"unsupported chain block: {kind}")
+        if not np.all(np.isfinite(total.real)) or not np.all(np.isfinite(total.imag)):
+            raise ValueError("chain response is non-finite")
+    return total
+
+
+def evaluate_config(config, protected_curves, frequencies_hz):
+    """Evaluate per-input transfers and conservative per-output bounds.
+
+    protected_curves maps output IDs to {frequencies_hz: [...], limit_db: [...]}.
+    It must contain already provisioned values; this function never derives
+    driver, amplifier, supply, or safety limits.
+    """
+    fs_hz = float(config["fs"])
+    if config.get("v") != 1 or fs_hz != 48000.0:
+        raise ValueError("unsupported chain config version or sample rate")
+    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
+    if f.size == 0 or np.any(f <= 0.0) or np.any(np.diff(f) <= 0.0):
+        raise ValueError("evaluation grid must be positive and strictly increasing")
+    inputs = config["inputs"]
+    if len(inputs) != len(set(inputs)):
+        raise ValueError("duplicate input channel")
+    pre = {item["channel"]: item["chain"] for item in config.get("pre", [])}
+    if len(pre) != len(config.get("pre", [])) or not set(pre).issubset(inputs):
+        raise ValueError("duplicate or undeclared pre-chain channel")
+    outputs = config["outputs"]
+    ids = [out["id"] for out in outputs]
+    if len(ids) != len(set(ids)) or set(ids) != set(protected_curves):
+        raise ValueError("configured outputs and protected curve IDs must match exactly")
+    results = []
+    for out in outputs:
+        channel_responses = []
+        weights = []
+        seen = set()
+        for mix in out["in"]:
+            ch, weight = mix["channel"], float(mix["weight"])
+            if ch not in inputs or ch in seen or not math.isfinite(weight) or weight == 0.0:
+                raise ValueError("invalid or duplicate input mix entry")
+            seen.add(ch)
+            pre_h = chain_response(pre.get(ch, []), f, fs_hz)
+            out_h = chain_response(out["chain"], f, fs_hz)
+            channel_responses.append(np.abs(pre_h * out_h))
+            weights.append(weight)
+        curve = protected_curves[out["id"]]
+        limit = interpolate_limit_curve(f, curve["frequencies_hz"], curve["limit_db"])
+        result = compare_output(weights, np.asarray(channel_responses), limit, f, out["id"])
+        results.append(result)
+        if not result["pass"]:
+            return result
+    return {"pass": True, "outputs": results}
+
 def main():
     root = Path(__file__).resolve().parents[1]
     path = root / "tools" / "protection_oracle_vectors.json"
