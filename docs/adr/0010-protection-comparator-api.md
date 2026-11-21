@@ -20,9 +20,9 @@ contributing to that output, and the corresponding finite mix weight (w_i).
 
 The comparator calculates:
 
-[
-A_{bound,o}(f_k)=\sum_i |w_i|\,|H_{o,i}(f_k)|
-]
+```text
+A_bound,o(f_k) = sum_i(abs(w_i) * abs(H_o,i(f_k)))
+```
 
 It converts this conservative amplitude bound to dB and compares it with
 the provisioned output limit curve at that same frequency. Exact threshold
