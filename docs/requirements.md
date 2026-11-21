@@ -84,7 +84,10 @@
   and slot mapping.
 - Driver protection limits and cited driver data.
 - Amplifier voltage/clip data, hardware gain setting, and supply budget.
-- Protected `lim_bounds` and `lim_default` values for attack/release, sourced\n  from owner-approved safety data. The designer may choose only attack/release\n  shape within those bounds; omitted values use the protected defaults.\n  Non-zero look-ahead is rejected in v1.
+- Protected `lim_bounds` and `lim_default` values for attack/release,
+  sourced from owner-approved safety data. The designer may choose only
+  attack/release shape within those bounds; omitted values use protected
+  defaults. Non-zero look-ahead is rejected in v1.
 - Flash endurance budget and final commit/persistence ordering.
 - Hardware measurements and target timing/CPU budget.
 
