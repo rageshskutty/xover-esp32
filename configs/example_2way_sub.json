@@ -1,6 +1,6 @@
 {
   "v": 1,
-  "fs": 48000,
+  "fs_hz": 48000,
   "inputs": [
     "L",
     "R"
@@ -8,11 +8,11 @@
   "pre": [
     {
       "channel": "L",
-      "chain": []
+      "sos": []
     },
     {
       "channel": "R",
-      "chain": []
+      "sos": []
     }
   ],
   "outputs": [
@@ -25,14 +25,20 @@
           "weight": 1
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 80,
-          "q": 0.707
-        }
-      ],
+      "chain": {
+        "sos": [
+          {
+            "b0": 0.99262254,
+            "b1": -1.98524509,
+            "b2": 0.99262254,
+            "a1": -1.98519066,
+            "a2": 0.98529951
+          }
+        ],
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0
+      },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [],
@@ -51,14 +57,20 @@
           "weight": 1
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 80,
-          "q": 0.707
-        }
-      ],
+      "chain": {
+        "sos": [
+          {
+            "b0": 0.99262254,
+            "b1": -1.98524509,
+            "b2": 0.99262254,
+            "a1": -1.98519066,
+            "a2": 0.98529951
+          }
+        ],
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0
+      },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [],
@@ -81,32 +93,42 @@
           "weight": 0.5
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "lp",
-          "f_hz": 80,
-          "q": 0.707
-        }
-      ],
+      "chain": {
+        "sos": [
+          {
+            "b0": 0.000027213808,
+            "b1": 0.000054427616,
+            "b2": 0.000027213808,
+            "a1": -1.98519066,
+            "a2": 0.98529951
+          }
+        ],
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0
+      },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [
           {
-            "type": "hp",
-            "f_hz": 25,
-            "q": 0.707
+            "b0": 0.99768867,
+            "b1": -1.99537735,
+            "b2": 0.99768867,
+            "a1": -1.99537201,
+            "a2": 0.99538269
           },
           {
-            "type": "lp",
-            "f_hz": 80,
-            "q": 0.707
+            "b0": 0.000027213808,
+            "b1": 0.000054427616,
+            "b2": 0.000027213808,
+            "a1": -1.98519066,
+            "a2": 0.98529951
           }
         ],
-        "excursion_limit_dbfs": -9,
-        "rms_limit_dbfs": -15,
-        "rms_tau_ms": 1000,
-        "release_ms": 500
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
       }
     }
   ]

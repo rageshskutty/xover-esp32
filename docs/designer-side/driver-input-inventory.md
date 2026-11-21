@@ -1,12 +1,13 @@
 # Designer-side input and legacy-reference inventory
 
-This docs-only migration inventory records remaining repository references to retired driver/amp/curve inputs. None is a firmware or device JSON contract.
+This docs-only migration inventory records remaining references to retired driver/amp/curve inputs. None is a firmware or device JSON contract.
 
 ## Source model file
-- data/drivers.yaml contained driver model placeholders fs_hz, xmax_mm, and power_w. It is designer-side input only and is not part of device JSON or a firmware configuration contract. Its example is retained here as documentation only.
+- docs/designer-side/driver-inputs.example.yaml contains designer-side driver model placeholders. It is not part of device JSON or a firmware configuration contract.
 
 ## Legacy negative fixtures
-These files exercise the retired separately provisioned driver/amp/curve validator and are not deployable device configurations:
+These files exercise retired separately provisioned driver/amp/curve inputs or obsolete device shapes. Their expected result is now E_SCHEMA because the current closed schema rejects the legacy document before any retired semantic protection checks. They are not deployable device configurations:
+- configs/invalid/empty_chain_protection_failure.json: obsolete output-chain/protection shape; rejected by the current closed schema.
 - configs/invalid/vpk_exceeds_clip_v.json: legacy vpk_at_0dbfs and clip_v test data.
 - configs/invalid/x_model_validation_unavailable.json: legacy x_model (fc_hz, Qtc, mm_per_v) test data.
 - configs/invalid/protected_missing_key.json: legacy vpk_at_0dbfs, clip_v, re_ohm, x_model, min_freq_hz, lim_bounds, and lim_default metadata.
@@ -18,8 +19,7 @@ These files exercise the retired separately provisioned driver/amp/curve validat
 These fixtures are retained only as migration evidence until separate host-tool/fixture cleanup. They must never be uploaded to a device or used as positive schema examples.
 
 ## Historical planning references
-- docs/PLAN.md contains retired D6/driver-protection planning text and synthetic-record references. The file is explicitly a retired legacy plan; those tasks are not firmware gates and any source driver data is designer-side only.
-- docs/engineering/task_state.json now retires the old comparator and sourced-driver firmware gates; current protection work is governed by ADR 0014.
+- docs/PLAN.md contains retired graph/DAG task planning text and synthetic-record references. It is explicitly a retired legacy plan; those tasks are not current firmware gates.
 
 ## Host tooling references
 - tools/check.py contains legacy host-only test_protected handling and names such as vpk_at_0dbfs, clip_v, xmax_mm, re_ohm, pmax_w, x_model, min_freq_hz, lim_bounds, and lim_default. It is not firmware code or the device JSON schema. It is explicitly retired from defining protection semantics and is pending later host-tool cleanup.

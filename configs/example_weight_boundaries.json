@@ -1,6 +1,6 @@
 {
   "v": 1,
-  "fs": 48000,
+  "fs_hz": 48000,
   "inputs": [
     "L",
     "R"
@@ -15,14 +15,20 @@
           "weight": 4
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 30,
-          "q": 0.707
-        }
-      ],
+      "chain": {
+        "sos": [
+          {
+            "b0": 0.99262254,
+            "b1": -1.98524509,
+            "b2": 0.99262254,
+            "a1": -1.98519066,
+            "a2": 0.98529951
+          }
+        ],
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0
+      },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [],
@@ -41,14 +47,20 @@
           "weight": -4
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 30,
-          "q": 0.707
-        }
-      ],
+      "chain": {
+        "sos": [
+          {
+            "b0": 0.99262254,
+            "b1": -1.98524509,
+            "b2": 0.99262254,
+            "a1": -1.98519066,
+            "a2": 0.98529951
+          }
+        ],
+        "gain_db": 0,
+        "polarity": -1,
+        "delay_samples": 4095
+      },
       "protection": {
         "peak_ceiling_dbfs": -3,
         "excursion_weighting": [],
