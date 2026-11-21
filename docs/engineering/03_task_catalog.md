@@ -1,7 +1,7 @@
 # 7B execution catalog (planning iteration 2)
 
-**Authority:** ADR 0007 (graph lifecycle), ADR 0008 (protection semantics), ADR 0009 (timing), ADR 0010 (protection comparison seam). Existing implemented DSP contracts remain in docs/api.md. If a card disagrees with an ADR/header, stop and report; never edit the interface.
-**Baseline:** branch parent `architecture/7b-executable-engineering-plan` at `d8ce744e06edf0c05a50734d7e2ec13c764cebf2`; T06b1 code is present. No runtime graph execution or protection evaluator exists.
+**Authority for this architecture iteration:** ADR 0012 (chain-per-output), ADR 0013 (protected block and limiter authority), ADR 0008 (protection curves), ADR 0010 (protection comparator seam), plus frozen `dspblocks` headers and `docs/api.md`. The graph-oriented T07a1–T07a6 cards below are historical planning material and are not executable under chain v1; they must be replaced by chain-response cards before implementation. If a card disagrees with an ADR/header, stop and report; never edit the interface.
+**Baseline:** this catalog originated from `architecture/7b-executable-engineering-plan` at `d8ce744e06edf0c05a50734d7e2ec13c764cebf2`. The current product architecture is chain-per-output; graph-runtime tasks are retired. No chain executor or protection evaluator is implemented.
 **Card sizing:** one card changes one behavior in one module. Target 30–80 handwritten production LOC; tests/golden data and generated files excluded. If estimation exceeds 80 production LOC, split before coding. All cards require test-first execution inside the same reviewable change: add the exact assertions, run and record the expected failing baseline, implement, rerun. Do not submit a red branch as complete.
 
 ## Required completion evidence (every card)
@@ -72,3 +72,45 @@ Before beginning, the task bundle must give: one objective; exact paths; immutab
 5. Host logic has no ESP-IDF/hardware dependency.
 6. Human/hardware gates are clearly blocked, never guessed.
 7. Retry protocol is bounded and output is diff-only.
+
+## Step 3 — Chain JSON v1 schema and semantic contract
+
+**State:** schema, 2.1 example, chain examples, and negative fixtures drafted on
+`architecture/chain-per-output-protection-v1`. Tool execution is still
+required before this task can be marked verified.
+
+**Files:** `configs/schema.json`, `configs/example_2way_sub.json`,
+`configs/example_lr_difference.json`, `configs/invalid/*.json`,
+`tools/check.py`, ADRs 0012/0013, `docs/design.md`, `docs/architecture.md`,
+`docs/requirements.md`, and `docs/api.md`.
+
+**Frozen schema contract:**
+- `v=1`, `fs=48000`; top-level `inputs` is a unique non-empty subset of
+  `L,R,C,LFE,SL,SR`; optional `pre`; 1–8 outputs.
+- `pre[].channel`, each output's `in[].channel`, output `id`, and output
+  `slot` are unique in their respective scopes. All referenced channels
+  must be in `inputs`. A missing pre-chain is identity.
+- Each output has 1–8 input mix entries. Weights are finite, non-zero and
+  inclusive [-4,+4]. Negative weights are valid; protection uses absolute
+  weights.
+- Slot 0–31 is only a schema sanity range. The protected TDM slot count is
+  authoritative. Output `id` joins one-to-one with protected `out_id`.
+- Chain block forms are closed in the JSON Schema: designed biquad, gain,
+  delay, polarity, and fs-tagged SOS. PEQ alone may carry optional `role`.
+- `protect` permits optional `attack_ms`, `release_ms`, and
+  `lookahead_ms=0). Missing attack/release use protected `lim_default`;
+  out-of-bounds values return `E_LIMIT`; non-zero lookahead and any
+  threshold/ceiling/margin authority key return `E_SCHEMA`.
+- Empty `chain` passes JSON Schema but fails semantic protection with
+  `E_PROTECT`. Static response validation must prove attenuation below the
+  protected `min_freq_hz`; a non-empty chain is not automatically safe.
+- Cross-field uniqueness, channel references, protected-record joins,
+  limiter bounds/defaults, TDM slot authority, and static response checks are
+  semantic rules, not JSON Schema features.
+
+**Acceptance:** validate the schema itself; every positive config passes;
+every fixture under `configs/invalid/` fails with its exact `_expect` code;
+test inclusive weights -4/+4 and a negative mix; ensure fixtures use
+synthetic protected metadata only and never imply hardware-approved values.
+Run `python tools/check.py`, host build, and CTest. Record command output;
+until then all changes remain UNVERIFIED.
