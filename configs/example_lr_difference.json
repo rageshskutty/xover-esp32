@@ -26,7 +26,15 @@
           "f_hz": 25,
           "q": 0.707
         }
-      ]
+      ],
+      "protection": {
+        "peak_ceiling_dbfs": -3,
+        "excursion_weighting": [],
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
+      }
     }
   ]
 }
