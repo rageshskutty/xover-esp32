@@ -1,143 +1,255 @@
 # Design
 
 Status: PROPOSED. Items marked VERIFY must be confirmed against a datasheet,
-the source of a pinned dependency, or a measurement before code relies on them.
+the source of a pinned dependency, or a measurement before code relies on
+them. ADRs 0012 and 0013 define the proposed chain-per-output architecture
+and protection boundary.
 
-## 1. Fixed facts
-| Item | Value | Source |
+## 1. Fixed facts and provisional platform choices
+
+| Item | Value | Status |
 |---|---|---|
-| Sample rate | 48 kHz only | ESP32-audioI2S supports 16-48 kHz in, fixed 44.1/48 kHz out |
-| Outputs | 6 used of 8 TDM slots: L woofer, L tweeter, R woofer, R tweeter, sub A, sub B | requirements.md |
-| TDM frame | 8 slots x 32 bit | design choice |
-| BCLK | 48000 x 8 x 32 = 12.288 MHz | arithmetic |
-| MCLK | 256 x fs = 12.288 MHz, from the ESP32 | design choice; VERIFY PCM5122 clocking mode |
-| DSP block | 64 frames = 1.333 ms | design choice |
-| DSP core | core 1; everything else on core 0 | requirements.md |
-| FPU | single precision in hardware; double is software | ESP32-S3 |
-| Audio source | ESP32-audioI2S hook `audio_process_i2s(int32_t*, int16_t, bool*)` | verified in source at 5efbc99 |
+| Sample rate | 48 kHz | v1 product requirement |
+| Initial system | 2.1, stereo input, six output channels | product requirement |
+| Future layout | 5.1 and other multichannel layouts | architecture requirement |
+| TDM frame | 8 slots x 32 bit | design choice; VERIFY hardware |
+| BCLK | 48000 x 8 x 32 = 12.288 MHz | arithmetic, conditional on TDM format |
+| MCLK | 256 x fs = 12.288 MHz | design choice; VERIFY PCM5122 clocking |
+| DSP block | 64 frames = 1.333 ms | provisional design choice |
+| DSP core | core 1; control/network work on core 0 | design choice |
+| FPU | single precision in hardware; double is software | ESP32-S3 platform property |
+| Audio source | ESP32-audioI2S hook candidate | dependency/version/license VERIFY |
 
-## 2. Signal path
-    ESP32-audioI2S (core 0) -> hook: int32 stereo -> audiosrc ring (SPSC)
-        -> DSP task (core 1): int32->float, graph process, float->int32, clip
-        -> tdmout i2s_channel_write (8-slot TDM) -> 3x PCM5122
+The six initial outputs are left woofer, left tweeter, right woofer, right
+tweeter, sub A, and sub B. Exact physical slot assignment remains a hardware
+bring-up item.
 
-- Input scaling: float = int32 / 2^31. Output: float x 2^31 with saturation to
-  int32 range. Headroom: the graph may exceed 0 dBFS internally (float); the
-  output stage saturates and counts a clip event.
-- Filters run in float32 (direct form II transposed). Coefficients are designed
-  in double on core 0, then rounded to float.
-- Pacing: the DSP task is paced by the I2S DMA (blocking write). The ring
-  producer (decoder, core 0) must block when the ring is full, because with
-  `*continueI2S = false` the library no longer paces itself on I2S.
+## 2. Signal path and chain execution
+
+Conceptual flow:
+
+```text
+Input L/R
+  -> optional input pre-chain (shared room correction / tilt)
+  -> per-output input mix (explicit channels and weights)
+  -> ordered per-output user DSP chain
+  -> compiler-appended thermal/RMS, excursion and peak protection
+  -> global supply power budget
+  -> final clamp
+  -> system ramp / mute
+  -> TDM output
+```
+
+There is no user-authored DAG, edge list, topological sort, or general-purpose
+graph executor. Each output has an explicit `in` mix and an ordered `chain`.
+An optional `pre` chain belongs to an input channel and may feed multiple
+outputs. Each output's stateful user and protection stages have independent
+state. The input pre-chain is shared only where the configuration explicitly
+declares it.
+
+The core-0 builder validates the complete JSON and compiles each output into
+a bounded table of precompiled stage function pointers, immutable parameters,
+and allocated state. The DSP task executes the table in declared order.
+No JSON parsing, coefficient design, heap allocation, logging, locks, or
+unbounded loops occur in the real-time path.
+
+Existing `dspblocks` primitives are reused where their contracts and tests
+remain valid. The graph-oriented `dspgraph` build/runtime model is retired.
+A new `dspchain` component replaces its role. Exact public C interfaces,
+table layout, capacities, state ownership, and memory requirements must be
+frozen before implementation.
 
 ## 3. Filter conventions
-- Transfer function: H(z) = (b0 + b1 z^-1 + b2 z^-2) / (1 + a1 z^-1 + a2 z^-2),
+
+- Transfer function:
+  `H(z) = (b0 + b1 z^-1 + b2 z^-2) / (1 + a1 z^-1 + a2 z^-2)`,
   a0 = 1. This is the scipy.signal convention.
-- DF2T: y = b0 x + z1; z1 = b1 x - a1 y + z2; z2 = b2 x - a2 y.
-- VituixCAD export: its "Generic" and "Generic -a12" options differ in the sign
-  of a1/a2. Which one matches this convention is VERIFY via a golden vector (T13).
+- DF2T:
+  `y = b0 x + z1`; `z1 = b1 x - a1 y + z2`;
+  `z2 = b2 x - a2 y`.
+- VituixCAD export: its "Generic" and "Generic -a12" options differ in the
+  sign of a1/a2. Which one matches this convention must be verified by a
+  golden vector before import is enabled.
 - Design uses the bilinear transform with frequency pre-warping, so the
   analog -3.01 dB point lands exactly on fc.
 - Butterworth order N: ceil(N/2) sections (an odd order has one first-order
   section stored as a biquad with b2 = a2 = 0).
-- Linkwitz-Riley order N (even): two cascaded Butterworth of order N/2.
-  Sections = N/2. LR2 = two first-order sections = one biquad.
-- LR summing gotcha: for N mod 4 = 0 (LR4, LR8) the LP and HP branches sum to an
-  all-pass (|H| = 1) in phase. For N mod 4 = 2 (LR2, LR6) one branch must be
-  polarity-inverted to sum flat. The graph does not do this automatically.
-- Bessel: normalisation (-3 dB at fc versus constant group delay) is
-  VERIFY against VituixCAD. Until decided, `Bessel` is rejected by the device
-  loader (E_UNSUPPORTED) even though the schema lists it.
-- RBJ cookbook for peq, low/high shelf, notch and all-pass (Q-based).
+- Linkwitz-Riley order N (even): two cascaded Butterworth filters of order
+  N/2. Sections = N/2. LR2 = two first-order sections = one biquad.
+- LR summing: for N mod 4 = 0 (LR4, LR8), LP and HP branches sum to an
+  all-pass in phase. For N mod 4 = 2 (LR2, LR6), one branch must be polarity
+  inverted to sum flat. Firmware does not silently add this inversion.
+- Bessel: normalization convention must be approved against VituixCAD.
+  Until decided, Bessel is rejected as E_UNSUPPORTED.
+- RBJ cookbook conventions apply to PEQ, low/high shelf, notch and all-pass.
 
-## 4. Block specifications
-| type | required params | range | sections |
-|---|---|---|---|
-| input | channel | 0..1 | 0 |
-| output | slot | 0..7, unique | 0 |
-| crossover | mode (lowpass/highpass), family, order, frequency_hz | BW 1..8, LR 2/4/6/8; f 10..0.45 fs | BW ceil(N/2), LR N/2 |
-| peq | frequency_hz, q, db | q 0.1..20, db -24..+12 | 1 |
-| shelf | shape (low/high), frequency_hz, db | db -24..+12 | 1 |
-| allpass | frequency_hz, q | | 1 |
-| notch | frequency_hz, q | | 1 |
-| biquad | b[3], a[2], sample_rate_hz = 48000 | finite float32; `dsp_check_stable` on the float32 values (\|a2\| < 1, 1 + a1 + a2 > 0, 1 - a1 + a2 > 0) | 1 |
-| gain | db | -60..+12 | 0 |
-| delay | delay_us | 0..20000 (rounded to whole samples, 20.83 us each) | 0 |
-| polarity | invert (bool) | | 0 |
-| mix | gains[] (one per incoming edge) | | 0 |
+## 4. User DSP stage catalog
 
-Only `frequency_hz` may be supplied as an `@var`. Ranges above are the device
-limits; check.py enforces the subset it can (see tools/check.py).
+The following are ordinary user-chain stages, subject to the schema's
+required parameters and bounds:
 
-## 5. Graph semantics
-- Directed acyclic graph, at most 64 nodes, evaluated in topological order.
-- Exactly one incoming edge for every node except `input` (none) and `mix`
-  (one per gain). Fan-out is free. Every non-output node has an outgoing edge.
-- Parallel paths are not latency-balanced. The user sets `delay` where needed.
-- Variables: `vars` maps name -> number. `limits` narrows allowed values.
-  Changing a variable recomputes only the nodes that reference it.
-- Cost model: total biquad sections <= 96 (initial; replaced by a measured
-  figure in T09). Measured cycles per section per sample = UNMEASURED.
+| Stage | Purpose | Notes |
+|---|---|---|
+| crossover | Butterworth / Linkwitz-Riley LP or HP | Bessel remains unsupported |
+| peq | parametric equalization | Q and gain bounded by schema |
+| shelf | low/high shelf | gain bounded by schema |
+| allpass | phase correction | no implicit use |
+| notch | narrow attenuation | Q bounded by schema |
+| biquad | imported coefficients | must be finite, stable, and match fs |
+| gain | level trim | bounded; no hidden auto gain |
+| delay | whole-sample delay | bounded by existing DSP primitive |
+| polarity | explicit polarity inversion | user-declared only |
+
+Input mixing is declared in each output's `in` field as source-channel and
+linear-weight pairs; it is not a standalone graph node. Runtime protection
+stages are compiler-owned and cannot appear in the ordinary `chain`. A
+limiter placed in a user chain is invalid.
+
+Only the approved frequency parameters may be variable. Exact JSON names,
+units, and ranges are defined in the schema and must not be inferred from this
+table.
+
+## 5. Chain semantics and resource bounds
+
+- Each input may have an optional pre-chain for shared room correction/tilt.
+- Each output declares an explicit ordered input mix and ordered DSP chain.
+- Mix order is preserved from JSON. No implicit channel duplication,
+  summing, polarity inversion, delay alignment, or phase compensation occurs.
+- Pre-chain state is per input. Each output chain owns independent filter
+  state; one output's processing must not advance another output's state.
+- Each compiled stage has a known function, parameters, and allocated state.
+  Processing walks the output's table in order.
+- The initial section cap is 96 SOS sections, provisional until measured on
+  target. The cap must account for the worst per-output chain expansion, not
+  merely the sum of unique filter definitions.
+- Existing DSP code, test vectors, and golden response fixtures are retained
+  where compatible. Graph-only concepts such as cycle detection and
+  fan-in-without-mix are retired and replaced by chain-order and input-mix
+  validation tests.
 
 ## 6. Protection model (fail closed)
-Device limits live in NVS, namespace `protect`, one record per output:
-`out_id, max_gain_db, stop_below_hz, atten_below_db, stop_above_hz, atten_above_db`
-(either stop band may be disabled). Written only by tools/provision_protect.py
-over serial.
 
-On every load, for each output o with a record:
-1. Compute H_o(f), the complete response from the input to that output
-   (including shared upstream nodes), on a grid of 1/96 octave from 10 Hz to
-   20 kHz plus the exact band-edge frequencies.
-2. Reject if 20 log10 |H_o(f)| > max_gain_db anywhere.
-3. Reject if 20 log10 |H_o(f)| > -atten_below_db for any f <= stop_below_hz.
-4. Reject if 20 log10 |H_o(f)| > -atten_above_db for any f >= stop_above_hz.
-5. An output with no record is forced muted (fail closed).
-Known limit: a very narrow, high-Q feature can fall between grid points. Peq q
-is capped at 20 and the grid is dense; document any residual risk in an ADR.
+### Provisioned authority
 
-## 7. State machine
-    BOOT_MUTED -> LIMITS_OK (NVS valid) -> CONFIG_OK (validated) -> RAMP_UP -> RUN
-    RUN -> SWAP (ramp down, swap pointer at block boundary, ramp up) -> RUN
-    any state -> FAULT_MUTED on NaN/Inf, underrun burst, I2S error, limits invalid
-Ramps: down >= 5 ms, up >= 20 ms. v1 swaps by mute-ramp-swap-ramp
-(zero state on swap); crossfaded swaps are a later ADR.
+Device protection is derived from a separately provisioned protected block:
+`drv` driver data, `amp` amplifier data, and `supply` power-supply data.
+These values are not part of uploaded speaker JSON and cannot be changed by
+the phone UI or network API. Each output has a provisioned frequency-dependent
+limit curve.
+
+### Static load-time validation
+
+For each output, evaluate each input-channel-to-output transfer, including
+the input pre-chain and output user chain. If the mix weights are `w_i` and
+the transfer magnitudes are `|H_i(f)|`, calculate:
+
+```text
+A_bound(f) = sum_i(abs(w_i) * abs(H_i(f)))
+```
+
+Compare this conservative bound against the output's provisioned limit
+curve. Do not credit phase cancellation between stereo inputs. Include all
+static user filters and gains. Runtime limiter behavior is not a substitute
+for passing the static check.
+
+The initial evaluation grid uses the existing 1054-point logarithmic grid
+from 10 Hz to 20 kHz plus exact provisioned curve knots and required model
+boundaries. The final point limit and interpolation rules are frozen in the
+comparator prototype; no extrapolation may silently weaken protection.
+
+If the candidate exceeds the limit curve, report the required attenuation.
+Only when `auto_trim` is explicitly enabled may the compiler add a
+non-positive output trim and repeat the full check. Automatic trim is capped
+at 12 dB; if more is required, reject. Without opt-in, never silently alter
+the user's gain.
+
+### Mandatory runtime protection
+
+The compiler appends the required stages after the user chain:
+1. thermal/RMS limiter;
+2. sealed-box excursion limiter when required by the provisioned model;
+3. peak limiter;
+4. system-wide supply power budget;
+5. final hard clamp;
+6. system-controlled ramp and mute.
+
+Runtime limiters are gain-only and may attenuate but never boost. Thermal
+detector parameters and attack/release values must come from approved driver
+data and a reviewed task contract.
+
+For a sealed-box driver model, excursion protection uses a single low-pass
+biquad derived from `fc_hz`, `Qtc`, and `mm_per_v`. Missing, unsupported,
+unstable, or non-finite model data fails closed. A required subsonic high-pass
+stage must be present in the user chain.
+
+The final clamp guarantees `abs(y) <= configured_ceiling` for every sample.
+The hardware volume/gain setting is pinned. Before enabling output, validate
+`vpk_at_0dbfs <= clip_v` using provisioned amplifier data. Missing or
+invalid values keep outputs muted.
+
+## 7. State machine and configuration lifecycle
+
+```text
+BOOT_MUTED -> PROTECTED (valid drv/amp/supply)
+           -> CONFIG_VALID (schema + static protection pass)
+           -> RAMP_UP -> RUN
+RUN -> RAMP_DOWN -> APPLY_CANDIDATE -> RAMP_UP -> RUN
+any state -> FAULT_MUTED
+```
+
+All start, stop, configuration-change, and fault transitions use controlled
+ramps. Down-ramp is at least 5 ms and up-ramp at least 20 ms, subject to the
+existing system safety policy. No output step may exceed -60 dBFS.
+
+Configuration mutations are serialized through one transaction gate. A
+concurrent mutation returns `E_BUSY` before candidate build or storage
+writes. The DSP owner acknowledges activation at a safe boundary. The
+proposed 250 ms acknowledgement timeout remains provisional and requires
+human approval.
+
+Persistence occurs only on an explicit user commit; previews and slider
+movement must not write flash. The exact distinction between preview, live
+apply, and persistent commit is a human-reviewed interface decision.
+`FAULT_MUTED` is currently assumed to remain latched until power-cycle and
+fresh validation; this is provisional and requires human safety review.
 
 ## 8. Real-time architecture and budgets
+
 | Item | Rule / value |
 |---|---|
 | DSP task | pinned to core 1, highest app priority, stack in internal SRAM |
-| Block | 64 frames; ring depth 4 blocks (256 frames = 5.3 ms) |
-| I2S DMA | 4..6 descriptors x 64 frames; latency about 5 ms |
-| Core 0 | Wi-Fi, lwIP, HTTP, decoder, graph build, logging |
-| Memory (internal SRAM) | graph pool <= 32 KB; filter state ~1 KB per 6 ch x 20 sections |
-| Block time target | DSP execution p99.9 <= 0.60 ms (45%), max <= 1.00 ms (75%); full service/deadline measured separately per ADR 0009 |
-| Underruns | 0 in a 1 h soak |
-| DSP noise floor | <= -110 dBFS unweighted 20 Hz-20 kHz, full graph (G4) |
-| Swap click | no step above -60 dBFS (G5) |
-| Allowed blocking calls in RT | i2s_channel_write, ring read with timeout |
+| Block | 64 frames; 1.333 ms at 48 kHz (provisional) |
+| Input ring | SPSC, fixed capacity in internal SRAM |
+| Core 0 | Wi-Fi, lwIP, HTTP, decoder, validation, design, compile, logging |
+| Memory | coefficients, stage tables, filter state, ring, and DMA in internal SRAM |
+| Double precision | core 0 only |
+| DSP task | no heap, logging, locks, JSON, double, recursion, or unbounded loops |
+| Underruns | 0 in a 1 h soak target |
+| DSP noise floor | <= -110 dBFS unweighted 20 Hz-20 kHz target |
+| Swap click | no step above -60 dBFS target |
+| Allowed blocking calls in RT | I2S write and documented ring read |
 
-Timing boundaries and gate interpretation are defined by ADR 0009; these are targets, not measured results.\n\nFloat32 precision (ADR 0005, HOST-VERIFIED): crossover denominators are stored
-as float32 hi + lo pairs and `dsp_sos_process` runs the recursion in delta form
-(a1 = -2 + p, a2 = 1 - q), which met the 0.01 dB gate at 70 Hz. EQ blocks are
-still plain float32 and are not covered. An LR4 at 70 Hz, fs = 48 kHz has poles
-within about 0.0065 of z = 1. If G4's noise floor or the 20 Hz+ response error fails, escalate in
-this order: (1) DF1 with error feedback or a better structure on the low
-sections, (2) re-order the cascade, (3) double precision for those sections only
-(costs cycles; needs an ADR with measured numbers).
+The 96-section cap and timing targets are not measured feasibility claims.
+The target report must record worst-case per-output chain cost, cycles,
+execution-time percentiles, memory high/low water, stack use, DMA footprint,
+and underruns with Wi-Fi active. A 64-frame block is 1.333 ms; DSP execution,
+full-block service, and deadline margin must be reported separately.
 
 ## 9. Hardware (VERIFY against datasheets)
-- PCM5122: serial audio port in TDM/DSP format with a data offset register so
-  several chips can share one bus. Expected offset for chip n taking two
-  adjacent 32-bit slots: 64 x n BCLK. VERIFY with the datasheet before use.
-- Three chips need distinct I2C addresses (strap pins) or an I2C mux. VERIFY
-  the boards.
-- Provide MCLK from the ESP32 rather than relying on the DAC's PLL from BCLK
-  (better jitter); VERIFY the PCM5122 clock configuration.
-- Start-up: DAC soft-mute asserted, amp mute (if a GPIO exists) asserted, I2S
-  running with zeros, then ramp.
+
+- PCM5122 serial audio port TDM/DSP mode and data offset register must be
+  verified from the exact board and datasheet before use.
+- Three DACs need distinct I2C addresses or an approved I2C mux; verify straps.
+- MCLK source and clock configuration must be verified.
+- Exact ESP32-S3 module, flash/PSRAM, GPIO map, DAC slot mapping, amplifier
+  mute behavior, and power-supply limits are human-owned.
+- Startup keeps DAC soft-mute and amplifier mute asserted, starts I2S with
+  zeros, validates protection/configuration, then ramps up.
 
 ## 10. Security
-LAN only, bearer token for writes, constant-time compare, write rate limit
-5 per minute, body <= 32 KB, JSON depth <= 8. HTTPS is a later ADR. Protection
-limits are not reachable from the network.
+
+LAN-only control with bearer token for writes, constant-time comparison,
+bounded request size/depth, and no firmware outbound traffic beyond the
+approved API. Unknown JSON keys are rejected. Protected data is never
+writable through the network. Flash writes occur only on explicit user
+commit and must obey a human-approved endurance budget.
