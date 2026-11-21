@@ -1,8 +1,8 @@
 # Task prompt bundles
 
-Each file in this directory is copied as the complete task prompt. A bundle contains task objective, exact scope, signatures, test vectors, relevant rules and stop criteria. Never ask the coding model to derive missing context from the full repository.
+Each file in this directory is copied as the complete task prompt. A bundle contains its objective, exact paths, signatures, vectors, rules, setup and stop criteria. It must not require the coding model to derive missing context from the repository.
 
-Current first executable bundle: `T07a1.md`. Later bundles become executable only after dependencies are accepted and their state changes to queued in task_state.json.
+Bundles now exist for T07a0 through T07a5. Their execution readiness remains controlled by task state and dependencies; a bundle does not authorize starting a blocked card.
 
 ## Bundle size target
-Keep each prompt below 3,000 tokens including the exact card, relevant API/header excerpts and five applicable rules. Link to ADRs only for provenance; paste all normative signatures and values needed to execute. If a task cannot meet that bound without omitting a decision, split it.
+Keep each prompt below 3,000 tokens including the exact card, normative signature and values, and five applicable rules. Link to ADRs for provenance, but paste all details needed to execute. If a task cannot meet that bound without omitting a decision, split it.
