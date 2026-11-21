@@ -109,8 +109,15 @@ required before this task can be marked verified.
   semantic rules, not JSON Schema features.
 
 **Acceptance:** validate the schema itself; every positive config passes;
-every fixture under `configs/invalid/` fails with its exact `_expect` code;
-test inclusive weights -4/+4 and a negative mix; ensure fixtures use
-synthetic protected metadata only and never imply hardware-approved values.
-Run `python tools/check.py`, host build, and CTest. Record command output;
-until then all changes remain UNVERIFIED.
+every chain-v1 fixture under `configs/invalid/` fails with its exact `_expect`
+code. Fixtures cover declared-input membership, all uniqueness scopes,
+weight bounds/zero/negative acceptance, array bounds, version/sample-rate,
+block shape, PEQ-only role, look-ahead, designer threshold/ceiling/margin
+keys, protected record missing/unknown keys, output/protected-ID join,
+limiter bounds, unstable `x_model`, `vpk_at_0dbfs > clip_v`, protected TDM
+slot count, static sum-bound violation, missing subsonic HP, empty chain,
+and SOS sample-rate mismatch. Legacy graph fixtures remain explicitly
+excluded from the chain-v1 schema gate and continue to feed the old C
+validator regression test. Synthetic protected metadata is test-only and
+must never imply hardware-approved values. Run `python tools/check.py`, host
+build, CTest, sanitizers, and coverage; record command output.
