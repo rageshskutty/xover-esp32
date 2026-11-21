@@ -1,6 +1,6 @@
 # API contracts
 
-Status: FROZEN for existing DSP APIs. Graph build/runtime contract is ADR 0007; implementation requires CODEOWNERS review.
+Status: FROZEN planning contract. Graph build/runtime is ADR 0007; response, variable update, and graph stats are ADR 0011. Public header changes require CODEOWNERS review.
 
 ## 1. Error codes (shared by C and HTTP)
 | code | meaning |
@@ -89,6 +89,7 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
     typedef struct dspg dspg_t;
     typedef struct { char code[20]; char path[48]; char msg[96]; } dspg_issue_t;
     typedef struct { dspg_issue_t items[8]; uint8_t n; } dspg_report_t;
+    /* Public device protection record; normative bounds and encoding: ADR 0008. */
     typedef struct { char out_id[32]; float max_gain_db;
                      float stop_below_hz, atten_below_db;
                      float stop_above_hz, atten_above_db; } dspg_protect_t;
@@ -107,7 +108,24 @@ The default 1054-point grid spans 10 Hz to 20 kHz at approximately 1/96 octave.
                      float *const output[8], uint32_t n_frames);
     void dspg_reset(dspg_t *g);
 
-Build requires one valid protection record for each output and cannot bypass evaluation. Disabled-band encoding is edge=0.0f and matching attenuation=0.0f; see ADR 0008. Arena reclaim only follows owner acknowledgment; no graph free API exists.
+    /* Core 0, creates a new unpublished graph; never mutates active. ADR 0011. */
+    int dspg_set_var(const dspg_t *active, const char *name, double value,
+                     dspg_arena_t candidate_arena, dspg_t **candidate,
+                     dspg_info_t *info, dspg_report_t *report);
+    /* Core 0, response from one unit-stimulus input channel to an output. ADR 0011. */
+    int dspg_eval(const dspg_t *g, const char *out_id, uint8_t input_channel,
+                  const double *frequency_hz, size_t n_frequencies,
+                  double *magnitude_db, double *phase_deg,
+                  dspg_report_t *report);
+    typedef struct {
+        uint32_t blocks_processed, nonfinite_faults, clips, underruns;
+        uint64_t cycles_total;
+        uint32_t cycles_max;
+    } dspg_stats_t;
+    /* DSP owner only; copies a graph-runtime counter snapshot. ADR 0011. */
+    int dspg_get_stats(const dspg_t *g, dspg_stats_t *stats);
+
+Build requires one valid public `dspg_protect_t` record for each output and cannot bypass evaluation. Disabled-band encoding is edge=0.0f and matching attenuation=0.0f; see ADR 0008. Arena reclaim only follows owner acknowledgment; no graph free API exists. Variable updates build a new protected candidate and publish it only after persistence and owner acknowledgment. See ADR 0011 for response propagation and state ownership.
 
 ### 2.3 audiosrc
     int  audiosrc_init(size_t ring_frames);             /* internal SRAM ring */
@@ -150,14 +168,29 @@ Base `http://xover.local/api/v1`. Reads are open on the LAN. Writes need
 | GET | /status | - | 200 {fw, fs, state, cfg_crc32, cpu_p999_pct, underruns, clips, faults, protect: "ok"/"missing"} | - |
 | GET | /config | - | 200 the active JSON | 404 none |
 | POST | /config | application/json <= 32 KB | 200 {ok:true, crc32} | 400 E_JSON, 401 E_AUTH, 409 E_BUSY, 413, 422 {ok:false, errors:[{code,path,msg}]} |
-| PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 422 E_LIMIT or E_PROTECT |
-| GET | /response?out=<id>&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
+| PUT | /vars/{name} | {value:number} | 200 {ok:true, value} | 401, 404 E_VAR_UNDEFINED, 409 E_BUSY, 422 E_LIMIT or E_PROTECT |
+| GET | /response?out=<id>&input_channel=0&points=256&fmin=10&fmax=20000 | - | 200 {f:[], mag_db:[], phase_deg:[]} | 404, 422 |
 | POST | /mute | {mute:bool} | 200 | 401 |
 | GET | /limits | - | 200 the device protection records (read-only) | - |
 
-Rules: a failed POST or PUT leaves the running config untouched. `/response`
-is computed by the device from its real coefficients (`dspg_eval`), so the page
-only plots. mDNS name `xover.local`. Max 4 concurrent connections.
+Rules: a failed POST or PUT leaves the running config untouched. Config
+mutations are serialized and rate-floored to one per 1000 ms; a concurrent or
+too-early POST or PUT returns `E_BUSY` without building or writing a candidate.
+The wear budget is an open human decision (ADR 0011). `PUT /vars/{name}` constructs a complete
+protected candidate using `dspg_set_var`, writes and verifies the inactive
+slot, then requests the normal owner-acknowledged graph swap. The active-slot
+selector changes only after swap acknowledgment. A swap rejection leaves the old graph and selector
+active; a selector-write failure after acknowledgment is a storage fault and
+must mute/fail closed. A staged inactive slot without an active-selector
+change is ignored at boot. This ordering requires human safety review before
+implementation. `/response` uses `dspg_eval`; the request names `out` and
+`input_channel` (0 or 1), and the result is the transfer from a unit stimulus
+on that input channel, with the other input channel zero, to the selected
+output. Mixed paths on that channel are summed in declared edge order. It does
+not combine the two input channels into one response. Response frequencies
+are finite, strictly increasing, and in [10, 20000] Hz; `points` is 2..1024 on
+the HTTP request and `dspg_eval` accepts 1..2048 frequencies (ADR 0011). mDNS name
+`xover.local`. Max 4 concurrent connections.
 
 ## 5. NVS layout
 | namespace | key | value |
@@ -175,4 +208,5 @@ header {magic, version, length, crc32}. The inactive slot is written first, then
 
 ## Frozen planning authority
 
-ADR 0007 defines the only graph runtime API; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
+ADR 0007 defines graph build/runtime ownership; ADR 0008 defines protection encoding/evaluation; ADR 0009 defines timing boundaries; ADR 0011 defines response, variable-update, stats, and per-channel state APIs. docs/engineering/03_task_catalog.md owns executable task cards. On conflict, stop and escalate.
+
