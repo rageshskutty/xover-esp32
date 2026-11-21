@@ -91,14 +91,42 @@ change, and fault transitions. They are not ordinary user chain stages.
 
 ## JSON protection configuration
 
-Each output must include the mandatory protection configuration defined by
-the Step 3 schema. The user may select permitted limiter operating parameters
-within the provisioned limits, but may not disable a required limiter, increase
-a protected ceiling, or alter `drv`, `amp`, or `supply` data.
+The designer does not set protection thresholds, ceilings, or margins. Those
+are derived exclusively from the separately provisioned protected block.
+The designer may set limiter shape only: optional per-output
+`protect.attack_ms` and `protect.release_ms`.
 
-The schema rejects missing, misspelled, unknown, wrong-unit, out-of-range, or
-inconsistent protection keys. A limiter placed in the user-authored chain is
-invalid because the compiler owns the mandatory protection pipeline.
+For each output, the protected record is keyed by `out_id` and contains:
+- physical/output facts: `vpk_at_0dbfs`, `clip_v`, `xmax_mm`,
+  `re_ohm`, `pmax_w`, `tau_s`, `x_model`, `min_freq_hz`;
+- `lim_bounds`, with protected minimum and maximum attack/release values;
+- `lim_default`, with protected default attack/release values.
+
+The designer's `outputs[].id` and protected `out_id` sets must match
+one-to-one. Missing or orphan records reject the configuration. The protected
+record is the sole authority for limiter thresholds, voltage ceilings,
+excursion/thermal limits, and limiter operating bounds.
+
+The optional designer `protect` object accepts only `attack_ms`,
+`release_ms`, and reserved `lookahead_ms`. If attack or release is omitted,
+the corresponding value comes from `lim_default`; no firmware magic default
+is permitted. A supplied attack/release outside its corresponding
+`lim_bounds` returns `E_LIMIT`. A threshold, ceiling, margin, or other
+protection-authority key in designer JSON returns `E_SCHEMA`. A non-zero
+`lookahead_ms` is rejected in v1; zero is accepted only as an explicit
+reserved value.
+
+An empty user `chain` is schema-valid but fails semantic protection with
+`E_PROTECT`: the compiler must establish sufficient attenuation below the
+protected `min_freq_hz`. A non-empty chain is not automatically safe; the
+static response evaluator must verify the actual transfer curve.
+
+The schema rejects missing, misspelled, unknown, wrong-unit, or structurally
+invalid keys. A limiter block in the user-authored chain is invalid because
+the compiler owns the mandatory protection pipeline. The JSON Schema handles
+local shape and primitive bounds; cross-array uniqueness, declared-input
+references, protected-record joins, protected limiter bounds/defaults,
+TDM slot authority, and response-curve sufficiency are semantic checks.
 
 ## Failure behavior
 
