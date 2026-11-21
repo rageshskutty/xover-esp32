@@ -220,6 +220,19 @@ def evaluate_config(config, protected_curves, frequencies_hz):
     ids = [out["id"] for out in outputs]
     if len(ids) != len(set(ids)) or set(ids) != set(protected_curves):
         raise ValueError("configured outputs and protected curve IDs must match exactly")
+    # Evaluate every base-grid point, exact curve knot, and exact model boundary.
+    exact_points = [f]
+    for curve in protected_curves.values():
+        knots = _finite_array(curve["frequencies_hz"], "curve frequencies", ndim=1)
+        if knots.size < 2 or np.any(knots <= 0.0) or np.any(np.diff(knots) <= 0.0):
+            raise ValueError("protected curve knots must be positive and strictly increasing")
+        exact_points.append(knots)
+        if curve.get("min_freq_hz") is not None:
+            boundary = float(curve["min_freq_hz"])
+            if not math.isfinite(boundary) or boundary <= 0.0:
+                raise ValueError("protected min_freq_hz must be finite and positive")
+            exact_points.append(np.asarray([boundary], dtype=np.float64))
+    f = np.unique(np.concatenate(exact_points))
     results = []
     for out in outputs:
         channel_responses = []
