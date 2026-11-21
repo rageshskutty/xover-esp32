@@ -1,0 +1,110 @@
+{
+  "_expect": "E_SCHEMA",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "o0",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o1",
+      "slot": 1,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o2",
+      "slot": 2,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o3",
+      "slot": 3,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o4",
+      "slot": 4,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o5",
+      "slot": 5,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o6",
+      "slot": 6,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o7",
+      "slot": 7,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    },
+    {
+      "id": "o8",
+      "slot": 8,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": []
+    }
+  ]
+}
