@@ -90,24 +90,26 @@ required parameters and bounds:
 
 | Stage | Purpose | Notes |
 |---|---|---|
-| crossover | Butterworth / Linkwitz-Riley LP or HP | Bessel remains unsupported |
-| peq | parametric equalization | Q and gain bounded by schema |
-| shelf | low/high shelf | gain bounded by schema |
-| allpass | phase correction | no implicit use |
-| notch | narrow attenuation | Q bounded by schema |
-| biquad | imported coefficients | must be finite, stable, and match fs |
-| gain | level trim | bounded; no hidden auto gain |
-| delay | whole-sample delay | bounded by existing DSP primitive |
-| polarity | explicit polarity inversion | user-declared only |
+| biquad (`k=lp`, `hp`, `peq`, `notch`, `allpass`) | designed second-order filter | `f_hz` and `q`; PEQ also requires `db` and may carry optional `role` |
+| sos | imported coefficients | `fs`-tagged; finite, stable, and equal to 48000 Hz |
+| gain | level trim | `db`; bounded; no hidden auto gain |
+| delay | whole-sample delay | `us`; bounded by existing DSP primitive |
+| polarity | explicit polarity inversion | `invert`; user-declared only |
 
 Input mixing is declared in each output's `in` field as source-channel and
 linear-weight pairs; it is not a standalone graph node. Runtime protection
 stages are compiler-owned and cannot appear in the ordinary `chain`. A
 limiter placed in a user chain is invalid.
 
-Only the approved frequency parameters may be variable. Exact JSON names,
-units, and ranges are defined in the schema and must not be inferred from this
-table.
+JSON v1 is closed and defined in `configs/schema.json`: top-level
+`v: 1`, `fs: 48000`, declared `inputs`, optional `pre`, and 1–8
+`outputs`. Each output has unique `id` and `slot`, 1–8 unique `in`
+channels, and an ordered `chain`. Mix weights are finite, non-zero and in
+[-4,4], including negative weights. `pre` is unique by channel; undeclared
+channels are rejected. A channel without a pre-chain is identity. `protect`
+accepts only optional `attack_ms`, `release_ms`, and reserved
+`lookahead_ms: 0`. See ADR 0012 and ADR 0013 for semantic and protected-record
+checks.
 
 ## 5. Chain semantics and resource bounds
 
