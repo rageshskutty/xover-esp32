@@ -99,6 +99,20 @@ class ProtectionOracleTests(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(h.real)))
         self.assertTrue(np.all(np.isfinite(h.imag)))
 
+    def test_protected_min_frequency_requires_subsonic_hp(self):
+        config = {
+            "v": 1, "fs": 48000, "inputs": ["L"],
+            "outputs": [{
+                "id": "out", "slot": 0,
+                "in": [{"channel": "L", "weight": 1.0}],
+                "chain": [{"t": "gain", "db": 0.0}],
+            }],
+        }
+        curve = {"out": {"frequencies_hz": [10.0, 20000.0],
+                         "limit_db": [-200.0, 0.0], "min_freq_hz": 20.0}}
+        with self.assertRaisesRegex(ValueError, "lacks required subsonic"):
+            evaluate_config(config, curve, [10.0, 100.0, 20000.0])
+
     def test_sos_sample_rate_mismatch_rejected(self):
         with self.assertRaisesRegex(ValueError, "sample-rate mismatch"):
             chain_response([{"t": "sos", "fs": 44100,
