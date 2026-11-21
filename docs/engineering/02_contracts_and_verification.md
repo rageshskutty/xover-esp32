@@ -29,7 +29,7 @@ CI workflow `.github/workflows/ci.yml` runs:
 - ASan/UBSan host tests;
 - the dspblocks coverage gate.
 
-Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 static protection oracle and does not generate the protection comparator's golden vectors. A separate NumPy/SciPy reference oracle is required.
+Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 static protection oracle and does not generate the protection comparator's golden vectors. The independent NumPy/SciPy reference oracle is implemented in `tools/protection_oracle.py`, with deterministic vectors in `tools/protection_oracle_vectors.json` and tests in `tools/test_protection_oracle.py`. It evaluates supported chain-v1 static blocks against supplied (synthetic or provisioned) curves; it does not derive real protected curves. The exact numeric conventions in that oracle remain proposals pending human/CODEOWNERS approval.
 
 The following commands are the host verification sequence:
 ```sh
