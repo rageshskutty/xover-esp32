@@ -146,10 +146,13 @@
         "configs/schema.json",
         "configs/example_2way_sub.json",
         "configs/example_lr_difference.json",
+        "configs/example_weight_boundaries.json",
         "configs/invalid/*.json",
+        "configs/legacy/example_2way_sub.json",
+        "host/tests/test_graph_validate.c",
         "tools/check.py"
       ],
-      "verification": "GitHub Actions run 44923363748 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 7d4173d9bee0e68dc4944da95c9dd192f52df738. This is host CI evidence only; no hardware behavior is verified.",
+      "verification": "GitHub Actions run 44923640021 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 50e57c1385a319edc961bbf961fae84956ad5cfe. A subsequent documentation-only correction is on the branch; its CI run is pending. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     }
   }
