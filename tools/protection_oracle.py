@@ -235,6 +235,16 @@ def evaluate_config(config, protected_curves, frequencies_hz):
             channel_responses.append(np.abs(pre_h * out_h))
             weights.append(weight)
         curve = protected_curves[out["id"]]
+        min_freq = curve.get("min_freq_hz")
+        if min_freq is not None:
+            min_freq = float(min_freq)
+            if not math.isfinite(min_freq) or min_freq <= 0.0:
+                raise ValueError("protected min_freq_hz must be finite and positive")
+            has_hp = any(block.get("t") == "biquad" and block.get("k") == "hp"
+                         and float(block.get("f_hz", 0.0)) >= min_freq
+                         for block in out["chain"])
+            if not has_hp:
+                raise ValueError(f'output {out["id"]} lacks required subsonic high-pass')
         limit = interpolate_limit_curve(f, curve["frequencies_hz"], curve["limit_db"])
         result = compare_output(weights, np.asarray(channel_responses), limit, f, out["id"])
         results.append(result)
