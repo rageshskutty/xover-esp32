@@ -77,9 +77,9 @@ separate reviewed contract; no per-output limiter may bypass it.
 
 The final clamp is system-owned and guarantees:
 
-[
-|y[n]| \le configured\_ceiling
-]
+```text
+abs(y[n]) <= configured_ceiling
+```
 
 for every output sample. The hardware volume/gain setting is pinned to its
 provisioned value. Validate `vpk_at_0dbfs <= clip_v` using protected
