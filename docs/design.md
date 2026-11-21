@@ -174,8 +174,10 @@ The compiler appends the required stages after the user chain:
 6. system-controlled ramp and mute.
 
 Runtime limiters are gain-only and may attenuate but never boost. Thermal
-detector parameters and attack/release values must come from approved driver
-data and a reviewed task contract.
+detector parameters and limiter thresholds come only from the protected
+block. The designer may select only `protect.attack_ms` and
+`protect.release_ms`, each bounded by protected `lim_bounds`; omission
+uses protected `lim_default`. Non-zero `lookahead_ms` is rejected in v1.
 
 For a sealed-box driver model, excursion protection uses a single low-pass
 biquad derived from `fc_hz`, `Qtc`, and `mm_per_v`. Missing, unsupported,
