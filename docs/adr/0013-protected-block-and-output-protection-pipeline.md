@@ -31,13 +31,14 @@ For every output, the compiler:
 3. evaluates each input-channel-to-output transfer across the protection grid;
 4. calculates the conservative stereo/multi-input bound `Σ |w| · |H|`;
 5. compares that bound against the output's provisioned limit curve;
-6. reports any required trim and applies it only when `auto_trim` is explicitly
-   enabled and the required attenuation is no more than 12 dB;
-7. rejects the candidate if any output still exceeds its limit.
+6. rejects the candidate if any output exceeds its limit.
 
-The exact trim calculation and grid interpolation are frozen by the comparator
-prototype. No response value may be inferred from a runtime limiter's
-expected attenuation.
+Automatic trim is disabled in chain v1: `auto_trim` is absent from the
+closed JSON schema and must not be inferred or accepted as an extension.
+The compiler never changes user gain to force a candidate to pass. Any future
+automatic-trim feature requires a separate human-reviewed ADR, schema/API
+revision, deterministic algorithm, and test vectors. No response value may
+be inferred from a runtime limiter's expected attenuation.
 
 ## Runtime protection stages
 
