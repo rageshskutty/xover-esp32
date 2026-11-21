@@ -42,12 +42,7 @@
           "t": "gain",
           "db": -3
         }
-      ],
-      "protect": {
-        "attack_ms": 5,
-        "release_ms": 100,
-        "lookahead_ms": 0
-      }
+      ]
     },
     {
       "id": "right_woofer",
