@@ -49,7 +49,7 @@
       "required": ["channel", "weight"],
       "properties": {
         "channel": { "enum": ["L", "R", "C", "LFE", "SL", "SR"] },
-        "weight": { "type": "number", "exclusiveMinimum": -4, "exclusiveMaximum": 4, "not": { "const": 0 } }
+        "weight": { "type": "number", "minimum": -4, "maximum": 4, "not": { "const": 0 } }
       },
       "additionalProperties": false
     },
