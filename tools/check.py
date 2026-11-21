@@ -151,8 +151,10 @@ def semantic_errors(cfg, test_protected=None):
             unknown = set(record.get("unknown_keys", []))
             if missing or unknown:
                 errs.append("E_PROTECT: protected record %s has missing/unknown keys" % out_id)
-            if record.get("x_model_valid") is False:
-                errs.append("E_PROTECT: protected x_model for %s is unstable or invalid" % out_id)
+            if "x_model" in record:
+                # The sealed-box model-to-coefficient derivation is not frozen.
+                # Do not trust fixture booleans or accept unverified model data.
+                errs.append("E_PROTECT: protected x_model for %s cannot be validated until its model contract is approved" % out_id)
             vpk, clip_v = record.get("vpk_at_0dbfs"), record.get("clip_v")
             if vpk is not None and clip_v is not None and vpk > clip_v:
                 errs.append("E_PROTECT: protected vpk_at_0dbfs exceeds clip_v for %s" % out_id)
@@ -224,7 +226,6 @@ def check_configs():
             "lim_bounds": cfg.pop("_test_lim_bounds", {}),
             "records": cfg.pop("_test_protected_records", {}),
             "min_freq_hz": cfg.pop("_test_min_freq_hz", {}),
-            "static_bounds": cfg.pop("_test_static_bounds", {})
         }
         errs = schema_errors(cfg, schema)
         if not errs:
