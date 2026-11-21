@@ -71,8 +71,10 @@ def compare_output(weights, magnitudes, limit_db, frequencies_hz, output_id):
     if np.any(h < 0.0) or np.any(np.diff(f) <= 0.0) or np.any(f <= 0.0):
         raise ValueError("magnitudes must be non-negative and frequencies strictly increasing")
     bound = np.sum(np.abs(w)[:, None] * h, axis=0, dtype=np.float64)
-    bound_db = np.where(bound == 0.0, ZERO_FLOOR_DB,
-                        20.0 * np.log10(np.maximum(bound, 10.0 ** (ZERO_FLOOR_DB / 20.0))))
+    floor_linear = 10.0 ** (ZERO_FLOOR_DB / 20.0)
+    bound_db = np.full(bound.shape, ZERO_FLOOR_DB, dtype=np.float64)
+    nonzero = bound > 0.0
+    bound_db[nonzero] = 20.0 * np.log10(np.maximum(bound[nonzero], floor_linear))
     bad = np.flatnonzero(bound_db > lim)
     if bad.size:
         i = int(bad[0])
