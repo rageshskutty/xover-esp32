@@ -5,7 +5,7 @@
     "base_branch": "architecture/7b-executable-engineering-plan",
     "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
     "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; no local checkout or test execution; hardware unverified"
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; documentation and CMake edits pending CI; no local checkout or test execution; hardware unverified"
   },
   "active_task": null,
   "decisions": [
@@ -33,58 +33,39 @@
   "items": [
     {
       "id": "T07a1",
-      "state": "queued",
-      "depends_on": [
-        "ADR-0010"
-      ],
-      "human_decisions": [
-        "CODEOWNERS contract approval"
-      ]
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
     },
     {
       "id": "T07a2",
-      "state": "blocked",
-      "depends_on": [
-        "T07a1"
-      ],
+      "state": "retired",
+      "depends_on": [],
       "human_decisions": []
     },
     {
       "id": "T07a3",
-      "state": "blocked",
-      "depends_on": [
-        "T07a2"
-      ],
+      "state": "retired",
+      "depends_on": [],
       "human_decisions": []
     },
     {
       "id": "T07a4",
-      "state": "blocked",
-      "depends_on": [
-        "T07a3"
-      ],
+      "state": "retired",
+      "depends_on": [],
       "human_decisions": []
     },
     {
       "id": "T07a5",
-      "state": "blocked",
-      "depends_on": [
-        "T07a4"
-      ],
-      "human_decisions": [
-        "maintainer approves internal seam",
-        "existing golden fixture availability"
-      ]
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
     },
     {
       "id": "T07a6",
-      "state": "blocked",
-      "depends_on": [
-        "T07a5"
-      ],
-      "human_decisions": [
-        "response propagation ADR and exact graph API"
-      ]
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
     },
     {
       "id": "T07b",
@@ -139,7 +120,7 @@
   "completion_record": null,
   "migration": {
     "architecture": "chain-per-output v1 (ADR 0012/0013)",
-    "legacy_graph_cards": "T07a1-T07a6 retained below as historical material; not executable until replaced with chain-response task cards",
+    "legacy_graph_cards": "T07a1-T07a6 retired; archived for history only, not executable or queued",
     "step3_schema": {
       "state": "CI_VERIFIED",
       "files": [
