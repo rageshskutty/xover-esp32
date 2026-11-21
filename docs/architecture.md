@@ -33,15 +33,17 @@ has independent state for its own stateful stages.
 ## Configuration and compilation
 
 The uploaded JSON is a declarative speaker design. Its top-level version and
-sample-rate keys are mandatory. Every output declares:
-- the input channels and linear weights to mix;
-- its ordered user DSP chain;
-- the mandatory protection configuration required by the schema.
+sample-rate keys are mandatory. Every output declares its input channels and linear mix weights and its
+ordered user DSP chain. Its ID must match exactly one separately provisioned
+protected record. The optional designer `protect` object controls only
+attack/release shape within protected bounds; it cannot set thresholds,
+ceilings, or margins.
 
-Unknown keys, missing mandatory protection keys, wrong units, invalid values,
-and unsupported stages are rejected. The exact v1 shape is defined by
-`configs/schema.json` and its fixtures; the schema migration is a separate
-planned step.
+Unknown keys, wrong units, invalid values, and unsupported stages are
+rejected. The chain-v1 shape is defined by `configs/schema.json` and its
+fixtures. Static protection acceptance requires the actual chain response
+against the separately provisioned curve; a mere high-pass block presence is
+not evidence of sufficient attenuation.
 
 The core-0 builder validates the complete configuration and compiles each
 output into a bounded execution table. Each entry identifies a precompiled
