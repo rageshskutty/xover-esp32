@@ -111,10 +111,12 @@ format uses top-level `v` for configuration version and `fs` for sample
 rate. It defines optional input pre-chains and per-output input mixes and
 ordered chains. Each output includes mandatory protection configuration.
 
-Exact object shapes, parameter names, units, bounds, required keys, and
-invalid fixtures are the subject of the schema task. Until that task lands,
-the current `configs/schema.json` must be treated as a legacy schema and
-must not be used as authority for new chain JSON.
+JSON v1 is defined in `configs/schema.json` with a 2.1 example in
+`configs/example_2way_sub.json`. It uses `v`, `fs`, `inputs`, optional `pre`,
+and `outputs` containing `id`, `slot`, `in`, `chain`, and optional `protect`.
+The schema handles closed local shapes; cross-field uniqueness, channel
+membership, protected-record joins, protected limiter bounds, and static
+response sufficiency are semantic validation. See ADRs 0012 and 0013.
 
 Unknown keys reject. Physical units are included in key names. Uploaded
 configuration cannot modify the separately provisioned `drv`, `amp`, or
