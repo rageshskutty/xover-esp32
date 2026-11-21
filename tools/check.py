@@ -160,15 +160,11 @@ def semantic_errors(cfg, test_protected=None):
             out_id = out.get("id")
             min_freq = test_protected.get("min_freq_hz", {}).get(out_id)
             if min_freq is not None:
-                has_subsonic_hp = any(
-                    block.get("t") == "biquad" and block.get("k") == "hp"
-                    and block.get("f_hz", 0) >= min_freq
-                    for block in out.get("chain", [])
-                )
-                if not has_subsonic_hp:
-                    errs.append("E_PROTECT: output %s lacks required subsonic high-pass" % out_id)
+                # Fail closed until the chain response evaluator is integrated.
+                # Merely finding an HP block cannot prove attenuation at min_freq.
+                errs.append("E_PROTECT: output %s static response check is not implemented; cannot prove attenuation at min_freq_hz" % out_id)
             # Static response metadata is deliberately not evaluated here.
-            # The former fixture fields were precomputed flags, not a numerical oracle.
+            # Numerical comparison is covered by tools/protection_oracle.py.
         for out in outputs:
             limits = bounds.get(out.get("id"), {})
             protect = out.get("protect", {})
@@ -331,7 +327,7 @@ def main():
         print("jsonschema missing: pip install -r tools/requirements.txt")
         return 2
     failures = []
-    print("WARNING: subsonic HP presence check is TEMPORARY; it does not prove attenuation at min_freq_hz.")
+    print("NOTICE: protected min_freq_hz checks fail closed until chain response evaluation is integrated.")
     for title, fn in (("scanner self-test", selftest_rt_scan), ("configs", check_configs),
                       ("real-time scan", check_rt_files), ("secrets", check_secrets)):
         print("[%s]" % title)
