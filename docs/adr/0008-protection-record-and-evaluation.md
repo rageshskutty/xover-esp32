@@ -32,9 +32,9 @@ For input channel (i), let (w_i) be its configured mix weight and
 (H_i(f)) its complex transfer to the output. The safety comparator uses the
 conservative bound:
 
-[
-A_{bound}(f)=\sum_i |w_i|\,|H_i(f)|
-]
+```text
+A_bound(f) = sum_i(abs(w_i) * abs(H_i(f)))
+```
 
 The comparator does not credit phase cancellation between inputs. This is
 deliberately conservative and is the required stereo-sum rule. Compare the
