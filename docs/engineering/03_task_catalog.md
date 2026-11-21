@@ -17,11 +17,17 @@ These cards are retained in Git history only. They specify graph-era APIs and de
 ## T08 — Board and DAC integration
 **State:** human-blocked. Board model, module memory, IDF version, pin map, PCM5122 addressing/straps/registers, slot mapping and safety limits are not in the repository as verified facts. No 7B coding card until human evidence is recorded.
 
-## T09 — Graph runtime
-**State:** API ADR exists but is not CODEOWNERS-approved and exact response path semantics/arena golden sizes are still pending. First authorized work is a big-model-owned host contract-test/golden-vector commit. Do not start runtime implementation cards until that commit is reviewed.
+## T09 — Graph runtime (retired)
+
+**State:** retired with the graph/DAG architecture by ADR 0012. Do not create graph runtime tasks from ADR 0007 or the old graph task bundle.
+
+## Chain runtime contract (future work; not Step 4)
+
+The chain-per-output executor, bounded execution-table layout, memory ownership, DSP-task processing contract, and chain response API require their own reviewed component contract. They are not defined by the protection comparator. No implementation card may infer these interfaces from graph-era headers.
 
 ## T10–T15 — Source, control plane, bring-up and release
-**State:** dependent human/architecture gates remain. Existing broad cards are retired; they are not executable work orders. Reissue them as micro-cards only after T07b/T08/T09 decisions and explicit per-card signatures, test inputs and expected outputs are committed. No 7B may decide external dependencies, hardware behavior, protection policy, licenses or release status.
+
+**State:** dependent human/architecture gates remain. Existing broad cards are retired; they are not executable work orders. Reissue them as micro-cards only after the chain runtime contract, T07b protection provisioning, and T08 board facts are reviewed and explicit per-card signatures, test inputs and expected outputs are committed. No 7B may decide external dependencies, hardware behavior, protection policy, licenses or release status.
 
 ## Explicit 7B execution criteria
 Before beginning, the task bundle must give: one objective; exact paths; immutable signatures and relevant header text; exact accepted/rejected inputs; expected output values/tolerance; commands; expected baseline failure; 5 or fewer applicable rules; stop conditions. Card passes review only if:
