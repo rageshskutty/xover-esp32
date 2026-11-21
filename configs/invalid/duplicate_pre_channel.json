@@ -33,7 +33,12 @@
     },
     {
       "channel": "L",
-      "chain": []
+      "chain": [
+        {
+          "t": "gain",
+          "db": -1
+        }
+      ]
     }
   ]
 }
