@@ -146,6 +146,8 @@ def semantic_errors(cfg, test_protected=None):
         for out_id in ids:
             record = records.get(out_id, {})
             missing = set(record.get("missing_keys", []))
+            if "present_keys" in record:
+                missing |= required_record_keys - set(record["present_keys"])
             unknown = set(record.get("unknown_keys", []))
             if missing or unknown:
                 errs.append("E_PROTECT: protected record %s has missing/unknown keys" % out_id)
