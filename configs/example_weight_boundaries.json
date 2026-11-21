@@ -1,0 +1,46 @@
+{
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "positive_limit",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 4
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 30,
+          "q": 0.707
+        }
+      ]
+    },
+    {
+      "id": "negative_limit",
+      "slot": 1,
+      "in": [
+        {
+          "channel": "R",
+          "weight": -4
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 30,
+          "q": 0.707
+        }
+      ]
+    }
+  ]
+}
