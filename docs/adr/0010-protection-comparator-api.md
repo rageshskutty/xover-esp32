@@ -52,20 +52,32 @@ frequency order. The first valid limit violation reports output ID,
 frequency, calculated conservative bound in dB, and the applicable limit in
 dB. A successful call zeroes the failure record.
 
-## Proposed C seam (to be frozen by the comparator prototype)
+## C seam (mandatory pre-Step-4 contract gate)
 
-The exact C structs and function signature are intentionally left for the
-Step 4 comparator prototype. That prototype must represent:
-- a frequency vector;
+Step 4 is implementation only; it is not the place to invent the public API.
+Before any Step-4 implementation card is queued, a reviewed ADR amendment and
+public header must freeze the exact C structs and function signature. The
+proposed header location is
+`firmware/components/dspchain/include/dspchain_protect.h`.
+
+The frozen seam must represent:
+- one strictly increasing frequency vector;
 - per-output, per-input-channel response-magnitude rows;
 - the mix weights for those rows;
-- the per-output limit curve sampled on the same vector;
-- a deterministic failure record containing output ID, frequency,
-  calculated bound, and limit.
+- each output's limit curve sampled on the same evaluation vector;
+- deterministic output ordering and a failure record containing output ID,
+  frequency, calculated bound, and applicable limit;
+- explicit pointer/length pairing, ownership, constness, aliasing rules,
+  maximum dimensions, and error codes.
+
+The contract must also freeze the total memory bound and how the arrays are
+provided to the core-0 comparator. Those values must be checked against the
+selected target's measured/verified memory budget. The exact structs and
+signature remain intentionally unset until that evidence and review exist.
 
 Do not preserve or implement the former `dspg_protect_check` signature by
-mechanically renaming graph types. Step 4 must add exact bounds, layouts,
-pointer rules, and test vectors before implementation work is queued.
+mechanically renaming graph types. No Step-4 code card may design or change
+this seam.
 
 ## Required test vectors
 
