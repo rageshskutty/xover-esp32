@@ -26,17 +26,19 @@
   Both are mandatory. The exact units and allowed values are defined in the
   schema.
 - Unit-bearing key names are required for physical quantities.
-- Every output must declare its input mix, ordered user chain, and mandatory
-  protection configuration.
-- Unknown keys and missing or misspelled mandatory protection keys reject.
+- Every output must declare its input mix and ordered user chain and must
+  match exactly one separately provisioned protected output record.
+- The optional designer `protect` object may select only attack/release
+  shape within provisioned bounds; omission uses provisioned defaults.
+- Unknown keys and invalid/missing protected records reject.
 - Uploaded configuration cannot change the separately provisioned protected
   block or weaken any device protection limit.
 - A filter/model sample-rate mismatch, unstable coefficients, non-finite
   values, or unsupported model rejects the configuration.
 - Room-correction boost is limited to approximately +3 dB in v1; cut is
   preferred. Exact enforcement is defined by the schema and validation task.
-- Optional `auto_trim` is opt-in and capped at 12 dB. It must be reported;
-  firmware must not silently change user gain.
+- Automatic trim is disabled in chain v1 because `auto_trim` is not in the
+  schema. Over-limit candidates reject; user gain is never silently changed.
 - The conservative static response bound is `Σ |w| · |H|`; phase
   cancellation between input channels is not credited.
 
@@ -48,7 +50,9 @@
 - Runtime limiters are gain-only and cannot boost.
 - Sealed-box excursion protection uses the approved model based on
   `fc_hz`, `Qtc`, and `mm_per_v`; unsupported or invalid models fail closed.
-- A required subsonic high-pass stage must be present.
+- A required subsonic high-pass stage must be structurally present, and the
+  actual chain response must also satisfy the provisioned curve at and around
+  `min_freq_hz`. Presence alone is not proof of attenuation.
 - User-authored limiter stages are rejected; the compiler owns mandatory
   protection stages.
 - The final sample clamp must satisfy
