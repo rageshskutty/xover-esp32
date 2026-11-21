@@ -131,7 +131,7 @@ int main(void)
     char many[1024];
     size_t used = 0U;
 
-    CHECK(run_fixture("example_2way_sub", 0, &rep, expect) == 0);
+    CHECK(run_fixture("legacy/example_2way_sub", 0, &rep, expect) == 0);
     CHECK(rep.n == 0U);
 
     for (size_t i = 0U; i < sizeof(REJECTED_HERE) / sizeof(REJECTED_HERE[0]); i++) {
