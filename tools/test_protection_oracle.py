@@ -4,7 +4,7 @@ import numpy as np
 
 from protection_oracle import (
     ZERO_FLOOR_DB, compare_config, compare_output, interpolate_limit_curve,
-    response_magnitude,
+    response_magnitude, evaluate_config,
 )
 
 
@@ -46,6 +46,37 @@ class ProtectionOracleTests(unittest.TestCase):
              "limit_db": [0.0]},
         ]
         self.assertEqual(compare_config(outputs, [100.0])["output_id"], "first")
+
+    def test_static_sum_fixture_is_calculated_from_chain_response(self):
+        config = {
+            "v": 1, "fs": 48000, "inputs": ["L", "R"],
+            "outputs": [{
+                "id": "out_a", "slot": 0,
+                "in": [{"channel": "L", "weight": 1.0}],
+                "chain": [{"t": "gain", "db": 1.0}],
+            }],
+        }
+        curve = {"out_a": {"frequencies_hz": [10.0, 20000.0],
+                           "limit_db": [0.0, 0.0]}}
+        got = evaluate_config(config, curve, [10.0, 100.0, 1000.0, 20000.0])
+        self.assertFalse(got["pass"])
+        self.assertEqual(got["output_id"], "out_a")
+        self.assertAlmostEqual(got["bound_db"], 1.0, places=6)
+
+    def test_pre_chain_and_output_chain_are_both_included(self):
+        config = {
+            "v": 1, "fs": 48000, "inputs": ["L"],
+            "pre": [{"channel": "L", "chain": [{"t": "gain", "db": -3.0}]}],
+            "outputs": [{
+                "id": "out", "slot": 0,
+                "in": [{"channel": "L", "weight": 1.0}],
+                "chain": [{"t": "gain", "db": -3.0}],
+            }],
+        }
+        curve = {"out": {"frequencies_hz": [10.0, 20000.0],
+                         "limit_db": [-5.0, -5.0]}}
+        got = evaluate_config(config, curve, [10.0, 1000.0, 20000.0])
+        self.assertTrue(got["pass"])
 
     def test_scipy_sos_response_matches_unity(self):
         got = response_magnitude([[1.0, 0.0, 0.0, 1.0, 0.0, 0.0]],
