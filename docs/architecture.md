@@ -1,99 +1,20 @@
 # Architecture
 
-## Product shape
-
-A JSON-configured active crossover runs on the ESP32-S3 at 48 kHz. The first
-configuration is a 2.1 speaker system; the architecture must scale to 5.1 and
-other multichannel layouts.
-
-VituixCAD or another external speaker-design tool calculates crossover and
-equalization values. The ESP32 validates and executes those supplied values.
-It does not derive driver limits, redesign the speaker, or guess amplifier
-capabilities.
-
 ## Signal path
+Input channels → optional per-input pre-chain → per-output input mix → ordered per-output user DSP chain (crossover, PEQ, gain, delay, polarity) → fixed 5 Hz DC blocker and detector taps → mandatory attenuation-only limiter → system mute/ramp → I2S TDM output.
 
-```text
-Input channels
-  -> optional per-input pre-chain (shared room correction / tilt)
-  -> per-output input mix (explicit channels and weights)
-  -> ordered per-output DSP chain
-  -> compiler-appended mandatory protection stages
-  -> system-wide power budget
-  -> final clamp
-  -> system ramp / mute
-  -> I2S TDM output and DACs
-```
-
-There is no user-authored DSP graph or DAG. Each output declares its input
-mix and an ordered list of processing stages. An optional pre-chain belongs
-to an input channel and may be shared by multiple output mixes. Each output
-has independent state for its own stateful stages.
-
-## Configuration and compilation
-
-The uploaded JSON is a declarative speaker design. Its top-level version and
-sample-rate keys are mandatory. Every output declares its input channels and linear mix weights and its
-ordered user DSP chain. Its ID must match exactly one separately provisioned
-protected record. The optional designer `protect` object controls only
-attack/release shape within protected bounds; it cannot set thresholds,
-ceilings, or margins.
-
-Unknown keys, wrong units, invalid values, and unsupported stages are
-rejected. The chain-v1 shape is defined by `configs/schema.json` and its
-fixtures. Static protection acceptance requires the actual chain response
-against the separately provisioned curve; a mere high-pass block presence is
-not evidence of sufficient attenuation.
-
-The core-0 builder validates the complete configuration and compiles each
-output into a bounded execution table. Each entry identifies a precompiled
-stage function, immutable parameters, and its runtime state. The DSP task
-walks each output table in declared order. JSON parsing, coefficient design,
-allocation, logging, locks, and unbounded work are forbidden in the real-time
-path.
-
-Existing `dspblocks` filter design, SOS processing, gain, delay, polarity,
-mixing, numeric-safety, and response primitives are reused where their
-contracts and tests remain valid. The graph-oriented `dspgraph` runtime is
-retired for this product architecture. A focused `dspchain` component
-replaces its build/execute role; its exact C interface and memory contract
-must be approved before implementation.
+The limiter is the final audio-processing stage. It runs after every user stage, including PEQ and gain. Excursion weighting affects only its detector path, never programme audio.
 
 ## Protection boundary
+Each output carries one required abstract protection object as defined by configs/schema.json. No separate protected driver record exists in firmware. Driver T/S data, VituixCAD excursion/thermal models, amplifier gain/clip/rail data, and PSU models are designer-side only. The designer converts them into dBFS limits and detector weighting.
 
-Driver, amplifier, and supply facts live in a separately provisioned
-protected block (`drv`, `amp`, `supply`). The uploaded configuration and
-network API cannot change those values.
+Firmware checks structure, finite values, enumerations, and bounds. It does not evaluate driver curves, infer physical limits, or decide whether designer-exported limits are safe. Unknown fields reject. Missing or invalid protection keeps the output muted.
 
-At load time, the compiler evaluates each input-channel-to-output response
-and applies the conservative bound `Σ |w| · |H|`. It compares the result
-against the provisioned per-output frequency-dependent limit curve. Phase
-cancellation is not credited. An unsafe or incomplete configuration is
-rejected before activation.
+## Runtime protection
+Raw peak, excursion-weighted peak, and RMS detectors produce independent attenuation requests. Applied gain is their minimum, clamped to [0,1]. Lookahead and attack are fixed at 1 ms; the DC blocker is fixed at 5 Hz; release is per-output configuration. Gain ramps reuse T18. No bypass field exists. Boot/reset is muted and no output is enabled until every output has a valid block.
 
-The compiler appends mandatory gain-only thermal/RMS, excursion (when
-required by the protected driver model), and peak limiters. A system-owned
-global power budget and final clamp follow. The final clamp guarantees
-`abs(y) <= configured_ceiling` for every output sample. Ramp and mute are
-system-owned and cannot be removed or reordered by uploaded JSON.
+## Storage and failure behavior
+A/B slots are independently checked for header, version, length, CRC, parse, schema, and semantic validity. Prefer the selected active slot if fully valid; otherwise fall back only to the other fully valid slot. If neither is valid, remain muted. Candidate updates write and verify the inactive slot before changing the active selector. Never sacrifice the last known-good slot.
 
-## Runtime ownership
-
-- Core 0: Wi-Fi, HTTP, parsing, validation, filter design, chain compilation,
-  storage, and response reporting.
-- Core 1: bounded DSP processing and TDM output service.
-- The DSP task exclusively owns live filter/limiter state.
-- Input and output buffers and compiled state are allocated before real-time
-  processing; no heap allocation occurs in the audio path.
-- Configuration changes use an owner-acknowledged safe transition. A prior
-  generation is not reclaimed until the DSP owner can no longer reference it.
-- Configuration persistence occurs only on an explicit user commit. The
-  exact preview/apply/commit ordering remains subject to human review.
-
-## Verification status
-
-This is an architecture description, not evidence of a working target audio
-path. Hardware pinout, exact DAC board/straps, clocking, amplifier data,
-driver limits, memory capacity, and target timing remain human-verified
-requirements. See ADRs 0012 and 0013 for the normative architecture and
-protection proposals.
+## Status
+This is a proposed contract, not an implementation claim. No hardware verification or bench measurement is claimed. ADR 0014 and configs/schema.json are normative.
