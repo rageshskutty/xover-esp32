@@ -136,5 +136,21 @@
       ]
     }
   ],
-  "completion_record": null
+  "completion_record": null,
+  "migration": {
+    "architecture": "chain-per-output v1 (ADR 0012/0013)",
+    "legacy_graph_cards": "T07a1-T07a6 retained below as historical material; not executable until replaced with chain-response task cards",
+    "step3_schema": {
+      "state": "drafted_unverified",
+      "files": [
+        "configs/schema.json",
+        "configs/example_2way_sub.json",
+        "configs/example_lr_difference.json",
+        "configs/invalid/*.json",
+        "tools/check.py"
+      ],
+      "verification": "Not run in a local checkout or CI during this edit; do not mark complete until python tools/check.py, host build, and CTest pass",
+      "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
+    }
+  }
 }
