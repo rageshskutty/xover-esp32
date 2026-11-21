@@ -1,0 +1,35 @@
+{
+  "_expect": "E_PROTECT",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "outputs": [
+    {
+      "id": "out_a",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "chain": [
+        {
+          "t": "biquad",
+          "k": "hp",
+          "f_hz": 35,
+          "q": 0.707
+        }
+      ]
+    }
+  ],
+  "_test_static_bounds": {
+    "out_a": {
+      "bound": 1.1,
+      "limit": 1
+    }
+  }
+}
