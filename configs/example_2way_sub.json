@@ -1,6 +1,6 @@
 {
   "v": 1,
-  "fs": 48000,
+  "fs_hz": 48000,
   "inputs": [
     "L",
     "R"
@@ -8,16 +8,16 @@
   "pre": [
     {
       "channel": "L",
-      "chain": []
+      "filters": []
     },
     {
       "channel": "R",
-      "chain": []
+      "filters": []
     }
   ],
   "outputs": [
     {
-      "id": "left_woofer",
+      "id": "left_satellite",
       "slot": 0,
       "in": [
         {
@@ -25,27 +25,30 @@
           "weight": 1
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 20,
-          "q": 0.707
-        },
-        {
-          "t": "biquad",
-          "k": "lp",
-          "f_hz": 80,
-          "q": 0.707
-        },
-        {
-          "t": "gain",
-          "db": -3
-        }
-      ]
+      "chain": {
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "hp2",
+            "f_hz": 35,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
+      },
+      "protection": {
+        "peak_ceiling_dbfs": -3,
+        "excursion_weighting": [],
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
+      }
     },
     {
-      "id": "right_woofer",
+      "id": "right_satellite",
       "slot": 1,
       "in": [
         {
@@ -53,20 +56,27 @@
           "weight": 1
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 20,
-          "q": 0.707
-        },
-        {
-          "t": "biquad",
-          "k": "lp",
-          "f_hz": 80,
-          "q": 0.707
-        }
-      ]
+      "chain": {
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "hp2",
+            "f_hz": 35,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
+      },
+      "protection": {
+        "peak_ceiling_dbfs": -3,
+        "excursion_weighting": [],
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
+      }
     },
     {
       "id": "subwoofer",
@@ -81,92 +91,40 @@
           "weight": 0.5
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 20,
-          "q": 0.707
-        },
-        {
-          "t": "biquad",
-          "k": "lp",
-          "f_hz": 80,
-          "q": 0.707
-        }
-      ]
-    }
-  ],
-  "protection": {
-    "outputs": [
-      {
-        "id": "left_woofer",
-        "weighting_biquads": [],
-        "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
-        "attack_ms": 2,
-        "release_ms": 150,
-        "ceiling_dbfs": -1
-      },
-      {
-        "id": "right_woofer",
-        "weighting_biquads": [],
-        "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
-        "attack_ms": 2,
-        "release_ms": 150,
-        "ceiling_dbfs": -1
-      },
-      {
-        "id": "subwoofer",
-        "weighting_biquads": [
+      "chain": {
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0,
+        "filters": [
           {
-            "b": [
-              0.0000153360084,
-              0.0000306720167,
-              0.0000153360084
-            ],
-            "a": [
-              -1.99155461,
-              0.991639156
-            ]
+            "type": "lp2",
+            "f_hz": 80,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
+      },
+      "protection": {
+        "peak_ceiling_dbfs": -3,
+        "excursion_weighting": [
+          {
+            "type": "hp2",
+            "f_hz": 25,
+            "q": 0.7071,
+            "gain_db": 0
           },
           {
-            "b": [
-              1,
-              -2,
-              1
-            ],
-            "a": [
-              -1.99728362,
-              0.997292456
-            ]
+            "type": "lp2",
+            "f_hz": 80,
+            "q": 0.7071,
+            "gain_db": 0
           }
         ],
-        "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
-        "attack_ms": 2,
-        "release_ms": 150,
-        "ceiling_dbfs": -1,
-        "subsonic_hp": {
-          "b": [
-            0.99833531,
-            -1.99667061,
-            0.99833531
-          ],
-          "a": [
-            -1.99666784,
-            0.99667338
-          ]
-        }
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
       }
-    ],
-    "crc32": "5512F438"
-  }
+    }
+  ]
 }

@@ -1,4 +1,5 @@
-# Populate only from actual driver datasheets and measurements.
+# Designer-side driver input placeholders only.
+# Never package, upload, or compile this file into xover-esp32 firmware.
 drivers:
   left_woofer:
     model: null
@@ -12,7 +13,6 @@ drivers:
   right_woofer:
     model: null
     fs_hz: null
-    xmax_mm: null
     power_w: null
   right_tweeter:
     model: null

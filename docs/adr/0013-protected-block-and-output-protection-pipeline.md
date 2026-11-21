@@ -1,8 +1,4 @@
 # ADR 0013: Protected block and output protection pipeline
 
-- Status: Superseded by ADR 0014 (2026-11-22).
-- Scope: Historical record only; this document is not normative and must not be used to generate firmware tasks, schemas, APIs, or protection data.
-
-The firmware protection contract, schema, designer/firmware trust boundary, limiter behavior, and SciPy-oracle role are now defined exclusively by [ADR 0014](0014-firmware-protection-contract.md).
-
-Any former production C comparator, T/S-derived firmware protection record, driver/amplifier/PSU provisioning interface, and related gates are retired from firmware scope. Driver and hardware models belong to designer-side tooling only.
+- Status: Superseded by ADR 0014 (0014-abstract-protection-block.md).
+- Historical only: separately provisioned driver, amplifier, PSU, T/S, and driver-curve records are retired from firmware scope. The per-output abstract protection block and mandatory attenuation-only limiter contract are defined only by ADR 0014 and configs/schema.json.

@@ -1,95 +1,62 @@
 # Requirements
 
-## Product requirements
+## Product
+- Chain-per-output v1 active crossover, initially 2.1, fixed 48 kHz, ESP32-S3 and I2S TDM output.
+- Device JSON declares input channels, optional input user/room-EQ pre-chains, per-output mixes, per-output parametric filter stacks, and one required abstract protection object per output.
+- JSON is the source of truth for filter intent. Firmware calculates normalized biquad coefficients in double precision once during complete configuration load; the audio path only executes prepared sections.
+- configs/schema.json is the only source of truth for device JSON fields, enums, types, bounds, and section counts. Task cards reference or generate excerpts from it.
 
-- Initial product: a 2.1 active crossover with stereo input and six output
-  channels (left woofer, left tweeter, right woofer, right tweeter, sub A,
-  sub B). The architecture must extend to 5.1 without a general-purpose
-  graph editor.
-- Target: ESP32-S3 with I2S TDM DAC output. Initial sample rate is 48 kHz.
-- DSP executes on the ESP32-S3. The external speaker-design tool calculates
-  crossover and equalization values; firmware validates and executes them.
-- Configuration is uploaded as JSON over the device network interface.
-- A speaker designer defines optional shared input pre-chains, per-output
-  input mixes, and ordered per-output DSP chains.
-- Each output receives a compiler-appended mandatory protection pipeline,
-  system-wide power-budget enforcement, final clamp, ramp, and mute.
-- The initial DSP block catalog reuses tested crossover, PEQ, shelf, all-pass,
-  notch, biquad, gain, delay, polarity, and mix primitives where appropriate.
-  FIR remains deferred.
-- DSP processing runs on core 1; networking, decoding, configuration,
-  validation, and chain construction run on core 0.
+## Filter stack and trust boundary
+- Filter object fields: type, f_hz, q, gain_db. Supported types: lp1, hp1, lp2, hp2, peq, lshelf, hshelf, ap1, ap2, notch.
+- Maximum eight filters per input pre-chain and per output chain; maximum four filters in protection excursion weighting.
+- Fixed v1 fs_hz = 48000; filter frequency satisfies 0 < f_hz < 0.45*fs. Any sample-rate mismatch rejects the complete candidate.
+- q is 0.1..20 and abs(gain_db) <= 24 dB; type-specific neutral values are fixed by the schema. No filter macros in v1. LR4 is two lp2 or hp2 entries at Q=0.7071.
+- Firmware performs coefficient calculation in double precision only at complete configuration load. It validates calculated coefficients and prepares the runtime representation; the real-time path contains no filter-design calculations.
+- The output chain is read-only at runtime and replaced only by a complete validated configuration load with CRC/integrity checks and safe publication.
+- No driver T/S parameters, driver curves, amplifier/PSU model fields, volts, or watts in firmware, device JSON, NVS configuration, network APIs, or firmware validator inputs. Specifically forbidden: Fs, Qts, Vas, Re, Le, Xmax, Pe, Sd, derived driver fields, amplifier clip/rail data, and supply capacity.
+- Firmware validates structure, finite values, filter enums/parameters, section counts, calculated coefficient validity/stability, and declared bounds only. It does not certify designer physical correctness or derive physical limits.
 
-## Configuration rules
+## Protection behavior
+- Each output protection object contains peak ceiling, parametric excursion detector weighting, excursion limit, RMS limit/time constant, and release time.
+- Protection weighting uses the same filter types as the crossover, maximum four sections, detector path only, and its composite magnitude must be <=0 dB everywhere while never underestimating the normalized X_per_V(f) target. The designer tool verifies this numerically; firmware does not perform this physical curve fit.
+- All thresholds are dBFS referenced to the output-chain detector tap. The RMS detector must read 0 dBFS for a full-scale sine; do not use uncorrected sine RMS (-3.0103 dBFS) as the reference.
+- Fixed firmware constants: 1 ms lookahead/attack, 5 Hz DC blocker, muted boot/reset. They are not device inputs.
+- Gain reduction is the minimum attenuation request from raw peak, excursion-weighted peak, and RMS detectors. Gain is constrained to [0,1] and ramped under T18.
+- Limiter is mandatory and last, after all runtime EQ and output processing. Missing/invalid protection leaves output muted.
+- Designer-side static margin report covers the base crossover/output chain only; runtime user/room-EQ boosts are covered by the final runtime limiter, not by that report.
 
-- Top-level configuration version key is `v`; sample-rate key is `fs`.
-  Both are mandatory. The exact units and allowed values are defined in the
-  schema.
-- Unit-bearing key names are required for physical quantities.
-- Every output must declare its input mix and ordered user chain and must
-  match exactly one separately provisioned protected output record.
-- The optional designer `protect` object may select only attack/release
-  shape within provisioned bounds; omission uses provisioned defaults.
-- Unknown keys and invalid/missing protected records reject.
-- Uploaded configuration cannot change the separately provisioned protected
-  block or weaken any device protection limit.
-- A filter/model sample-rate mismatch, unstable coefficients, non-finite
-  values, or unsupported model rejects the configuration.
-- Room-correction boost is limited to approximately +3 dB in v1; cut is
-  preferred. Exact enforcement is defined by the schema and validation task.
-- Automatic trim is disabled in chain v1 because `auto_trim` is not in the
-  schema. Over-limit candidates reject; user gain is never silently changed.
-- The conservative static response bound is `Σ |w| · |H|`; phase
-  cancellation between input channels is not credited.
+## Designer-side protection calculator (never firmware/device JSON)
+- Driver inputs: Xmax (one-way linear mm), Pe (W RMS), Z_nom/Z_min (ohms), X_per_V(f) (mm/V peak), voice-coil thermal tau (s).
+- Amp/PSU inputs: V_clip_pk (V), rail under load, rated power, PSU rating and efficiency.
+- Gain calibration: V0_rms, full-scale sine RMS at speaker terminals, measured using a -20 dBFS 1 kHz sine into a dummy load and multiplying the measured RMS voltage by 10.
+- Margins: suggested starting values M_clip=1 dB, M_th=3 dB, M_x=1..2 dB. These are recommendations, not fixed firmware values.
+- peak_ceiling_dbfs = min(0, 20*log10(V_clip_pk / V0_pk) - M_clip), with V0_pk=sqrt(2)*V0_rms.
+- V_rms_max=sqrt(Pe*Z_min); rms_limit_dbfs=min(0,20*log10(V_rms_max/V0_rms)-M_th).
+- RMS detector calibration: full-scale sine reads 0 dBFS.
+- V_allow_min=0.9*Xmax/max(X_per_V); excursion_limit_dbfs=20*log10(V_allow_min/V0_pk)-M_x.
+- W_target(f)=X_per_V(f)/max(X_per_V(f)); W_target <= 1. Fit with <=4 filters such that abs(W_fit)>=W_target and abs(W_fit)<=1 on the numerical verification grid.
+- release_ms starting estimate = clamp((5..10)*1000/f_low_hz,20,5000); 20 Hz sub approximately 250..500 ms.
+- rms_tau_ms starting estimate approximately 2000 ms only as general guidance; replace with datasheet or measured thermal time constant.
+- Designer-side shared supply check: sum(V_rms_max_i^2/Z_min_i) <= PSU_rating*efficiency. No shared-supply field exists in firmware.
+- Worked synthetic sub test vector: Pe=300 W, Z_min=4 ohm, V0_rms=40 V, V_clip_pk=50 V, Xmax=12 mm, max(X_per_V)=0.8 mm/V, M_x=0; expected peak_ceiling=-2.1 dBFS, rms_limit=-4.3 dBFS, excursion_limit=-12.5 dBFS.
 
-## Protection requirements
-
-- Protected data is provisioned separately as `drv`, `amp`, and
-  `supply`; it is not part of uploaded speaker JSON.
-- Each physical output has a provisioned frequency-dependent limit curve.
-- Runtime limiters are gain-only and cannot boost.
-- Sealed-box excursion protection uses the approved model based on
-  `fc_hz`, `Qtc`, and `mm_per_v`; unsupported or invalid models fail closed.
-- A required subsonic high-pass stage must be structurally present, and the
-  actual chain response must also satisfy the provisioned curve at and around
-  `min_freq_hz`. Presence alone is not proof of attenuation.
-- User-authored limiter stages are rejected; the compiler owns mandatory
-  protection stages.
-- The final sample clamp must satisfy
-  `abs(y) <= configured_ceiling`.
-- The hardware volume/gain setting is pinned. Validate
-  `vpk_at_0dbfs <= clip_v` against provisioned amplifier data.
-- Missing or invalid protected data leaves outputs muted.
+## Numeric acceptance and risks
+- Proposed host firmware filter-stack response versus SciPy oracle: ±0.05 dB and ±0.5 degree over 20 Hz..20 kHz, pending measured float32 error and human approval.
+- Proposed runtime executor: float32 transposed direct form II; compare low-frequency/high-Q cascades against a double-precision reference. If it fails, evaluate 32-bit fixed point with 64-bit accumulators separately.
+- Delay resolution at 48 kHz is 20.8333 μs/sample (~7.15 mm); report nearest-sample rounding error.
+- Manual VituixCAD-to-JSON re-entry can introduce errors and filter definitions may differ; designer UI plots the generated response for visual overlay/comparison. No VituixCAD coefficient importer is assumed.
 
 ## Configuration lifecycle and safety
+- Validate and fully prepare a complete candidate before publishing or writing it to the inactive A/B slot.
+- Slot header, length, and CRC must pass; candidate JSON must pass current schema and semantic validation.
+- If selected slot fails, use the other slot only if it independently passes every check. If neither passes, remain muted.
+- Hardware mute, DC blocking, and suitable speaker fuse/PTC remain independent safety layers. Firmware limiting is not the only protection.
 
-- Configuration changes are serialized. A concurrent mutation returns
-  `E_BUSY` before building or writing a candidate.
-- Persistence occurs only on an explicit user commit; slider edits and
-  previews must not cause flash writes.
-- The DSP owner acknowledges configuration transitions at a safe boundary.
-  A timeout is fail-closed; the 250 ms value remains provisional pending
-  human approval.
-- `FAULT_MUTED` is currently assumed to remain latched until power-cycle and
-  fresh validation. This is provisional and requires human safety review.
-- Every start, stop, configuration transition, and fault uses controlled
-  ramps and mute.
-- No network/API path may modify protected data.
-
-## Human-owned decisions
-
-- Exact ESP32-S3 module, flash size, PSRAM availability, and memory budget.
-- ESP-IDF version and target I2S TDM API.
-- GPIO map, MCLK/BCLK/WS/DOUT, I2C pins, DAC board model, addresses, straps,
-  and slot mapping.
-- Driver protection limits and cited driver data.
-- Amplifier voltage/clip data, hardware gain setting, and supply budget.
-- Protected `lim_bounds` and `lim_default` values for attack/release,
-  sourced from owner-approved safety data. The designer may choose only
-  attack/release shape within those bounds; omitted values use protected
-  defaults. Non-zero look-ahead is rejected in v1.
-- Flash endurance budget and final commit/persistence ordering.
-- Hardware measurements and target timing/CPU budget.
-
-No hardware value or protection limit may be inferred by an implementation
-agent. See ADRs 0012 and 0013.
+## Human gates
+- Approve filter formulas and conventions, particularly shelf Q semantics and response comparison against VituixCAD.
+- Approve designer protection formulas, RMS reference, margins, excursion envelope fit and physical input quality.
+- Approve measured float32 response tolerance or a separate fixed-point evaluation.
+- Approve delay maximum/rounding policy.
+- Select exact ESP32-S3 module and approve memory budget.
+- Approve ADR 0014 and the schema.
+- No hardware verification is claimed.

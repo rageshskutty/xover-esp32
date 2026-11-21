@@ -1,54 +1,27 @@
-# Protection numerical contract proposal (pre-Step-4 review)
+# Designer-side filter-stack response oracle and protection margin report
 
-**Status:** proposal only; not approved for implementation.
-**Scope:** deterministic numerical conventions for the chain-v1 static protection comparator and its independent NumPy/SciPy reference.
+Status: informative scope note, not a firmware comparator specification.
 
-## Fixed behavior already stated by ADR 0008/0010
+## Filter-stack numerical reference
+JSON stores parametric filter objects. Firmware expands the ordered stack into normalized biquads in double precision at complete configuration load; the audio path executes prepared sections only. ADR 0014 defines the exact formulas and canonical neutral fields for all supported filter types.
 
-- For each output and frequency, calculate the conservative amplitude bound:
-  `A_bound(f) = Σ abs(weight_i) * abs(H_i(f))`.
-- Do not credit phase cancellation between inputs.
-- Compare in configured output order, then ascending frequency order.
-- Exact threshold equality passes; only a strictly greater calculated bound violates.
-- Malformed input is an error, not a limit violation; clear the complete non-null failure record.
-- No curve extrapolation is permitted. Every evaluated frequency must be covered by its provisioned curve.
-- The comparator receives validated response magnitudes and curves. It does not derive driver, amplifier, supply, or limiter limits.
+The NumPy/SciPy oracle remains designer-side and is the independent double-precision response reference for the load-time coefficient calculator and C runtime biquad response. Proposed response acceptance for host firmware generated from stacked JSON is ±0.05 dB and ±0.5 degree over 20 Hz–20 kHz, pending measured float32 error and human approval. Proposed runtime arithmetic is float32 transposed direct form II; compare low-frequency/high-Q cascades and long runs against double precision. If it fails, evaluate 32-bit fixed point with 64-bit accumulators separately.
 
-## Proposed numerical conventions (not yet approved)
+## Designer-side margin convention
+For output input weights w_i and complex transfer functions H_i(f), use the conservative magnitude bound:
 
-| Item | Proposal | Reason / effect |
-|---|---|---|
-| Arithmetic | IEEE-754 binary64 for host/reference and core-0 comparison | Deterministic reference arithmetic; not real-time processing |
-| Zero transfer | finite floor of -200 dB | Avoids log(0), NaN, and infinity |
-| Curve interpolation | linear dB against log10(frequency) | Frequency-axis interpolation is logarithmic while limit values remain in dB |
-| Out-of-range curve access | reject complete candidate; no extrapolation | A missing curve region must never weaken protection |
-| Violation order | output array order, then ascending grid index | Stable first-failure report |
-| Equality | equality passes; strictly greater fails | Matches ADR 0010 |
+A_bound(f) = Σ abs(w_i) * abs(H_i(f))
 
-These are review proposals. The reference oracle currently implements them so vectors can be generated and reviewed; their implementation in C is not authorized until approval.
+Do not credit phase cancellation. Compare the base crossover/output-chain bound with designer-supplied abstract limits and report margin by output/frequency. Do not represent the report as including arbitrary runtime user/room-EQ pre-chain boosts; runtime limiter coverage is responsible for those.
 
-## Evaluation grid
+## Excursion-weighting fit
+The designer-side tool fits at most four supported parametric filters to W_target(f)=X_per_V(f)/max(X_per_V(f)). On its numerical verification grid, the composite weighting must satisfy abs(W_fit(f)) >= W_target(f) and abs(W_fit(f)) <= 1. Report worst excess and its frequency; reject any fit that underestimates the curve or exceeds 0 dB. The fit is magnitude-only; phase uncertainty remains a physical-model limitation and is addressed by the designer-selected M_x margin.
 
-The planning baseline is 1054 logarithmic points from 10 Hz to 20 kHz, plus exact provisioned curve knots and any required exact model boundaries. Exact duplicates are removed and the final grid is strictly increasing.
+## Protection calculator
+All physical inputs and formulas are in docs/designer-side/protection-calculator.md. This is designer-only tooling; no driver T/S, curve, voltage, wattage, amp or PSU model data enters device JSON or firmware.
 
-**Not frozen:** maximum combined point count, maximum per-output input count beyond schema limits, and the total memory budget for all response rows, curves, frequencies, and failure data. The maximum cannot be selected responsibly without a target memory allocation/budget and an agreed storage strategy. It is a hard pre-Step-4 gate.
+## Firmware authority
+The only firmware protection input is the required per-output abstract block defined in configs/schema.json. Firmware checks structure, parameter bounds and calculated coefficient validity/stability only. It does not derive driver, amplifier, PSU, thermal or excursion limits.
 
-## Independent reference oracle
-
-- `tools/protection_oracle.py` evaluates supported chain-v1 static blocks using NumPy/SciPy, including input pre-chain, output chain, delay/polarity/gain, designed biquads, and explicit SOS.
-- It computes each input-channel transfer independently, then applies the conservative absolute-weight sum.
-- It interpolates already provisioned curves using the proposal above and fails closed outside their coverage.
-- `tools/protection_oracle_vectors.json` contains comparator vectors; `tools/test_protection_oracle.py` checks malformed inputs, interpolation, no extrapolation, deterministic ordering, and config-to-response calculations.
-- This oracle does not derive protection curves from driver/amplifier/supply data. Synthetic curves are test inputs only, not real hardware limits.
-- The separate `tools/test_scipy_compare.py` remains the C DSP primitive cross-check; it is not a substitute for this chain-level oracle.
-
-## Remaining pre-Step-4 gates
-
-1. Human safety review and CODEOWNERS approval of ADRs 0008, 0010, 0012, and 0013.
-2. Approve or reject the proposed numeric conventions above.
-3. Supply a target memory budget and freeze the maximum combined grid size and storage layout.
-4. Freeze the exact public C structs, pointer/length rules, maximum dimensions, and failure record in a reviewed header/ADR.
-5. Provide owner-approved protected-block derivation and provisioning evidence. No agent may derive real driver/amplifier/supply limits from guessed values.
-6. Only after all gates pass, author small Step-4 comparator implementation cards from the approved contract and oracle vectors.
-
-Until then, Step 4 remains blocked. A passing host oracle test proves only the reference implementation and synthetic vectors, not hardware safety.
+## Status
+No firmware implementation, hardware measurement, or bench verification is claimed.

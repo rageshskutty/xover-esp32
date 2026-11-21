@@ -1,50 +1,25 @@
 # Contracts and verification
 
-## Authority and architecture
+## Authority
+- ADR 0012: chain-per-output architecture.
+- ADR 0014: parametric filter-stack execution and abstract per-output protection contract.
+- configs/schema.json: sole source of truth for device JSON fields, types, enums, bounds, and section counts.
+- Existing DSP headers: implemented primitive interfaces only.
 
-The product planning architecture is chain-per-output v1, not a graph/DAG runtime. ADR 0012 defines the ordered-chain architecture; ADR 0013 defines the protected block and mandatory output-protection pipeline; ADR 0008 defines the conservative per-output response bound and limit curves; ADR 0010 defines the pure comparator behavior; ADR 0011 defines configuration mutation and response ownership.
+ADRs 0008, 0010, and 0013 are superseded for firmware protection. The production C response comparator and T/S-derived firmware gates are retired.
 
-These ADRs are proposals, not approved implementation authority. ADR 0008, ADR 0010, ADR 0012, and ADR 0013 require human safety review and CODEOWNERS approval before implementation. Existing public DSP source headers remain authoritative for implemented modules. Public header changes require an ADR, docs/api.md update, and CODEOWNERS review.
+## Filter-stack execution
+JSON stores parametric filters; firmware calculates normalized biquad coefficients in double precision once during complete configuration load. The real-time path executes prepared sections only. Input pre-chain EQ, output crossover, and protection detector weighting use the same filter vocabulary and coefficient calculator. V1 is fixed at 48 kHz. Supported types, formulas, neutral-field rules and bounds are in ADR 0014 and configs/schema.json.
 
-## Implemented interfaces
+The output chain is immutable during normal runtime and changes only through complete validated configuration replacement. LR4 is explicitly represented as two lp2/hp2 sections at Q=0.7071. There is no VituixCAD coefficient import; the designer UI plots the generated response for visual comparison with VituixCAD.
 
-- dspblocks: see `firmware/components/dspblocks/include/dspblocks.h`. Response APIs include `dsp_sos_eval(...)` and `dsp_log_grid(...)`; both are core-0-only.
-- dspgraph: retained legacy code and tests only; it is not the product execution architecture and must not receive new graph features.
-- chain-v1 JSON: schema in `configs/schema.json`; 48 kHz, at most 64 blocks per chain, 1–8 outputs, declared input channels and ordered output chains. This is a schema/guardrail contract only; no chain compiler or runtime exists.
+## Numeric verification
+Proposed host firmware response from stacked JSON versus the independent SciPy oracle is ±0.05 dB and ±0.5 degree from 20 Hz to 20 kHz. This is not approved until measured float32 error is known. Proposed float32 executor is transposed direct form II; compare low-frequency/high-Q cascades against double precision. Fixed point with 64-bit accumulators is an evaluation fallback if float32 misses approved limits.
 
-## Protection contract status
+## Protection calculator and oracle
+The designer-only calculator maps driver, amp, PSU and measured V0_rms inputs into abstract per-output protection values. Its formulas and worked sub vector are in docs/designer-side/protection-calculator.md. The RMS detector convention is 0 dBFS for a full-scale sine. The excursion-weighting stack must numerically envelope the normalized X_per_V(f) curve without exceeding 0 dB. These physical calculations are not firmware responsibilities.
 
-The normative planning direction is the conservative per-output sum `Σ |w_i| · |H_i(f)|`, with no phase-cancellation credit. The pure comparator receives already validated response magnitudes, weights, frequencies, and per-output curve values. It does not parse JSON, design filters, access hardware, derive driver limits, or run runtime limiters.
+Keep tools/protection_oracle.py as designer-side base-chain margin reporting and an independent double-precision reference for coefficient calculator, runtime biquad response and limiter math. It is not linked into firmware. Current implementation does not yet provide limiter-specific vectors; do not claim otherwise. Margin reporting excludes arbitrary runtime user/room-EQ boosts.
 
-The current comparator ADR is incomplete for implementation: exact C layouts/signatures, maximum dimensions and memory budget, zero-transfer dB floor, curve interpolation, and complete grid rules must be frozen. Driver/amplifier/supply-to-limit-curve derivation and real protected values require human safety evidence; agents must not invent them. `auto_trim` is not part of the current JSON schema and is disabled/deferred for chain v1; no user gain may be silently changed.
-
-The current subsonic check in `tools/check.py` is only a temporary presence heuristic, not a response calculation. It must not be treated as evidence that attenuation at `min_freq_hz` is satisfied. Static protection acceptance remains blocked until a real response evaluator is implemented and verified.
-
-## Verification
-
-CI workflow `.github/workflows/ci.yml` runs:
-- `python tools/check.py`;
-- CMake configure/build and CTest;
-- `tools/test_scipy_compare.py`, which compares existing compiled `dsp_sos_eval` filter responses against SciPy on the 1054-point 10 Hz–20 kHz grid;
-- ASan/UBSan host tests;
-- the dspblocks coverage gate.
-
-Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 static protection oracle and does not generate the protection comparator's golden vectors. The independent NumPy/SciPy reference oracle is implemented in `tools/protection_oracle.py`, with deterministic vectors in `tools/protection_oracle_vectors.json` and tests in `tools/test_protection_oracle.py`. It evaluates supported chain-v1 static blocks against supplied (synthetic or provisioned) curves; it does not derive real protected curves. The exact numeric conventions in that oracle remain proposals pending human/CODEOWNERS approval.
-
-The following commands are the host verification sequence:
-```sh
-python tools/check.py
-cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release
-cmake --build host/build
-ctest --test-dir host/build --output-on-failure
-python tools/test_scipy_compare.py --library host/build/libdspblocks_eval.so
-cmake -S host -B host/build-san -DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON
-cmake --build host/build-san
-ctest --test-dir host/build-san --output-on-failure
-```
-
-CI pass is evidence only for the exact commit and jobs shown in GitHub Actions. Remote source inspection is not a local test run. Target/hardware results require human-authored bring-up evidence.
-
-## Evidence labels
-
-HOST-VERIFIED only for commands actually run successfully. CI-VERIFIED only for named jobs that passed on the exact commit. HW-VERIFIED only with owner-authored bring-up evidence. Otherwise UNVERIFIED.
+## Verification status
+This is documentation/schema work only. No firmware code was changed, no local test suite or external JSON Schema validator was run, and no hardware or bench verification was performed. CI status must be checked on the PR head before implementation work.

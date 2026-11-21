@@ -1,8 +1,5 @@
-# ADR 0008: Per-output protection curves and static safety evaluation
+# ADR 0008: Protection curves and static evaluation
 
-- Status: Superseded by ADR 0014 (2026-11-22).
-- Scope: Historical record only; this document is not normative and must not be used to generate firmware tasks, schemas, APIs, or protection data.
-
-The firmware protection contract, schema, designer/firmware trust boundary, limiter behavior, and SciPy-oracle role are now defined exclusively by [ADR 0014](0014-firmware-protection-contract.md).
-
-Any former production C comparator, T/S-derived firmware protection record, driver/amplifier/PSU provisioning interface, and related gates are retired from firmware scope. Driver and hardware models belong to designer-side tooling only.
+- Status: Superseded for firmware by ADR 0014 (0014-abstract-protection-block.md).
+- Historical only: driver curves, driver/amp/supply records, and static response comparator language are not firmware contracts and must not generate firmware tasks or device JSON.
+- Designer-side modelling and margin reporting are outside firmware. The firmware contract is exclusively the closed per-output abstract block in configs/schema.json.

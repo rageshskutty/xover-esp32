@@ -1,6 +1,6 @@
 {
   "v": 1,
-  "fs": 48000,
+  "fs_hz": 48000,
   "inputs": [
     "L",
     "R"
@@ -19,14 +19,27 @@
           "weight": -1
         }
       ],
-      "chain": [
-        {
-          "t": "biquad",
-          "k": "hp",
-          "f_hz": 25,
-          "q": 0.707
-        }
-      ]
+      "chain": {
+        "gain_db": 0,
+        "polarity": 1,
+        "delay_samples": 0,
+        "filters": [
+          {
+            "type": "lp2",
+            "f_hz": 1000,
+            "q": 0.7071,
+            "gain_db": 0
+          }
+        ]
+      },
+      "protection": {
+        "peak_ceiling_dbfs": -3,
+        "excursion_weighting": [],
+        "excursion_limit_dbfs": -6,
+        "rms_limit_dbfs": -12,
+        "rms_tau_ms": 500,
+        "release_ms": 250
+      }
     }
   ]
 }
