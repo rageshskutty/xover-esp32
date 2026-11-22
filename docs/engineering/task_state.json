@@ -53,30 +53,6 @@
       "human_decisions": []
     },
     {
-      "id": "T07a2",
-      "state": "retired",
-      "depends_on": [],
-      "human_decisions": []
-    },
-    {
-      "id": "T07a3",
-      "state": "retired",
-      "depends_on": [],
-      "human_decisions": []
-    },
-    {
-      "id": "T07a4",
-      "state": "retired",
-      "depends_on": [],
-      "human_decisions": []
-    },
-    {
-      "id": "T07a5",
-      "state": "retired",
-      "depends_on": [],
-      "human_decisions": []
-    },
-    {
       "id": "T07a6",
       "state": "retired",
       "depends_on": [],
@@ -87,9 +63,9 @@
       "state": "blocked",
       "depends_on": [],
       "human_decisions": [
-        "human safety review and CODEOWNERS approval of ADR 0008/0010/0012/0013",
+        "human safety review and CODEOWNERS approval of ADR 0012/0014",
         "owner-approved protected block derivation and per-output limit curves",
-        "frozen comparator numeric conventions, dimensions, memory bound, and C interface",
+        "reviewed static response-evaluation design and bounded memory requirements",
         "human-approved driver/amplifier/supply data and provisioning process"
       ]
     },
@@ -138,7 +114,7 @@
         "PRESTEP4-3"
       ],
       "human_decisions": [
-        "human/CODEOWNERS approval or rejection of proposed numerical conventions in docs/engineering/protection-numerical-contract-proposal.md",
+        "human/CODEOWNERS approval or rejection of proposed numerical conventions in ADR 0014",
         "selected target module and verified memory budget; freeze maximum combined grid and response storage",
         "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, dimensions, and function signature",
         "human safety review and CODEOWNERS approval of ADRs 0008/0010/0012/0013",
@@ -187,6 +163,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-1/2/3 and documentation reconciliation are CI_VERIFIED through commit e6c35a80ad. ADR 0013 now agrees that auto_trim is disabled in chain v1; ADR 0010 distinguishes the Python reference oracle from the unimplemented C comparator; docs/PLAN.md labels legacy graph-era task cards retired. PRESTEP4-4 remains BLOCKED on explicit human safety/numeric approval, target memory and C-interface freeze, and owner-approved protected data. Do not start Step 4 until these gates are closed."
+    "pre_step4": "Commit 2 migrated the schema and examples to the parametric filter-stack contract. ADR 0014 is the current protection authority. Static driver-model evaluation and real protection provisioning are outside firmware scope; all outputs remain muted until complete protection is configured. Schema-derived task cards and the T16–T22 implementation sequence are the next planning work."
   }
 }

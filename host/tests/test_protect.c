@@ -114,6 +114,6 @@ int main(void)
         CHECK(rejected(&one, 1U, one_id, 1U, nonfinite, pass_rows, 2U) == 0);
     }
 
-    puts("PASS: protection comparator contract");
+    puts("PASS: protection DSP contract");
     return 0;
 }

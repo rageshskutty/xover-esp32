@@ -2,7 +2,7 @@
 
 - Status: Proposed; requires maintainer and hardware-safety review before implementation or unmuting hardware.
 - Date: 2026-11-22
-- Supersedes: the protection/comparator decisions in ADRs 0008, 0010, and 0013.
+- Supersedes: the protection-evaluation decisions in ADRs 0008, 0010, and 0013.
 - Applies to: device JSON, firmware validation, DSP protection execution, and the Step-4 bench slice.
 
 ## Context
@@ -40,6 +40,8 @@ The A/B configuration slot CRC (T20) is the integrity mechanism for stored confi
 
 The worked example contains synthetic limits and coefficients only. They are not sourced, approved, or safe for any particular driver, amplifier, PSU, or speaker. Do not flash the example to connected hardware.
 
+**Known low-frequency limitation:** the schema's 20 Hz minimum applies to output and detector-weighting filters. It suits typical subwoofer tunings around 25 Hz and above, but a lower-tuned ported sub cannot express a weighting corner below 20 Hz. The float32 response test measured 0.0706 dB error at 10 Hz against the existing 0.01 dB gate; the gate was held and the schema minimum moved to 20 Hz. If lower corners are required, improve the filter-design/execution path (for example, a better-conditioned realization or higher precision) and meet the same accuracy gate before changing the schema. Fixed-point is a possible future investigation, not a selected implementation.
+
 ### 3. Signal path and limiter contract
 
 For every output, the mandatory order is:
@@ -60,13 +62,13 @@ The limiter gain is attenuation-only: it must never exceed unity or increase sig
 
 The top-level `protection` block may be omitted from a structurally valid configuration intended for staging or provisioning. Such a configuration is unprovisioned, not enabled: firmware must leave every output muted until a valid protection record covers every configured output. Boot, reset, invalid/missing protection, failed validation, or incomplete output coverage leaves hardware muted. Output may be enabled only after the complete configuration validates and the DSP owner installs the corresponding runtime state at a safe boundary.
 
-### 4. Static response oracle and retired production comparator
+### 4. Static filter-response verification
 
-Retire the production C comparator and its API. There is no firmware C comparator contract, public comparator header, or comparator task in this repository. Driver-model and T/S-derived protection gates belong to the designer tool.
+The former production static protection evaluator is retired. There is no firmware API or implementation task for driver-model evaluation; driver and T/S-derived protection analysis belongs in designer-side tooling.
 
-Keep the independent SciPy chain-response oracle and its deterministic vectors for checking parametric filter response. The oracle is not a firmware runtime dependency and does not establish physical loudspeaker safety. Its inputs must not require driver T/S, amplifier, or PSU model records.
+Keep the independent SciPy response cross-check for parametric filter stacks. It reads schema-valid JSON examples and compares the compiled C response against SciPy; it is not a firmware runtime dependency and does not establish physical loudspeaker safety. Its inputs do not require driver T/S, amplifier, or PSU model records.
 
-No phase-cancellation credit may be used in conservative multi-input margin reporting if such designer-side reporting is retained. Out-of-range or non-finite oracle inputs are errors; the oracle does not manufacture driver or amplifier facts. Any designer-side margin is a report to the speaker designer, not a firmware decision that proves a physical loudspeaker safe.
+Out-of-range or non-finite response-test inputs are errors. A response cross-check does not manufacture driver or amplifier facts or prove a physical loudspeaker safe.
 
 ### 5. Hardware safety is independent
 
@@ -81,7 +83,7 @@ A software ceiling does not protect against firmware faults, DAC/amp DC faults, 
 ## Consequences and implementation sequence
 
 - Migrate the schema, example, and guardrail validator together to the frozen parametric-filter contract.
-- Remove the obsolete protection comparator, curve-knot oracle, and their task-card authority. Keep the SciPy chain-response oracle and vectors.
+- Remove the obsolete static protection evaluator and its legacy task prompts. Keep the schema-driven SciPy filter-response cross-check and existing DSP response vectors.
 - Generate task cards from the schema rather than maintain repeated hand-edited contract fragments.
 - The firmware implementation sequence is: configuration validator and filter expansion, peak/RMS detector, fixed-lookahead limiter with final clamp, then mandatory output-chain wiring. Each component requires host tests against the relevant numerical oracle.
 - The 2.1 hardware bench slice follows only after the contract, implementation tests, hardware mute/DC/fuse provisions, and selected target memory budget are reviewed.

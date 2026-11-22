@@ -9,11 +9,7 @@
 > execute, or generate 7B task cards from the legacy T00–T15 cards below.
 > In particular, the old graph-based T06/T07/T09 instructions are retired.
 >
-> Current work is on `work/pre-step4-cleanup`. Step 4 remains blocked until
-> PRESTEP4-4 numerical-contract approval, target memory/interface freeze,
-> protected-block provisioning evidence, and human safety/CODEOWNERS review.
-> See `docs/engineering/protection-numerical-contract-proposal.md` and
-> `docs/engineering/task_state.json` for the current gate state.
+> Current work follows the parametric filter-stack contract in configs/schema.json and ADR 0014. Schema-derived task cards and the T16–T22 implementation sequence are next. See docs/engineering/task_state.json for task state.
 >
 > The old G0–G6 criteria are not proof that the chain-v1 architecture has
 > been implemented or qualified. Do not use their historical task IDs or

@@ -33,8 +33,6 @@ jobs:
         run: ctest --test-dir host/build --output-on-failure
       - name: Compare compiled C response with SciPy
         run: python tools/test_scipy_compare.py --library host/build/libdspblocks_eval.so
-      - name: Test independent protection oracle
-        run: python tools/test_protection_oracle.py
 
   host-sanitizers:
     runs-on: ubuntu-latest
