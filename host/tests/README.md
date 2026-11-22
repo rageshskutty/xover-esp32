@@ -2,7 +2,7 @@
 
 ## Registered CTest coverage
 
-The current CMake project registers the DSP block and legacy graph JSON/validator tests listed in `host/CMakeLists.txt`. `validate_cli` is a build target, not a CTest test.
+The current CMake project registers the DSP block tests listed in `host/CMakeLists.txt`. The graph-era `dspgraph` component, its tests and `validate_cli` were deleted; the chain-v1 config loader gets its own tests with its card.
 
 `test_sos_response.c` exercises the existing public `dsp_sos_eval()` API from `dspblocks.h` and is registered as a standalone CTest test.
 
@@ -14,11 +14,6 @@ The following files are present under `host/tests/` but are intentionally not re
 |---|---|---|
 | `test_app_state_machine.c` | `app_state_machine.h` | Orphaned application state-machine test |
 | `test_config_slot.c` | `config_slot.h` | Orphaned configuration-slot test |
-| `test_protect.c` | `dspgraph_protect.h` | Retired graph-era protection API |
-| `test_protect_grid.c` | `dspgraph_protect.h` | Retired graph-era protection API |
-| `test_protect_layout.c` | Protection record types from `dspgraph.h` are not present | Retired graph-era protection layout test |
-| `test_protect_record.c` | `dspgraph_protect.h` | Retired graph-era protection API |
-| `test_node_response.c` | `dspgraph_response.h` | Retired graph-era response seam |
 | `test_request_bounds.c` | `xoweb_bounds.h` | Orphaned web request-bounds test |
 | `test_s7_ramp.c` | `dsp_s7_ramp.h` | Orphaned ramp helper test |
 | `test_spsc_ring.c` | `audiosrc_ring.h` | Orphaned audio ring test |

@@ -2,10 +2,10 @@
   "schema_version": 2,
   "basis": {
     "repository": "rageshskutty/xover-esp32",
-    "base_branch": "architecture/7b-executable-engineering-plan",
-    "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
-    "inspected_at": "2026-11-19",
-    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; latest cleanup commits 622cc05044, 0a9535df38, and e6c35a80ad each passed GitHub Actions (guardrails, host-tests including C-vs-SciPy and protection oracle, host-sanitizers, host-coverage); no local test execution; hardware and safety contract remain unverified"
+    "base_branch": "work/pre-step4-cleanup",
+    "base_commit": "fbfa492a29352819140da2bde25a2930db84d00a",
+    "inspected_at": "2026-11-22",
+    "verification": "HOST-VERIFIED locally on the contract v1.1 branch: tools/check.py, host CTest, SciPy comparison and oracle unit tests. GitHub Actions not checked for this branch. No hardware or protected data verified."
   },
   "active_task": null,
   "decisions": [
@@ -16,8 +16,8 @@
     },
     {
       "id": "ADR-0008",
-      "status": "proposed",
-      "approval": "human safety review and CODEOWNERS approval required"
+      "status": "superseded",
+      "approval": "superseded by ADR 0014; retained for history"
     },
     {
       "id": "ADR-0009",
@@ -26,8 +26,8 @@
     },
     {
       "id": "ADR-0010",
-      "status": "proposed",
-      "approval": "human safety review and CODEOWNERS approval required"
+      "status": "superseded",
+      "approval": "superseded by ADR 0014; retained for history"
     },
     {
       "id": "ADR-0011",
@@ -41,11 +41,24 @@
     },
     {
       "id": "ADR-0013",
+      "status": "superseded",
+      "approval": "superseded by ADR 0014; retained for history"
+    },
+    {
+      "id": "ADR-0014",
       "status": "proposed",
-      "approval": "human review and CODEOWNERS approval required"
+      "approval": "human safety review and CODEOWNERS approval required; maintainer decisions recorded 2026-11-22: limiter lookahead 12 ms / attack 2 ms, protection locked to the committed block (E_PROTECT_LOCKED); open: provisioning mechanism and timeout, weighting group-delay check"
     }
   ],
   "items": [
+    {
+      "id": "CONTRACT-V1.1",
+      "state": "host_verified",
+      "depends_on": [],
+      "human_decisions": [
+        "review and approval of ADR 0014 amendment"
+      ]
+    },
     {
       "id": "T07a1",
       "state": "retired",
@@ -87,10 +100,9 @@
       "state": "blocked",
       "depends_on": [],
       "human_decisions": [
-        "human safety review and CODEOWNERS approval of ADR 0008/0010/0012/0013",
-        "owner-approved protected block derivation and per-output limit curves",
-        "frozen comparator numeric conventions, dimensions, memory bound, and C interface",
-        "human-approved driver/amplifier/supply data and provisioning process"
+        "human safety review and CODEOWNERS approval of ADR 0014",
+        "provisioning mechanism, confirmation step and timeout (ADR 0014 section 6)",
+        "human-approved driver/amplifier/supply data supplied through the designer tool"
       ]
     },
     {
@@ -133,27 +145,20 @@
     },
     {
       "id": "PRESTEP4-4",
-      "state": "blocked",
-      "depends_on": [
-        "PRESTEP4-3"
-      ],
-      "human_decisions": [
-        "human/CODEOWNERS approval or rejection of proposed numerical conventions in docs/engineering/protection-numerical-contract-proposal.md",
-        "selected target module and verified memory budget; freeze maximum combined grid and response storage",
-        "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, dimensions, and function signature",
-        "human safety review and CODEOWNERS approval of ADRs 0008/0010/0012/0013",
-        "owner-approved protected-block derivation and real per-output limit curves, supported by cited driver/amplifier/supply evidence"
-      ]
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
     },
     {
       "id": "STEP4",
       "state": "blocked",
       "depends_on": [
-        "PRESTEP4-4",
+        "CONTRACT-V1.1",
         "T07b"
       ],
       "human_decisions": [
-        "human safety review and CODEOWNERS approval"
+        "human safety review and CODEOWNERS approval of ADR 0014",
+        "decision on lookahead length and protection storage policy"
       ]
     },
     {
@@ -187,6 +192,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "PRESTEP4-1/2/3 and documentation reconciliation are CI_VERIFIED through commit e6c35a80ad. ADR 0013 now agrees that auto_trim is disabled in chain v1; ADR 0010 distinguishes the Python reference oracle from the unimplemented C comparator; docs/PLAN.md labels legacy graph-era task cards retired. PRESTEP4-4 remains BLOCKED on explicit human safety/numeric approval, target memory and C-interface freeze, and owner-approved protected data. Do not start Step 4 until these gates are closed."
+    "pre_step4": "Superseded by ADR 0014 and contract v1.1. The comparator, curve-knot and graph-era protection test files were removed, and the graph-era dspgraph component, its host tests, validate_cli and tools/test_validator_diff.py were deleted on work/delete-dspgraph; tools/protection_oracle.py was re-pointed at the parametric filters[] schema on work/oracle-parametric (curve-knot code and vectors removed; HOST-VERIFIED locally, CI not checked); schema/C mismatches are in docs/questions.md Q2 and Q3."
   }
 }

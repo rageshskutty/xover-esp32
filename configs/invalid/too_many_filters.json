@@ -70,6 +70,54 @@
           "f_hz": 100,
           "q": 0.7071,
           "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "hp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
         }
       ],
       "gain_db": -3,
@@ -143,10 +191,15 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
-        "ceiling_dbfs": -1
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       },
       {
         "id": "right_woofer",
@@ -154,10 +207,15 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
-        "ceiling_dbfs": -1
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       },
       {
         "id": "subwoofer",
@@ -165,10 +223,15 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
-        "ceiling_dbfs": -1
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       }
     ]
   },

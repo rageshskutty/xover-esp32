@@ -12,8 +12,7 @@
 > Current work is on `work/pre-step4-cleanup`. Step 4 remains blocked until
 > PRESTEP4-4 numerical-contract approval, target memory/interface freeze,
 > protected-block provisioning evidence, and human safety/CODEOWNERS review.
-> See `docs/engineering/protection-numerical-contract-proposal.md` and
-> `docs/engineering/task_state.json` for the current gate state.
+> See ADR 0014 and `docs/engineering/task_state.json` for the current gate state.
 >
 > The old G0–G6 criteria are not proof that the chain-v1 architecture has
 > been implemented or qualified. Do not use their historical task IDs or

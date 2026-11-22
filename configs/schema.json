@@ -49,6 +49,19 @@
     },
     "protection": {
       "$ref": "#/$defs/protection"
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "Groups of output ids that share gain reduction (maximum reduction across the group).",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 8,
+        "items": {
+          "$ref": "#/$defs/id"
+        }
+      }
     }
   },
   "additionalProperties": false,
@@ -96,7 +109,7 @@
     },
     "filters": {
       "type": "array",
-      "maxItems": 8,
+      "maxItems": 16,
       "items": {
         "$ref": "#/$defs/filter"
       }
@@ -227,17 +240,14 @@
         "id",
         "weighting",
         "peak_threshold_dbfs",
-        "rms_threshold_dbfs",
-        "rms_tau_ms",
+        "hold_ms",
+        "thermal",
         "release_ms",
         "ceiling_dbfs"
       ],
       "properties": {
         "id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 31,
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "$ref": "#/$defs/id"
         },
         "weighting": {
           "$ref": "#/$defs/weighting"
@@ -246,16 +256,6 @@
           "type": "number",
           "minimum": -120,
           "maximum": 0
-        },
-        "rms_threshold_dbfs": {
-          "type": "number",
-          "minimum": -120,
-          "maximum": 0
-        },
-        "rms_tau_ms": {
-          "type": "number",
-          "minimum": 100,
-          "maximum": 60000
         },
         "release_ms": {
           "type": "number",
@@ -266,6 +266,19 @@
           "type": "number",
           "minimum": -120,
           "maximum": 0
+        },
+        "hold_ms": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "thermal": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/thermalStage"
+          }
         }
       },
       "additionalProperties": false
@@ -283,6 +296,33 @@
           "items": {
             "$ref": "#/$defs/protectedOutput"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 31,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "thermalStage": {
+      "type": "object",
+      "description": "Unweighted RMS detector stage. rms_threshold_dbfs is the RMS of normalised samples (full scale = 1.0), so a full-scale sine reads -3.01 dBFS.",
+      "required": [
+        "rms_threshold_dbfs",
+        "rms_tau_ms"
+      ],
+      "properties": {
+        "rms_threshold_dbfs": {
+          "type": "number",
+          "minimum": -120,
+          "maximum": 0
+        },
+        "rms_tau_ms": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 60000
         }
       },
       "additionalProperties": false

@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
-"""Independent NumPy/SciPy reference for the chain-v1 protection comparison.
+"""Independent NumPy/SciPy reference for parametric-filter response reports.
 
-This is a host-side numerical oracle, not a driver-limit generator and not
-production firmware. The proposed -200 dB zero-transfer floor and
-log-frequency/linear-dB interpolation require ADR/CODEOWNERS approval before
-the C comparator contract is frozen.
+Host-side numerical oracle for the device JSON in configs/schema.json (ADR 0014
+section 4). It is not firmware, not a limit generator and not a safety proof:
+it never reads driver, amplifier or supply data and it makes no pass/fail
+decision against a limit. It reports, per output, the conservative static
+magnitude bound of the signal path and the magnitude of the peak-detector
+weighting, for the speaker designer to judge.
+
+Filter designs mirror firmware/components/dspblocks/dspblocks.c, including the
+float32 coefficient rounding and the split hi/lo denominator of lp/hp types.
+Reporting conventions that ADR 0014 does not define: the -200 dB floor for a
+zero magnitude, and rejecting a non-zero gain_db on filter types without gain.
 """
 import json
 import math
@@ -13,7 +20,18 @@ from pathlib import Path
 import numpy as np
 from scipy.signal import sosfreqz
 
+FS_HZ = 48000.0
 ZERO_FLOOR_DB = -200.0
+# Bounds follow configs/schema.json ($defs/filter, mix, output).
+F_MIN_HZ = 20.0
+F_MAX_FRACTION = 0.45  # f_hz < 0.45 * fs
+Q_RANGE = (0.1, 20.0)
+FILTER_GAIN_DB = (-24.0, 24.0)
+OUTPUT_GAIN_DB = (-60.0, 12.0)
+WEIGHT_LIMIT = 4.0
+GAIN_TYPES = ("peq", "lshelf", "hshelf")
+FILTER_TYPES = ("lp1", "hp1", "lp2", "hp2", "peq", "lshelf", "hshelf",
+                "ap1", "ap2", "notch")
 
 
 def _finite_array(value, name, *, ndim=None):
@@ -25,14 +43,27 @@ def _finite_array(value, name, *, ndim=None):
     return arr
 
 
+def _grid(frequencies_hz, fs_hz):
+    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
+    if f.size == 0 or np.any(f <= 0.0) or np.any(f > fs_hz / 2.0):
+        raise ValueError("frequencies must be in (0, Nyquist]")
+    return f
+
+
+def _to_db(magnitude):
+    out = np.full(magnitude.shape, ZERO_FLOOR_DB, dtype=np.float64)
+    nonzero = magnitude > 0.0
+    floor = 10.0 ** (ZERO_FLOOR_DB / 20.0)
+    out[nonzero] = 20.0 * np.log10(np.maximum(magnitude[nonzero], floor))
+    return out
+
+
 def response_magnitude(sos, frequencies_hz, fs_hz):
     """Evaluate SOS rows with SciPy; each row is [b0,b1,b2,1,a1,a2]."""
-    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
     rows = _finite_array(sos, "sos", ndim=2)
     if not math.isfinite(fs_hz) or fs_hz <= 0.0:
         raise ValueError("fs_hz must be finite and positive")
-    if f.size == 0 or np.any(f <= 0.0) or np.any(f > fs_hz / 2.0):
-        raise ValueError("frequencies must be in (0, Nyquist]")
+    f = _grid(frequencies_hz, fs_hz)
     if rows.shape[1] != 6 or rows.shape[0] == 0:
         raise ValueError("sos must be a non-empty Nx6 array")
     _, h = sosfreqz(rows, worN=f, fs=fs_hz)
@@ -42,247 +73,196 @@ def response_magnitude(sos, frequencies_hz, fs_hz):
     return mag
 
 
-def interpolate_limit_curve(eval_hz, knot_hz, knot_db):
-    """Proposed interpolation: linear dB versus log10(f); never extrapolate."""
-    f = _finite_array(eval_hz, "eval_hz", ndim=1)
-    kf = _finite_array(knot_hz, "knot_hz", ndim=1)
-    kd = _finite_array(knot_db, "knot_db", ndim=1)
-    if f.size == 0 or kf.size < 2 or kf.size != kd.size:
-        raise ValueError("invalid evaluation or curve dimensions")
-    if np.any(f <= 0.0) or np.any(kf <= 0.0):
-        raise ValueError("frequencies must be positive")
-    if np.any(np.diff(f) <= 0.0) or np.any(np.diff(kf) <= 0.0):
-        raise ValueError("frequencies and curve knots must be strictly increasing")
-    if f[0] < kf[0] or f[-1] > kf[-1]:
-        raise ValueError("limit curve does not cover the evaluation grid")
-    return np.interp(np.log10(f), np.log10(kf), kd)
+def conservative_bound_db(weights, magnitudes):
+    """Per-frequency bound 20*log10(sum_i |w_i| * |H_i|), in dB.
 
-
-def compare_output(weights, magnitudes, limit_db, frequencies_hz, output_id):
-    """Return first violation; exact equality passes; order is frequency order."""
+    magnitudes is shaped (inputs, frequencies). No phase-cancellation credit:
+    absolute weights are summed, so an L-R difference reports twice the
+    single-input bound (ADR 0014 section 4).
+    """
     w = _finite_array(weights, "weights", ndim=1)
     h = _finite_array(magnitudes, "magnitudes", ndim=2)
-    lim = _finite_array(limit_db, "limit_db", ndim=1)
-    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
-    if not isinstance(output_id, str) or not output_id or len(output_id.encode()) > 31:
-        raise ValueError("output_id must contain 1..31 UTF-8 bytes")
-    if w.size == 0 or h.shape != (w.size, f.size) or f.size == 0 or lim.size != f.size:
-        raise ValueError("weights, response, limit, and frequency dimensions disagree")
-    if np.any(h < 0.0) or np.any(np.diff(f) <= 0.0) or np.any(f <= 0.0):
-        raise ValueError("magnitudes must be non-negative and frequencies strictly increasing")
-    bound = np.sum(np.abs(w)[:, None] * h, axis=0, dtype=np.float64)
-    floor_linear = 10.0 ** (ZERO_FLOOR_DB / 20.0)
-    bound_db = np.full(bound.shape, ZERO_FLOOR_DB, dtype=np.float64)
-    nonzero = bound > 0.0
-    bound_db[nonzero] = 20.0 * np.log10(np.maximum(bound[nonzero], floor_linear))
-    bad = np.flatnonzero(bound_db > lim)
-    if bad.size:
-        i = int(bad[0])
-        return {"pass": False, "output_id": output_id, "index": i,
-                "frequency_hz": float(f[i]), "bound_db": float(bound_db[i]),
-                "limit_db": float(lim[i])}
-    return {"pass": True, "output_id": output_id}
+    if w.size == 0 or h.shape[0] != w.size or h.shape[1] == 0:
+        raise ValueError("weights and magnitudes dimensions disagree")
+    if np.any(h < 0.0):
+        raise ValueError("magnitudes must be non-negative")
+    return _to_db(np.sum(np.abs(w)[:, None] * h, axis=0, dtype=np.float64))
 
 
-def compare_config(outputs, frequencies_hz):
-    """Compare outputs in supplied order and return the first valid violation."""
-    for output in outputs:
-        result = compare_output(output["weights"], output["magnitudes"],
-                                output["limit_db"], frequencies_hz, output["id"])
-        if not result["pass"]:
-            return result
-    return {"pass": True}
-
-
-def _sos_row(b, a, *, split_denominator=False):
-    if len(b) != 3 or len(a) != 2:
-        raise ValueError("SOS requires three numerator and two denominator coefficients")
+def _row(b, a, *, split_denominator=False):
+    """Build [b0,b1,b2,1,a1,a2] as the firmware stores it (float32)."""
+    b32 = [float(np.float32(x)) for x in b]
     if split_denominator:
-        row = np.asarray([np.float32(b[0]), np.float32(b[1]), np.float32(b[2]),
-                          1.0, a[0], a[1]], dtype=np.float64)
+        a_eff = []
+        for x in a:
+            hi = float(np.float32(x))
+            a_eff.append(hi + float(np.float32(x - hi)))
     else:
-        row = np.asarray([b[0], b[1], b[2], 1.0, a[0], a[1]],
-                         dtype=np.float32).astype(np.float64)
+        a_eff = [float(np.float32(x)) for x in a]
+    row = np.asarray(b32 + [1.0] + a_eff, dtype=np.float64)
     if not np.all(np.isfinite(row)):
-        raise ValueError("SOS coefficients must be finite")
-    poles = np.roots([1.0, row[4], row[5]])
-    if np.any(np.abs(poles) >= 1.0):
-        raise ValueError("SOS denominator is unstable")
+        raise ValueError("filter coefficients must be finite")
+    if np.any(np.abs(np.roots([1.0, row[4], row[5]])) >= 1.0):
+        raise ValueError("filter denominator is unstable")
     return row
 
 
-def _design_biquad(block, fs_hz):
-    kind, f, q = block["k"], float(block["f_hz"]), float(block["q"])
-    if not (math.isfinite(f) and 10.0 <= f <= 0.45 * fs_hz and
-            math.isfinite(q) and 0.0 < q <= 20.0):
-        raise ValueError("invalid biquad frequency or Q")
-    w = 2.0 * math.pi * f / fs_hz
-    if kind in ("lp", "hp"):
-        k = math.tan(math.pi * f / fs_hz)
-        n = 1.0 + k / q + k * k
-        b0 = (k * k if kind == "lp" else 1.0) / n
-        b1 = (2.0 if kind == "lp" else -2.0) * b0
-        b2 = b0
-        a1 = 2.0 * (k * k - 1.0) / n
-        a2 = (1.0 - k / q + k * k) / n
-        # Mirror the C implementation's split float32 denominator.
-        a1_hi = float(np.float32(a1))
-        a2_hi = float(np.float32(a2))
-        a1 = a1_hi + float(np.float32(a1 - a1_hi))
-        a2 = a2_hi + float(np.float32(a2 - a2_hi))
-        return _sos_row([b0, b1, b2], [a1, a2], split_denominator=True)
-    if kind == "peq":
-        gain = float(block["db"])
-        if not math.isfinite(gain) or not -24.0 <= gain <= 12.0 or q < 0.1:
-            raise ValueError("invalid PEQ gain or Q")
-        alpha = math.sin(w) / (2.0 * q)
-        A = 10.0 ** (gain / 40.0)
-        c = math.cos(w)
-        a0 = 1.0 + alpha / A
-        b = [(1.0 + alpha * A) / a0, -2.0 * c / a0,
-             (1.0 - alpha * A) / a0]
-        a = [-2.0 * c / a0, (1.0 - alpha / A) / a0]
-        return _sos_row(b, a)
+def _lp_hp(kind, f, q, fs):
+    k = math.tan(math.pi * f / fs)
+    low = kind.startswith("lp")
+    if kind.endswith("1"):
+        n = 1.0 + k
+        b0 = (k if low else 1.0) / n
+        return _row([b0, b0 if low else -1.0 / n, 0.0],
+                    [(k - 1.0) / n, 0.0], split_denominator=True)
+    n = 1.0 + k / q + k * k
+    b0 = float(np.float32((k * k if low else 1.0) / n))
+    return _row([b0, (2.0 if low else -2.0) * b0, b0],
+                [2.0 * (k * k - 1.0) / n, (1.0 - k / q + k * k) / n],
+                split_denominator=True)
+
+
+def _peq(f, q, gain_db, fs):
+    w, amp = 2.0 * math.pi * f / fs, 10.0 ** (gain_db / 40.0)
+    alpha, c = math.sin(w) / (2.0 * q), math.cos(w)
+    a0 = 1.0 + alpha / amp
+    b1 = -2.0 * c / a0
+    return _row([(1.0 + alpha * amp) / a0, b1, (1.0 - alpha * amp) / a0],
+                [b1, (1.0 - alpha / amp) / a0])
+
+
+def _shelf(kind, f, gain_db, fs):
+    w, amp = 2.0 * math.pi * f / fs, 10.0 ** (gain_db / 40.0)
+    c, s = math.cos(w), math.sin(w) * math.sqrt(2.0 * amp)
+    sign = 1.0 if kind == "lshelf" else -1.0
+    b0 = amp * ((amp + 1.0) - sign * (amp - 1.0) * c + s)
+    b1 = sign * 2.0 * amp * ((amp - 1.0) - sign * (amp + 1.0) * c)
+    b2 = amp * ((amp + 1.0) - sign * (amp - 1.0) * c - s)
+    a0 = (amp + 1.0) + sign * (amp - 1.0) * c + s
+    a1 = -sign * 2.0 * ((amp - 1.0) + sign * (amp + 1.0) * c)
+    a2 = (amp + 1.0) + sign * (amp - 1.0) * c - s
+    return _row([b0 / a0, b1 / a0, b2 / a0], [a1 / a0, a2 / a0])
+
+
+def _notch_allpass(kind, f, q, fs):
+    w = 2.0 * math.pi * f / fs
+    if kind == "ap1":
+        k = math.tan(math.pi * f / fs)
+        a = (k - 1.0) / (k + 1.0)
+        return _row([a, 1.0, 0.0], [a, 0.0])
+    alpha = math.sin(w) / (2.0 * q)
+    a0, b1 = 1.0 + alpha, -2.0 * math.cos(w) / (1.0 + alpha)
     if kind == "notch":
-        alpha = math.sin(w) / (2.0 * q)
-        a0 = 1.0 + alpha
-        b = [1.0 / a0, -2.0 * math.cos(w) / a0, 1.0 / a0]
-        a = [-2.0 * math.cos(w) / a0, (1.0 - alpha) / a0]
-        return _sos_row(b, a)
-    if kind == "allpass":
-        alpha = math.sin(w) / (2.0 * q)
-        a0 = 1.0 + alpha
-        b0 = (1.0 - alpha) / a0
-        b1 = -2.0 * math.cos(w) / a0
-        b = [b0, b1, 1.0]
-        a = [b1, b0]
-        return _sos_row(b, a)
-    raise ValueError(f"unsupported biquad kind: {kind}")
+        return _row([1.0 / a0, b1, 1.0 / a0], [b1, (1.0 - alpha) / a0])
+    b0 = (1.0 - alpha) / a0
+    return _row([b0, b1, 1.0], [b1, b0])
 
 
-def chain_response(chain, frequencies_hz, fs_hz):
-    """Evaluate an ordered chain independently using NumPy/SciPy."""
-    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
-    if f.size == 0 or np.any(f <= 0.0) or np.any(f > fs_hz / 2.0):
-        raise ValueError("invalid chain evaluation frequencies")
-    total = np.ones(f.size, dtype=np.complex128)
-    for block in chain:
-        kind = block.get("t")
-        if kind == "biquad":
-            row = _design_biquad(block, fs_hz)
-            _, h = sosfreqz([row], worN=f, fs=fs_hz)
-            total *= h
-        elif kind == "sos":
-            if block.get("fs") != fs_hz:
-                raise ValueError("SOS sample-rate mismatch")
-            row = _sos_row(block["b"], block["a"])
-            _, h = sosfreqz([row], worN=f, fs=fs_hz)
-            total *= h
-        elif kind == "gain":
-            db = float(block["db"])
-            if not math.isfinite(db) or not -60.0 <= db <= 12.0:
-                raise ValueError("invalid gain")
-            total *= 10.0 ** (db / 20.0)
-        elif kind == "delay":
-            us = float(block["us"])
-            if not math.isfinite(us) or not 0.0 <= us <= 20000.0:
-                raise ValueError("invalid delay")
-            total *= np.exp(-2j * np.pi * f * us * 1e-6)
-        elif kind == "polarity":
-            total *= -1.0 if block["invert"] else 1.0
-        else:
-            raise ValueError(f"unsupported chain block: {kind}")
-        if not np.all(np.isfinite(total.real)) or not np.all(np.isfinite(total.imag)):
-            raise ValueError("chain response is non-finite")
-    return total
+def design_filter(filt, fs_hz):
+    """Return one SOS row for a schema filter entry; raise on anything else."""
+    kind = filt.get("type") if isinstance(filt, dict) else None
+    if kind not in FILTER_TYPES:
+        raise ValueError(f"unsupported filter type: {kind!r}")
+    try:
+        f, q, gain = (float(filt[key]) for key in ("f_hz", "q", "gain_db"))
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"filter {kind} needs numeric f_hz, q and gain_db") from exc
+    f_max = F_MAX_FRACTION * fs_hz
+    if not (math.isfinite(f) and F_MIN_HZ <= f < f_max):
+        raise ValueError(f"f_hz must be finite and in [{F_MIN_HZ:g}, {f_max:g})")
+    if not (math.isfinite(q) and Q_RANGE[0] <= q <= Q_RANGE[1]):
+        raise ValueError(f"q must be finite and in [{Q_RANGE[0]:g}, {Q_RANGE[1]:g}]")
+    if not (math.isfinite(gain) and FILTER_GAIN_DB[0] <= gain <= FILTER_GAIN_DB[1]):
+        raise ValueError(f"gain_db must be finite and in {list(FILTER_GAIN_DB)}")
+    if kind not in GAIN_TYPES and gain != 0.0:
+        raise ValueError(f"gain_db is not defined for filter type {kind}")
+    if kind in ("lp1", "hp1", "lp2", "hp2"):
+        return _lp_hp(kind, f, q, fs_hz)
+    if kind == "peq":
+        return _peq(f, q, gain, fs_hz)
+    if kind in ("lshelf", "hshelf"):
+        return _shelf(kind, f, gain, fs_hz)
+    return _notch_allpass(kind, f, q, fs_hz)
 
 
-def evaluate_config(config, protected_curves, frequencies_hz):
-    """Evaluate per-input transfers and conservative per-output bounds.
+def filter_response(filters, frequencies_hz, fs_hz=FS_HZ):
+    """Complex response of an ordered schema filters[] list; [] is identity."""
+    f = _grid(frequencies_hz, fs_hz)
+    rows = [design_filter(item, fs_hz) for item in filters]
+    if not rows:
+        return np.ones(f.size, dtype=np.complex128)
+    _, h = sosfreqz(np.asarray(rows), worN=f, fs=fs_hz)
+    if not np.all(np.isfinite(h.real)) or not np.all(np.isfinite(h.imag)):
+        raise ValueError("filter response is non-finite")
+    return h
 
-    protected_curves maps output IDs to {frequencies_hz: [...], limit_db: [...]}.
-    It must contain already provisioned values; this function never derives
-    driver, amplifier, supply, or safety limits.
+
+def _mix_weight(value):
+    weight = float(value)
+    if not (math.isfinite(weight) and weight != 0.0 and abs(weight) <= WEIGHT_LIMIT):
+        raise ValueError("weight must be finite, non-zero and within [-4, 4]")
+    return weight
+
+
+def evaluate_config(config, frequencies_hz):
+    """Report static magnitudes per output id on the supplied frequency grid.
+
+    Returns {output_id: {"bound_db": array, "weighting_db": array or None}}.
+    bound_db is the conservative bound of input mix, pre filters, output
+    filters and output gain (polarity and delay do not change magnitude).
+    weighting_db is the peak-detector weighting magnitude, or None when the
+    config carries no protection record for that output. It is a report for
+    the speaker designer, not a firmware decision.
     """
-    fs_hz = float(config["fs"])
-    if config.get("v") != 1 or fs_hz != 48000.0:
-        raise ValueError("unsupported chain config version or sample rate")
-    f = _finite_array(frequencies_hz, "frequencies_hz", ndim=1)
-    if f.size == 0 or np.any(f <= 0.0) or np.any(np.diff(f) <= 0.0):
-        raise ValueError("evaluation grid must be positive and strictly increasing")
-    inputs = config["inputs"]
-    if len(inputs) != len(set(inputs)):
-        raise ValueError("duplicate input channel")
-    pre = {item["channel"]: item["chain"] for item in config.get("pre", [])}
-    if len(pre) != len(config.get("pre", [])) or not set(pre).issubset(inputs):
-        raise ValueError("duplicate or undeclared pre-chain channel")
-    outputs = config["outputs"]
-    ids = [out["id"] for out in outputs]
-    if len(ids) != len(set(ids)) or set(ids) != set(protected_curves):
-        raise ValueError("configured outputs and protected curve IDs must match exactly")
-    # Evaluate every base-grid point, exact curve knot, and exact model boundary.
-    exact_points = [f]
-    for curve in protected_curves.values():
-        knots = _finite_array(curve["frequencies_hz"], "curve frequencies", ndim=1)
-        if knots.size < 2 or np.any(knots <= 0.0) or np.any(np.diff(knots) <= 0.0):
-            raise ValueError("protected curve knots must be positive and strictly increasing")
-        exact_points.append(knots)
-        if curve.get("min_freq_hz") is not None:
-            boundary = float(curve["min_freq_hz"])
-            if not math.isfinite(boundary) or boundary <= 0.0:
-                raise ValueError("protected min_freq_hz must be finite and positive")
-            exact_points.append(np.asarray([boundary], dtype=np.float64))
-    f = np.unique(np.concatenate(exact_points))
-    results = []
-    for out in outputs:
-        channel_responses = []
-        weights = []
-        seen = set()
-        for mix in out["in"]:
-            ch, weight = mix["channel"], float(mix["weight"])
-            if ch not in inputs or ch in seen or not math.isfinite(weight) or weight == 0.0:
-                raise ValueError("invalid or duplicate input mix entry")
-            seen.add(ch)
-            pre_h = chain_response(pre.get(ch, []), f, fs_hz)
-            out_h = chain_response(out["chain"], f, fs_hz)
-            channel_responses.append(np.abs(pre_h * out_h))
-            weights.append(weight)
-        curve = protected_curves[out["id"]]
-        min_freq = curve.get("min_freq_hz")
-        if min_freq is not None:
-            min_freq = float(min_freq)
-            if not math.isfinite(min_freq) or min_freq <= 0.0:
-                raise ValueError("protected min_freq_hz must be finite and positive")
-            has_hp = any(block.get("t") == "biquad" and block.get("k") == "hp"
-                         and float(block.get("f_hz", 0.0)) >= min_freq
-                         for block in out["chain"])
-            if not has_hp:
-                raise ValueError(f'output {out["id"]} lacks required subsonic high-pass')
-        limit = interpolate_limit_curve(f, curve["frequencies_hz"], curve["limit_db"])
-        result = compare_output(weights, np.asarray(channel_responses), limit, f, out["id"])
-        results.append(result)
-        if not result["pass"]:
-            return result
-    return {"pass": True, "outputs": results}
+    if config.get("v") != 1 or float(config.get("fs", 0.0)) != FS_HZ:
+        raise ValueError("unsupported config version or sample rate")
+    f = _grid(frequencies_hz, FS_HZ)
+    pre_items = config.get("pre", [])
+    channels = [item["channel"] for item in pre_items]
+    if len(channels) != len(set(channels)):
+        raise ValueError("duplicate pre channel")
+    pre = {item["channel"]: np.abs(filter_response(item["filters"], f)) for item in pre_items}
+    ids = [out["id"] for out in config["outputs"]]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate output id")
+    records = {rec["id"]: rec for rec in config.get("protection", {}).get("outputs", [])}
+    flat = np.ones(f.size)
+    report = {}
+    for out in config["outputs"]:
+        gain_db = float(out["gain_db"])
+        if not (math.isfinite(gain_db) and OUTPUT_GAIN_DB[0] <= gain_db <= OUTPUT_GAIN_DB[1]):
+            raise ValueError(f"gain_db must be finite and in {list(OUTPUT_GAIN_DB)}")
+        chain = np.abs(filter_response(out["filters"], f)) * 10.0 ** (gain_db / 20.0)
+        weights = [_mix_weight(mix["weight"]) for mix in out["in"]]
+        mags = [pre.get(mix["channel"], flat) * chain for mix in out["in"]]
+        record = records.get(out["id"])
+        weighting = None
+        if record is not None:
+            weighting = _to_db(np.abs(filter_response(record["weighting"]["filters"], f)))
+        report[out["id"]] = {"bound_db": conservative_bound_db(weights, mags),
+                             "weighting_db": weighting}
+    return report
+
 
 def main():
-    root = Path(__file__).resolve().parents[1]
-    path = root / "tools" / "protection_oracle_vectors.json"
+    path = Path(__file__).resolve().parent / "protection_oracle_vectors.json"
     vectors = json.loads(path.read_text(encoding="utf-8"))
     failures = []
-    for vector in vectors:
-        got = compare_output(vector["weights"], vector["magnitudes"],
-                             vector["limit_db"], vector["frequencies_hz"],
-                             vector["output_id"])
-        if got["pass"] != vector["expected_pass"]:
-            failures.append(f'{vector["name"]}: expected {vector["expected_pass"]}, got {got}')
-        if vector.get("expected_bound_db") is not None:
-            if not got["pass"] or not math.isclose(got["bound_db"],
-                    vector["expected_bound_db"], rel_tol=0.0, abs_tol=1e-9):
-                failures.append(f'{vector["name"]}: wrong bound {got}')
+    for v in vectors["filters"]:
+        got = _to_db(np.abs(filter_response(v["filters"], v["frequencies_hz"])))
+        if "max_db" in v:
+            ok = bool(np.all(got <= v["max_db"]))
+        else:
+            ok = bool(np.all(np.abs(got - np.asarray(v["expected_db"])) <= v["tol_db"]))
+        if not ok:
+            failures.append(f'{v["name"]}: got {got.tolist()}')
+    for v in vectors["bounds"]:
+        got = conservative_bound_db(v["weights"], v["magnitudes"])
+        if not np.allclose(got, v["expected_bound_db"], rtol=0.0, atol=1e-9):
+            failures.append(f'{v["name"]}: got {got.tolist()}')
     if failures:
         raise SystemExit("\n".join(failures))
-    print(f"PASS: {len(vectors)} protection reference vectors")
+    print(f'PASS: {len(vectors["filters"])} filter and {len(vectors["bounds"])} bound vectors')
 
 
 if __name__ == "__main__":
