@@ -8,3 +8,7 @@ Planned: create a tested template/converter for exporting biquad coefficients in
 - `lookahead_screen.py`: HOST-SCREENING of limiter lookahead and attack against
   excursion overshoot (ADR 0014 section 3). Prints a table; not a gate. Needs
   numpy and scipy (`tools/requirements.txt`).
+- `protection_oracle.py`: independent NumPy/SciPy reference for the parametric `filters[]` schema
+  (ADR 0014 section 4). Reports the conservative per-output magnitude bound and the detector
+  weighting response; no limits, no pass/fail. Vectors: `protection_oracle_vectors.json`; tests:
+  `python tools/test_protection_oracle.py` (runs in CI). Needs numpy and scipy.

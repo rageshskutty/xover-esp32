@@ -2,9 +2,9 @@
 
 ## Authority and architecture
 
-The product planning architecture is chain-per-output v1, not a graph/DAG runtime. ADR 0012 defines the ordered-chain architecture; ADR 0013 defines the protected block and mandatory output-protection pipeline; ADR 0008 defines the conservative per-output response bound and limit curves; ADR 0010 defines the pure comparator behavior; ADR 0011 defines configuration mutation and response ownership.
+The product planning architecture is chain-per-output v1, not a graph/DAG runtime. ADR 0012 defines the ordered-chain architecture; ADR 0013 defines the protected block and mandatory output-protection pipeline; ADR 0014 defines the firmware protection contract and supersedes the protection decisions of ADRs 0008 (limit curves), 0010 (comparator) and 0013; ADR 0011 defines configuration mutation and response ownership.
 
-These ADRs are proposals, not approved implementation authority. ADR 0008, ADR 0010, ADR 0012, and ADR 0013 require human safety review and CODEOWNERS approval before implementation. Existing public DSP source headers remain authoritative for implemented modules. Public header changes require an ADR, docs/api.md update, and CODEOWNERS review.
+These ADRs are proposals, not approved implementation authority. ADR 0011, ADR 0012, and ADR 0014 require human safety review and CODEOWNERS approval before implementation. Existing public DSP source headers remain authoritative for implemented modules. Public header changes require an ADR, docs/api.md update, and CODEOWNERS review.
 
 ## Implemented interfaces
 
@@ -14,11 +14,9 @@ These ADRs are proposals, not approved implementation authority. ADR 0008, ADR 0
 
 ## Protection contract status
 
-The normative planning direction is the conservative per-output sum `Σ |w_i| · |H_i(f)|`, with no phase-cancellation credit. The pure comparator receives already validated response magnitudes, weights, frequencies, and per-output curve values. It does not parse JSON, design filters, access hardware, derive driver limits, or run runtime limiters.
+ADR 0014 retires the production C comparator, the per-output limit curves, curve interpolation and the zero-transfer floor as firmware contract. The protection record is the parametric block in `configs/schema.json` (detector weighting filters, thresholds, hold, thermal stages, release, ceiling). Driver, amplifier and supply modelling stays in the designer tool; real protected values require human safety evidence and agents must not invent them. The conservative per-output sum `Σ |w_i| · |H_i(f)|`, with no phase-cancellation credit, survives only as a designer-side report produced by `tools/protection_oracle.py`. `auto_trim` is not part of the current JSON schema and is disabled/deferred for chain v1; no user gain may be silently changed.
 
-The current comparator ADR is incomplete for implementation: exact C layouts/signatures, maximum dimensions and memory budget, zero-transfer dB floor, curve interpolation, and complete grid rules must be frozen. Driver/amplifier/supply-to-limit-curve derivation and real protected values require human safety evidence; agents must not invent them. `auto_trim` is not part of the current JSON schema and is disabled/deferred for chain v1; no user gain may be silently changed.
-
-The current subsonic check in `tools/check.py` is only a temporary presence heuristic, not a response calculation. It must not be treated as evidence that attenuation at `min_freq_hz` is satisfied. Static protection acceptance remains blocked until a real response evaluator is implemented and verified.
+No firmware-side static response acceptance check exists. The weighting group-delay check named in ADR 0014 section 3 is a planned validator task.
 
 ## Verification
 
@@ -29,7 +27,7 @@ CI workflow `.github/workflows/ci.yml` runs:
 - ASan/UBSan host tests;
 - the dspblocks coverage gate.
 
-Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 static protection oracle and does not generate the protection comparator's golden vectors. The independent NumPy/SciPy reference oracle is implemented in `tools/protection_oracle.py`, with deterministic vectors in `tools/protection_oracle_vectors.json` and tests in `tools/test_protection_oracle.py`. It evaluates supported chain-v1 static blocks against supplied (synthetic or provisioned) curves; it does not derive real protected curves. The exact numeric conventions in that oracle remain proposals pending human/CODEOWNERS approval.
+Important limitation: `tools/test_scipy_compare.py` validates existing DSP SOS response primitives. It is not a chain-v1 response oracle. The independent NumPy/SciPy oracle is `tools/protection_oracle.py`, with deterministic analytic vectors in `tools/protection_oracle_vectors.json` and tests in `tools/test_protection_oracle.py`. It designs the ten schema filter types (`lp1 hp1 lp2 hp2 peq lshelf hshelf ap1 ap2 notch`) with the float32 rounding of `dspblocks.c` and reports, per output, the conservative static magnitude bound of the signal path and the magnitude of the peak-detector weighting on a caller-supplied grid. It makes no pass/fail decision, reads no driver, amplifier or supply data, and does not prove loudspeaker safety. HOST-VERIFIED: its designs matched the compiled `dsp_design_*` coefficients to rounding for every type that has a C designer (all except `ap1`). That check was run by hand and is not in CI. Open schema/C mismatches are logged as Q2 and Q3 in `docs/questions.md`.
 
 The following commands are the host verification sequence:
 ```sh
