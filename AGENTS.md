@@ -23,16 +23,24 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
   driver limits, datasheet register values. Take them only from
   firmware/main/board_config.h, data/drivers.yaml or a cited datasheet section.
   If missing: `#error` in code, add an entry to docs/questions.md, stop that task.
-- S2 Fail closed. Outputs are muted at boot and stay muted until (a) protection
-  limits are read from NVS and valid, and (b) a config has passed validation.
-  No code path may unmute earlier.
+- S2 Fail closed. Outputs are muted at boot and stay muted until (a) the
+  committed configuration contains a valid protection block covering every
+  configured output, and (b) a config has passed validation. No code path may
+  unmute earlier.
 - S3 Until a human records HW-VERIFIED protection limits in docs/bringup-log.md,
   test signals are capped at -30 dBFS (Kconfig XOVER_BRINGUP_MAX_DBFS) and are
   only played with speakers and amps disconnected.
-- S4 Protection limits live in NVS and are written only by the serial
-  provisioning tool. Never readable-for-write or overridable via network,
-  config file or any API.
-- S5 Limits inside a config may only narrow device limits, never widen them.
+- S4 The protection block is part of the single device JSON and changes only in
+  provisioning mode, entered through a local channel (serial command or
+  physical switch), never from the network. A network upload must carry a
+  protection block numerically identical to the committed one, otherwise it is
+  rejected with E_PROTECT_LOCKED and nothing changes (ADR 0014 section 6). No
+  HTTP endpoint, JSON field or API may enter provisioning mode or alter
+  protection by any other route.
+- S5 `pre`, output chains and links are network-editable. The protection stage
+  is mandatory, runs after the output chain, and no config field may bypass,
+  reorder or disable it. Designer-exported weighting and thresholds must stay
+  conservative for any in-spec chain edit over 20 Hz to Nyquist (ADR 0014 P5).
 - S6 Any change under a CODEOWNERS path (see .github/CODEOWNERS) needs a test
   that proves a violating config is still rejected.
 - S7 Every start, stop, config swap and fault goes through a gain ramp

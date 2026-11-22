@@ -28,7 +28,7 @@ static const shape_t SHAPES[] = {
     { DSP_FAMILY_BUTTERWORTH, 2U }, { DSP_FAMILY_BUTTERWORTH, 4U },
     { DSP_FAMILY_LINKWITZ_RILEY, 4U }, { DSP_FAMILY_LINKWITZ_RILEY, 8U },
 };
-static const double FC_HZ[] = { 70.0, 80.0, 120.0, 300.0, 2500.0 };
+static const double FC_HZ[] = { 20.0, 70.0, 80.0, 120.0, 300.0, 2500.0 };
 static const double TONE_HZ[] = { 20.0, 30.0, 50.0, 100.0, 1000.0 };
 #define COUNT(a) (sizeof(a) / sizeof((a)[0]))
 

@@ -1,225 +1,331 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "xover-esp32 graph configuration",
+  "title": "xover-esp32 parametric crossover configuration v1",
+  "description": "Designer-authored parametric filter stacks; firmware expands each filter once during configuration load.",
   "type": "object",
   "required": [
-    "version",
-    "sample_rate_hz",
-    "nodes",
-    "edges"
+    "v",
+    "fs",
+    "inputs",
+    "outputs"
   ],
   "properties": {
-    "version": {
+    "v": {
       "const": 1
     },
-    "sample_rate_hz": {
+    "fs": {
       "const": 48000
     },
-    "vars": {
-      "type": "object",
-      "description": "Numeric tunable parameters referenced as @name in node fields.",
-      "additionalProperties": {
-        "type": "number"
-      }
-    },
-    "limits": {
-      "type": "object",
-      "description": "Configuration-requested operating bounds. Firmware must additionally enforce immutable device protection limits stored in NVS; uploaded values must never weaken them.",
-      "additionalProperties": {
-        "type": "object",
-        "required": [
-          "min",
-          "max"
-        ],
-        "properties": {
-          "min": {
-            "type": "number"
-          },
-          "max": {
-            "type": "number"
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "nodes": {
+    "inputs": {
       "type": "array",
-      "maxItems": 64,
+      "minItems": 1,
+      "maxItems": 6,
+      "uniqueItems": true,
       "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "type"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 31
-          },
-          "type": {
-            "enum": [
-              "input",
-              "output",
-              "crossover",
-              "peq",
-              "shelf",
-              "allpass",
-              "notch",
-              "biquad",
-              "gain",
-              "delay",
-              "polarity",
-              "mix"
-            ]
-          },
-          "frequency_hz": {
-            "oneOf": [
-              {
-                "type": "number",
-                "minimum": 10,
-                "maximum": 21600
-              },
-              {
-                "type": "string",
-                "pattern": "^@[A-Za-z_][A-Za-z0-9_]*$"
-              }
-            ]
-          },
-          "family": {
-            "enum": ["Butterworth", "Linkwitz-Riley", "Bessel"]
-          },
-          "mode": {
-            "enum": [
-              "lowpass",
-              "highpass"
-            ]
-          },
-          "order": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 8
-          },
-          "channel": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 1
-          },
-          "slot": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 7
-          },
-          "gains": {
-            "type": "array",
-            "minItems": 2,
-            "maxItems": 8,
-            "items": {
-              "type": "number"
-            }
-          },
-          "db": {
-            "type": "number"
-          },
-          "q": {
-            "type": "number"
-          },
-          "shape": {
-            "enum": ["low", "high"]
-          },
-          "invert": {
-            "type": "boolean"
-          },
-          "b": {
-            "type": "array",
-            "minItems": 3,
-            "maxItems": 3,
-            "items": {"type": "number"}
-          },
-          "a": {
-            "type": "array",
-            "minItems": 2,
-            "maxItems": 2,
-            "items": {"type": "number"}
-          },
-          "sample_rate_hz": {
-            "const": 48000
-          },
-          "delay_us": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 20000
-          }
-        },
-        "additionalProperties": false,
-        "allOf": [
-          {
-            "if": {"properties": {"type": {"const": "crossover"}}},
-            "then": {"required": ["frequency_hz", "family", "mode", "order"], "propertyNames": {"enum": ["id", "type", "frequency_hz", "family", "mode", "order"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "peq"}}},
-            "then": {"required": ["frequency_hz", "q", "db"], "properties": {"q": {"minimum": 0.1, "maximum": 20}, "db": {"minimum": -24, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "q", "db"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "shelf"}}},
-            "then": {"required": ["frequency_hz", "db", "shape"], "properties": {"db": {"minimum": -24, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "db", "shape"]}}
-          },
-          {
-            "if": {"properties": {"type": {"enum": ["allpass", "notch"]}}},
-            "then": {"required": ["frequency_hz", "q"], "properties": {"q": {"minimum": 0.1, "maximum": 20}}, "propertyNames": {"enum": ["id", "type", "frequency_hz", "q"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "gain"}}},
-            "then": {"required": ["db"], "properties": {"db": {"minimum": -60, "maximum": 12}}, "propertyNames": {"enum": ["id", "type", "db"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "polarity"}}},
-            "then": {"required": ["invert"], "propertyNames": {"enum": ["id", "type", "invert"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "mix"}}},
-            "then": {"required": ["gains"], "propertyNames": {"enum": ["id", "type", "gains"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "biquad"}}},
-            "then": {"required": ["b", "a", "sample_rate_hz"], "propertyNames": {"enum": ["id", "type", "b", "a", "sample_rate_hz"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "input"}}},
-            "then": {"required": ["channel"], "propertyNames": {"enum": ["id", "type", "channel"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "output"}}},
-            "then": {"required": ["slot"], "propertyNames": {"enum": ["id", "type", "slot"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "delay"}}},
-            "then": {"required": ["delay_us"], "propertyNames": {"enum": ["id", "type", "delay_us"]}}
-          },
-          {
-            "if": {"properties": {"type": {"const": "crossover"}, "family": {"const": "Linkwitz-Riley"}}},
-            "then": {"properties": {"order": {"enum": [2, 4, 6, 8]}}}
-          }
+        "enum": [
+          "L",
+          "R",
+          "C",
+          "LFE",
+          "SL",
+          "SR"
         ]
       }
     },
-    "edges": {
+    "pre": {
       "type": "array",
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/pre"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/output"
+      }
+    },
+    "protection": {
+      "$ref": "#/$defs/protection"
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "Groups of output ids that share gain reduction (maximum reduction across the group).",
       "items": {
         "type": "array",
-        "prefixItems": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "string"
-          }
-        ],
         "minItems": 2,
-        "maxItems": 2
+        "maxItems": 8,
+        "items": {
+          "$ref": "#/$defs/id"
+        }
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "filter": {
+      "type": "object",
+      "required": [
+        "type",
+        "f_hz",
+        "q",
+        "gain_db"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "lp1",
+            "hp1",
+            "lp2",
+            "hp2",
+            "peq",
+            "lshelf",
+            "hshelf",
+            "ap1",
+            "ap2",
+            "notch"
+          ]
+        },
+        "f_hz": {
+          "type": "number",
+          "minimum": 20,
+          "exclusiveMaximum": 21600
+        },
+        "q": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 20
+        },
+        "gain_db": {
+          "type": "number",
+          "minimum": -24,
+          "maximum": 24
+        }
+      },
+      "additionalProperties": false
+    },
+    "filters": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/filter"
+      }
+    },
+    "pre": {
+      "type": "object",
+      "required": [
+        "channel",
+        "filters"
+      ],
+      "properties": {
+        "channel": {
+          "enum": [
+            "L",
+            "R",
+            "C",
+            "LFE",
+            "SL",
+            "SR"
+          ]
+        },
+        "filters": {
+          "$ref": "#/$defs/filters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mix": {
+      "type": "object",
+      "required": [
+        "channel",
+        "weight"
+      ],
+      "properties": {
+        "channel": {
+          "enum": [
+            "L",
+            "R",
+            "C",
+            "LFE",
+            "SL",
+            "SR"
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": -4,
+          "maximum": 4,
+          "not": {
+            "const": 0
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": [
+        "id",
+        "slot",
+        "in",
+        "filters",
+        "gain_db",
+        "polarity",
+        "delay_samples"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 31,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "slot": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        },
+        "in": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/mix"
+          }
+        },
+        "filters": {
+          "$ref": "#/$defs/filters"
+        },
+        "gain_db": {
+          "type": "number",
+          "minimum": -60,
+          "maximum": 12
+        },
+        "polarity": {
+          "enum": [
+            -1,
+            1
+          ]
+        },
+        "delay_samples": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 960
+        }
+      },
+      "additionalProperties": false
+    },
+    "weighting": {
+      "type": "object",
+      "required": [
+        "filters"
+      ],
+      "properties": {
+        "filters": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/filter"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "protectedOutput": {
+      "type": "object",
+      "required": [
+        "id",
+        "weighting",
+        "peak_threshold_dbfs",
+        "hold_ms",
+        "thermal",
+        "release_ms",
+        "ceiling_dbfs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "weighting": {
+          "$ref": "#/$defs/weighting"
+        },
+        "peak_threshold_dbfs": {
+          "type": "number",
+          "minimum": -120,
+          "maximum": 0
+        },
+        "release_ms": {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 5000
+        },
+        "ceiling_dbfs": {
+          "type": "number",
+          "minimum": -120,
+          "maximum": 0
+        },
+        "hold_ms": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "thermal": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/thermalStage"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "protection": {
+      "type": "object",
+      "required": [
+        "outputs"
+      ],
+      "properties": {
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/protectedOutput"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 31,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "thermalStage": {
+      "type": "object",
+      "description": "Unweighted RMS detector stage. rms_threshold_dbfs is the RMS of normalised samples (full scale = 1.0), so a full-scale sine reads -3.01 dBFS.",
+      "required": [
+        "rms_threshold_dbfs",
+        "rms_tau_ms"
+      ],
+      "properties": {
+        "rms_threshold_dbfs": {
+          "type": "number",
+          "minimum": -120,
+          "maximum": 0
+        },
+        "rms_tau_ms": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 60000
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

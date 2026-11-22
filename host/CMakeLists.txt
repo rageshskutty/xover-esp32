@@ -26,28 +26,6 @@ else()
     target_compile_options(cjson PRIVATE -w)
 endif()
 
-add_library(dspgraph_json STATIC
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_json.c
-)
-target_include_directories(dspgraph_json PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/internal
-)
-target_link_libraries(dspgraph_json PUBLIC cjson)
-
-add_library(dspgraph STATIC
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph.c
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_validate.c
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_graph.c
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/dspgraph_build.c
-)
-target_include_directories(dspgraph PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspgraph/include
-)
-target_link_libraries(dspgraph PUBLIC dspgraph_json dspblocks)
-if(NOT MSVC)
-    target_link_libraries(dspgraph PUBLIC m)
-endif()
-
 add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
@@ -118,16 +96,6 @@ if(NOT MSVC)
     target_link_libraries(test_blocks PRIVATE m)
 endif()
 add_test(NAME test_blocks COMMAND test_blocks)
-add_executable(test_graph_json tests/test_graph_json.c)
-target_link_libraries(test_graph_json PRIVATE dspgraph_json)
-add_test(NAME test_graph_json COMMAND test_graph_json)
-
-add_executable(test_graph_validate tests/test_graph_validate.c)
-target_link_libraries(test_graph_validate PRIVATE dspgraph)
-target_compile_definitions(test_graph_validate PRIVATE
-    XOVER_CONFIG_DIR="${CMAKE_CURRENT_LIST_DIR}/../configs")
-add_test(NAME test_graph_validate COMMAND test_graph_validate)
-
 add_executable(test_eval_analytic tests/test_eval_analytic.c)
 target_include_directories(test_eval_analytic PRIVATE tests)
 target_link_libraries(test_eval_analytic PRIVATE dspblocks)
@@ -143,9 +111,9 @@ if(NOT MSVC)
 endif()
 add_test(NAME test_f32 COMMAND test_f32)
 
-add_executable(validate_cli tests/validate_cli.c)
-target_link_libraries(validate_cli PRIVATE dspgraph)
-
-add_executable(test_node_compile tests/test_node_compile.c)
-target_link_libraries(test_node_compile PRIVATE dspgraph)
-add_test(NAME test_node_compile COMMAND test_node_compile)
+add_executable(test_sos_response tests/test_sos_response.c)
+target_link_libraries(test_sos_response PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_sos_response PRIVATE m)
+endif()
+add_test(NAME test_sos_response COMMAND test_sos_response)

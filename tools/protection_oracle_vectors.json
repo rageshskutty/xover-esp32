@@ -1,0 +1,331 @@
+{
+  "filters": [
+    {
+      "name": "lp2_corner_is_minus_q",
+      "filters": [
+        {
+          "type": "lp2",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -3.010383255120277
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "hp2_corner_is_minus_q",
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -3.010383255120277
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "lp1_corner_is_minus_3db",
+      "filters": [
+        {
+          "type": "lp1",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -3.0102999566398125
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "hp1_corner_is_minus_3db",
+      "filters": [
+        {
+          "type": "hp1",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -3.0102999566398125
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "lr4_lowpass_corner_is_two_q_stages",
+      "filters": [
+        {
+          "type": "lp2",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -6.020766510240554
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "peq_boost_peak_equals_gain",
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000.0,
+          "q": 0.7,
+          "gain_db": 6.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        6.0
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "peq_cut_peak_equals_gain",
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000.0,
+          "q": 2.0,
+          "gain_db": -6.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -6.0
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "lshelf_midpoint_is_half_gain",
+      "filters": [
+        {
+          "type": "lshelf",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": 6.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        3.0
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "hshelf_midpoint_is_half_gain",
+      "filters": [
+        {
+          "type": "hshelf",
+          "f_hz": 1000.0,
+          "q": 0.7071,
+          "gain_db": -8.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "expected_db": [
+        -4.0
+      ],
+      "tol_db": 0.001
+    },
+    {
+      "name": "notch_centre_is_deep",
+      "filters": [
+        {
+          "type": "notch",
+          "f_hz": 1000.0,
+          "q": 4.0,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        1000.0
+      ],
+      "max_db": -100.0
+    },
+    {
+      "name": "ap1_is_unity",
+      "filters": [
+        {
+          "type": "ap1",
+          "f_hz": 500.0,
+          "q": 0.7071,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        20.0,
+        500.0,
+        20000.0
+      ],
+      "expected_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "tol_db": 1e-09
+    },
+    {
+      "name": "ap2_is_unity",
+      "filters": [
+        {
+          "type": "ap2",
+          "f_hz": 500.0,
+          "q": 0.8,
+          "gain_db": 0.0
+        }
+      ],
+      "frequencies_hz": [
+        20.0,
+        500.0,
+        20000.0
+      ],
+      "expected_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "tol_db": 1e-09
+    }
+  ],
+  "bounds": [
+    {
+      "name": "unity_is_0db",
+      "weights": [
+        1
+      ],
+      "magnitudes": [
+        [
+          1
+        ]
+      ],
+      "expected_bound_db": [
+        0
+      ]
+    },
+    {
+      "name": "two_half_weights_sum_to_unity",
+      "weights": [
+        0.5,
+        0.5
+      ],
+      "magnitudes": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "expected_bound_db": [
+        0
+      ]
+    },
+    {
+      "name": "two_unity_inputs_are_plus_6db",
+      "weights": [
+        1,
+        1
+      ],
+      "magnitudes": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "expected_bound_db": [
+        6.020599913279624
+      ]
+    },
+    {
+      "name": "negative_weight_gets_no_cancellation_credit",
+      "weights": [
+        -0.5,
+        0.5
+      ],
+      "magnitudes": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "expected_bound_db": [
+        0
+      ]
+    },
+    {
+      "name": "zero_transfer_uses_finite_floor",
+      "weights": [
+        1
+      ],
+      "magnitudes": [
+        [
+          0
+        ]
+      ],
+      "expected_bound_db": [
+        -200
+      ]
+    },
+    {
+      "name": "bound_is_per_frequency",
+      "weights": [
+        1
+      ],
+      "magnitudes": [
+        [
+          1,
+          2
+        ]
+      ],
+      "expected_bound_db": [
+        0,
+        6.020599913279624
+      ]
+    }
+  ]
+}
