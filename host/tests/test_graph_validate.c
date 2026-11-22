@@ -65,7 +65,7 @@ static int run_fixture(const char *name, int invalid, dspg_report_t *rep, char *
     cJSON *root;
     const cJSON *e;
     dspg_parse_issue_t pi;
-    (void)snprintf(dir, sizeof(dir), "%s/%s", XOVER_CONFIG_DIR, invalid ? "invalid" : ".");
+    (void)snprintf(dir, sizeof(dir), "%s/%s", XOVER_CONFIG_DIR, invalid ? "legacy/invalid" : ".");
     n = load(dir, name, file_buf, sizeof(file_buf));
     if (n == 0U) {
         return -1;

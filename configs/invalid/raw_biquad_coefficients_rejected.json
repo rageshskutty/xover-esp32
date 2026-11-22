@@ -1,14 +1,12 @@
 {
-  "_expect": "E_SCHEMA",
   "v": 1,
   "fs": 48000,
   "inputs": [
-    "L",
-    "R"
+    "L"
   ],
   "outputs": [
     {
-      "id": "out_a",
+      "id": "raw_coefficients",
       "slot": 0,
       "in": [
         {
@@ -16,21 +14,27 @@
           "weight": 1
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "sos",
-          "fs": 44100,
+          "type": "biquad",
+          "f_hz": 1000,
+          "q": 0.7,
+          "gain_db": 0,
           "b": [
             1,
             0,
             0
           ],
           "a": [
-            0,
-            0
+            -2,
+            1.2
           ]
         }
-      ]
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     }
-  ]
+  ],
+  "_expect": "E_SCHEMA"
 }

@@ -1,14 +1,14 @@
 {
-  "_expect": "E_SCHEMA",
   "v": 1,
   "fs": 48000,
   "inputs": [
     "L",
     "R"
   ],
+  "pre": [],
   "outputs": [
     {
-      "id": "out_a",
+      "id": "left_woofer",
       "slot": 0,
       "in": [
         {
@@ -16,10 +16,26 @@
           "weight": 1
         }
       ],
-      "chain": []
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
-      "id": "out_b",
+      "id": "right_woofer",
       "slot": 0,
       "in": [
         {
@@ -27,7 +43,92 @@
           "weight": 1
         }
       ],
-      "chain": []
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "subwoofer",
+      "slot": 2,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 0.5
+        },
+        {
+          "channel": "R",
+          "weight": 0.5
+        }
+      ],
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     }
-  ]
+  ],
+  "protection": {
+    "outputs": [
+      {
+        "id": "left_woofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "right_woofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "subwoofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      }
+    ]
+  },
+  "_expect": "E_SCHEMA"
 }

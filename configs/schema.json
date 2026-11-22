@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "xover-esp32 chain-per-output configuration v1",
-  "description": "Device configuration contains designer-calculated DSP coefficients and abstract protection limits only. Driver, amplifier, and PSU models are designer-side inputs and are forbidden in device JSON.",
+  "title": "xover-esp32 parametric crossover configuration v1",
+  "description": "Designer-authored parametric filter stacks; firmware expands each filter once during configuration load.",
   "type": "object",
   "required": [
     "v",
@@ -36,7 +36,7 @@
       "type": "array",
       "maxItems": 6,
       "items": {
-        "$ref": "#/$defs/preChain"
+        "$ref": "#/$defs/pre"
       }
     },
     "outputs": {
@@ -53,28 +53,59 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "frequency": {
-      "type": "number",
-      "minimum": 10,
-      "maximum": 21600
+    "filter": {
+      "type": "object",
+      "required": [
+        "type",
+        "f_hz",
+        "q",
+        "gain_db"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "lp1",
+            "hp1",
+            "lp2",
+            "hp2",
+            "peq",
+            "lshelf",
+            "hshelf",
+            "ap1",
+            "ap2",
+            "notch"
+          ]
+        },
+        "f_hz": {
+          "type": "number",
+          "minimum": 20,
+          "exclusiveMaximum": 21600
+        },
+        "q": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 20
+        },
+        "gain_db": {
+          "type": "number",
+          "minimum": -24,
+          "maximum": 24
+        }
+      },
+      "additionalProperties": false
     },
-    "positiveQ": {
-      "type": "number",
-      "exclusiveMinimum": 0,
-      "maximum": 20
-    },
-    "chain": {
+    "filters": {
       "type": "array",
-      "maxItems": 64,
+      "maxItems": 8,
       "items": {
-        "$ref": "#/$defs/block"
+        "$ref": "#/$defs/filter"
       }
     },
-    "preChain": {
+    "pre": {
       "type": "object",
       "required": [
         "channel",
-        "chain"
+        "filters"
       ],
       "properties": {
         "channel": {
@@ -87,13 +118,13 @@
             "SR"
           ]
         },
-        "chain": {
-          "$ref": "#/$defs/chain"
+        "filters": {
+          "$ref": "#/$defs/filters"
         }
       },
       "additionalProperties": false
     },
-    "inputMix": {
+    "mix": {
       "type": "object",
       "required": [
         "channel",
@@ -127,7 +158,10 @@
         "id",
         "slot",
         "in",
-        "chain"
+        "filters",
+        "gain_db",
+        "polarity",
+        "delay_samples"
       ],
       "properties": {
         "id": {
@@ -139,259 +173,49 @@
         "slot": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 31,
-          "description": "Sanity bound only; the provisioned TDM slot count is authoritative."
+          "maximum": 31
         },
         "in": {
           "type": "array",
           "minItems": 1,
           "maxItems": 8,
           "items": {
-            "$ref": "#/$defs/inputMix"
+            "$ref": "#/$defs/mix"
           }
         },
-        "chain": {
-          "$ref": "#/$defs/chain"
+        "filters": {
+          "$ref": "#/$defs/filters"
+        },
+        "gain_db": {
+          "type": "number",
+          "minimum": -60,
+          "maximum": 12
+        },
+        "polarity": {
+          "enum": [
+            -1,
+            1
+          ]
+        },
+        "delay_samples": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 960
         }
       },
       "additionalProperties": false
     },
-    "protect": {
-      "type": "object",
-      "properties": {
-        "attack_ms": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "release_ms": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "lookahead_ms": {
-          "const": 0
-        }
-      },
-      "additionalProperties": false
-    },
-    "block": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "t",
-            "k",
-            "f_hz",
-            "q"
-          ],
-          "properties": {
-            "t": {
-              "const": "biquad"
-            },
-            "k": {
-              "enum": [
-                "lp",
-                "hp",
-                "peq",
-                "notch",
-                "allpass"
-              ]
-            },
-            "f_hz": {
-              "$ref": "#/$defs/frequency"
-            },
-            "q": {
-              "$ref": "#/$defs/positiveQ"
-            },
-            "db": {
-              "type": "number",
-              "minimum": -24,
-              "maximum": 12
-            },
-            "role": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 31
-            }
-          },
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "k": {
-                    "const": "peq"
-                  }
-                }
-              },
-              "then": {
-                "required": [
-                  "db"
-                ]
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "k": {
-                    "enum": [
-                      "lp",
-                      "hp",
-                      "notch",
-                      "allpass"
-                    ]
-                  }
-                }
-              },
-              "then": {
-                "not": {
-                  "required": [
-                    "db",
-                    "role"
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "k": {
-                    "enum": [
-                      "lp",
-                      "hp",
-                      "notch",
-                      "allpass"
-                    ]
-                  }
-                }
-              },
-              "then": {
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "db"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "role"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "t",
-            "db"
-          ],
-          "properties": {
-            "t": {
-              "const": "gain"
-            },
-            "db": {
-              "type": "number",
-              "minimum": -60,
-              "maximum": 12
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "t",
-            "us"
-          ],
-          "properties": {
-            "t": {
-              "const": "delay"
-            },
-            "us": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 20000
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "t",
-            "invert"
-          ],
-          "properties": {
-            "t": {
-              "const": "polarity"
-            },
-            "invert": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "t",
-            "fs",
-            "b",
-            "a"
-          ],
-          "properties": {
-            "t": {
-              "const": "sos"
-            },
-            "fs": {
-              "const": 48000
-            },
-            "b": {
-              "type": "array",
-              "minItems": 3,
-              "maxItems": 3,
-              "items": {
-                "type": "number"
-              }
-            },
-            "a": {
-              "type": "array",
-              "minItems": 2,
-              "maxItems": 2,
-              "items": {
-                "type": "number"
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "biquadCoefficients": {
+    "weighting": {
       "type": "object",
       "required": [
-        "b",
-        "a"
+        "filters"
       ],
       "properties": {
-        "b": {
+        "filters": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "maxItems": 4,
           "items": {
-            "type": "number"
-          }
-        },
-        "a": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": {
-            "type": "number"
+            "$ref": "#/$defs/filter"
           }
         }
       },
@@ -401,12 +225,10 @@
       "type": "object",
       "required": [
         "id",
-        "weighting_biquads",
+        "weighting",
         "peak_threshold_dbfs",
-        "lookahead_ms",
         "rms_threshold_dbfs",
         "rms_tau_ms",
-        "attack_ms",
         "release_ms",
         "ceiling_dbfs"
       ],
@@ -417,23 +239,13 @@
           "maxLength": 31,
           "pattern": "^[A-Za-z0-9_-]+$"
         },
-        "weighting_biquads": {
-          "type": "array",
-          "minItems": 0,
-          "maxItems": 8,
-          "items": {
-            "$ref": "#/$defs/biquadCoefficients"
-          }
+        "weighting": {
+          "$ref": "#/$defs/weighting"
         },
         "peak_threshold_dbfs": {
           "type": "number",
           "minimum": -120,
           "maximum": 0
-        },
-        "lookahead_ms": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 2
         },
         "rms_threshold_dbfs": {
           "type": "number",
@@ -442,26 +254,18 @@
         },
         "rms_tau_ms": {
           "type": "number",
-          "minimum": 1,
-          "maximum": 10000
-        },
-        "attack_ms": {
-          "type": "number",
-          "minimum": 0.1,
-          "maximum": 1000
+          "minimum": 100,
+          "maximum": 60000
         },
         "release_ms": {
           "type": "number",
-          "minimum": 1,
-          "maximum": 10000
+          "minimum": 20,
+          "maximum": 5000
         },
         "ceiling_dbfs": {
           "type": "number",
           "minimum": -120,
           "maximum": 0
-        },
-        "subsonic_hp": {
-          "$ref": "#/$defs/biquadCoefficients"
         }
       },
       "additionalProperties": false
@@ -469,8 +273,7 @@
     "protection": {
       "type": "object",
       "required": [
-        "outputs",
-        "crc32"
+        "outputs"
       ],
       "properties": {
         "outputs": {
@@ -480,25 +283,6 @@
           "items": {
             "$ref": "#/$defs/protectedOutput"
           }
-        },
-        "shared_supply_budget": {
-          "type": "object",
-          "required": [
-            "max_normalized_sum_rms_power"
-          ],
-          "properties": {
-            "max_normalized_sum_rms_power": {
-              "type": "number",
-              "exclusiveMinimum": 0,
-              "maximum": 8
-            }
-          },
-          "additionalProperties": false
-        },
-        "crc32": {
-          "type": "string",
-          "pattern": "^[0-9A-Fa-f]{8}$",
-          "description": "CRC-32/ISO-HDLC of the protection object serialized using RFC 8785 JSON Canonicalization Scheme with crc32 omitted."
         }
       },
       "additionalProperties": false

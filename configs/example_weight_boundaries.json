@@ -15,14 +15,17 @@
           "weight": 4
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "biquad",
-          "k": "hp",
+          "type": "hp2",
           "f_hz": 30,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         }
-      ]
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
       "id": "negative_limit",
@@ -33,14 +36,17 @@
           "weight": -4
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "biquad",
-          "k": "hp",
+          "type": "hp2",
           "f_hz": 30,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         }
-      ]
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     }
   ]
 }

@@ -5,16 +5,7 @@
     "L",
     "R"
   ],
-  "pre": [
-    {
-      "channel": "L",
-      "chain": []
-    },
-    {
-      "channel": "R",
-      "chain": []
-    }
-  ],
+  "pre": [],
   "outputs": [
     {
       "id": "left_woofer",
@@ -25,24 +16,23 @@
           "weight": 1
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "biquad",
-          "k": "hp",
+          "type": "hp2",
           "f_hz": 20,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         },
         {
-          "t": "biquad",
-          "k": "lp",
+          "type": "lp2",
           "f_hz": 80,
-          "q": 0.707
-        },
-        {
-          "t": "gain",
-          "db": -3
+          "q": 0.7071,
+          "gain_db": 0
         }
-      ]
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
       "id": "right_woofer",
@@ -53,20 +43,23 @@
           "weight": 1
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "biquad",
-          "k": "hp",
+          "type": "hp2",
           "f_hz": 20,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         },
         {
-          "t": "biquad",
-          "k": "lp",
+          "type": "lp2",
           "f_hz": 80,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         }
-      ]
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
       "id": "subwoofer",
@@ -81,92 +74,60 @@
           "weight": 0.5
         }
       ],
-      "chain": [
+      "filters": [
         {
-          "t": "biquad",
-          "k": "hp",
+          "type": "hp2",
           "f_hz": 20,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         },
         {
-          "t": "biquad",
-          "k": "lp",
+          "type": "lp2",
           "f_hz": 80,
-          "q": 0.707
+          "q": 0.7071,
+          "gain_db": 0
         }
-      ]
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     }
   ],
   "protection": {
     "outputs": [
       {
         "id": "left_woofer",
-        "weighting_biquads": [],
+        "weighting": {
+          "filters": []
+        },
         "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
         "rms_threshold_dbfs": -12,
         "rms_tau_ms": 250,
-        "attack_ms": 2,
         "release_ms": 150,
         "ceiling_dbfs": -1
       },
       {
         "id": "right_woofer",
-        "weighting_biquads": [],
+        "weighting": {
+          "filters": []
+        },
         "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
         "rms_threshold_dbfs": -12,
         "rms_tau_ms": 250,
-        "attack_ms": 2,
         "release_ms": 150,
         "ceiling_dbfs": -1
       },
       {
         "id": "subwoofer",
-        "weighting_biquads": [
-          {
-            "b": [
-              0.0000153360084,
-              0.0000306720167,
-              0.0000153360084
-            ],
-            "a": [
-              -1.99155461,
-              0.991639156
-            ]
-          },
-          {
-            "b": [
-              1,
-              -2,
-              1
-            ],
-            "a": [
-              -1.99728362,
-              0.997292456
-            ]
-          }
-        ],
+        "weighting": {
+          "filters": []
+        },
         "peak_threshold_dbfs": -6,
-        "lookahead_ms": 1.5,
         "rms_threshold_dbfs": -12,
         "rms_tau_ms": 250,
-        "attack_ms": 2,
         "release_ms": 150,
-        "ceiling_dbfs": -1,
-        "subsonic_hp": {
-          "b": [
-            0.99833531,
-            -1.99667061,
-            0.99833531
-          ],
-          "a": [
-            -1.99666784,
-            0.99667338
-          ]
-        }
+        "ceiling_dbfs": -1
       }
-    ],
-    "crc32": "5512F438"
+    ]
   }
 }

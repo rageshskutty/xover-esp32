@@ -1,0 +1,36 @@
+{
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L"
+  ],
+  "outputs": [
+    {
+      "id": "lr4_lowpass",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "lp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 100,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
+    }
+  ]
+}
