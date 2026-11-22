@@ -7,70 +7,66 @@
 
 ## Context
 
-The previous protection design placed driver, amplifier, and supply models in a separately provisioned firmware block and proposed a production C response comparator. That boundary is too broad for the firmware product. It duplicates speaker-design knowledge in the device and makes driver-model fields part of the long-lived firmware contract.
-
-The speaker designer already has the appropriate domain tools and source data: VituixCAD response, driver T/S parameters, amplifier gain and clipping data, and PSU/rail information. Firmware needs only a bounded, self-contained protection block containing the calculated coefficients and abstract limits it must validate and execute.
+The speaker designer owns driver, amplifier, and supply modelling. The firmware consumes only a bounded configuration containing the exported filter parameters and abstract protection limits it must validate and execute. Driver T/S data, amplifier characteristics, PSU models, and VituixCAD project data remain designer-side inputs and must not become firmware configuration or runtime state.
 
 ## Decision
 
 ### 1. Designer/firmware trust boundary
 
-All driver and hardware modelling is designer-side. The designer tool may consume driver parameters such as Fs, Qts, Vas, Re, Le, Xmax, Pe, Sd and related fields, as well as amplifier gain, clip voltage, rail data, PSU capability, and VituixCAD results.
+The designer tool may consume driver parameters such as Fs, Qts, Vas, Re, Le, Xmax, Pe, Sd and related fields, amplifier gain and clipping data, rail data, PSU capability, and VituixCAD results.
 
-**None of those model or hardware fields may appear in firmware structures or device JSON.** They are not firmware configuration, runtime state, NVS records, validator inputs, or device API fields. The designer tool folds their consequences into the exported weighting biquads, thresholds, time constants, ceiling, optional subsonic high-pass, and optional normalized shared-supply budget.
+None of those model or hardware fields may appear in firmware structures or device JSON. The designer tool folds their consequences into exported detector weighting filters, thresholds, time constants, release, and ceiling. Firmware validates structure, finite numeric values, declared ranges, filter designability/stability, and cross-field relationships. It does not calculate driver excursion, thermal capability, amplifier clipping voltage, rail sag, watts, or driver-derived limits.
 
-The device JSON is a closed contract. The top-level `protection` object and every nested protection object use `additionalProperties: false`. Unknown fields—including T/S parameters, amplifier fields, PSU fields, and future model extensions—are rejected. A protection block containing `Qts`, `Vas`, `Xmax`, `Re`, or similar data is invalid. The complete candidate is rejected and outputs remain muted.
-
-Firmware validates structure, numeric finiteness, declared ranges, biquad stability, coefficient/sample-rate compatibility, cross-field relationships, and CRC. It does not calculate driver excursion, thermal capability, amplifier clipping voltage, rail sag, watts, or driver-derived limits. Firmware validation is not a substitute for designer-side engineering judgement or hardware protection.
+The device JSON is a closed contract. The top-level protection object and every nested protection object use `additionalProperties: false`. Unknown fields—including T/S parameters, amplifier fields, PSU fields, and future model extensions—are rejected. A rejected candidate leaves outputs muted.
 
 ### 2. Protection block schema
 
-The normative device JSON shape is `configs/schema.json`. Each protection output is joined to exactly one configured output by `id`; IDs must be unique and the sets must match exactly. The block contains:
+The normative device JSON shape is `configs/schema.json`. Each protection output is joined to exactly one configured output by `id`; IDs must be unique and the sets must match exactly.
 
-- `weighting_biquads`: zero or more stable biquad coefficient pairs applied to the detector signal. An empty array means flat detector weighting.
+Each output protection record contains:
+
+- `weighting`: a detector-only `filters[]` list, at most four parametric filters. It applies to the peak detector path only. An empty list means flat peak weighting.
 - `peak_threshold_dbfs`: weighted peak detector threshold in dBFS.
-- `lookahead_ms`: lookahead duration, bounded to 1–2 ms in v1 (48–96 samples at 48 kHz).
-- `rms_threshold_dbfs`: weighted RMS detector threshold in dBFS.
+- `rms_threshold_dbfs`: unweighted RMS detector threshold in dBFS.
 - `rms_tau_ms`: RMS detector integration time constant.
-- `attack_ms` and `release_ms`: attenuation-control response times.
-- `ceiling_dbfs`: final per-output ceiling in dBFS.
-- `subsonic_hp` (optional): one stable biquad applied in the protection signal path before the final limiter gain stage.
-- `shared_supply_budget` (optional, protection-block level): `max_normalized_sum_rms_power`, the maximum sum of per-output RMS-squared values normalized to each output's full-scale reference. It is dimensionless, not watts. If absent, v1 uses per-output protection only.
+- `release_ms`: attenuation release time.
+- `ceiling_dbfs`: final per-output sample ceiling in dBFS.
 
-Biquad coefficients use numerator `b: [b0,b1,b2]` and denominator `a: [a1,a2]`, representing `(b0+b1*z^-1+b2*z^-2)/(1+a1*z^-1+a2*z^-2)`. The device sample rate is fixed at 48 kHz. Coefficients must be finite and stable under the firmware's existing biquad stability contract.
+The weighting filter entries use the same parametric filter representation as output chains: `type`, `f_hz`, `q`, and `gain_db`. The permitted filter types and numeric bounds are defined by the schema. The protection record does not contain `lookahead_ms`, `attack_ms`, `subsonic_hp`, or a protection `crc32`.
 
-The protection object carries `crc32`: eight hexadecimal digits containing CRC-32/ISO-HDLC over the protection object with the `crc32` member omitted, serialized using RFC 8785 JSON Canonicalization Scheme (UTF-8). Any mismatch rejects the complete candidate. The CRC detects accidental corruption; it is not authentication or a trust mechanism.
+The output chain is designer-authored as a bounded `filters[]` list. Firmware expands the parametric filters into biquad sections once during configuration load; the real-time audio path does not design filters.
 
-The worked 2.1 example in `configs/example_2way_sub.json` demonstrates two flat-weighted main outputs and a subwoofer with its detector weighting expressed as two biquads, plus an optional subsonic HP. Its numeric limits and coefficients are synthetic schema examples only—not sourced, approved, or safe for any particular driver, amplifier, PSU, or speaker. Do not flash the example to connected hardware.
+The A/B configuration slot CRC (T20) is the integrity mechanism for stored configuration bytes. Do not add a second protection-object CRC or require JSON canonicalization for protection integrity.
 
-### 3. Signal-path and limiter contract
+The worked example contains synthetic limits and coefficients only. They are not sourced, approved, or safe for any particular driver, amplifier, PSU, or speaker. Do not flash the example to connected hardware.
+
+### 3. Signal path and limiter contract
 
 For every output, the mandatory order is:
 
-1. input mix and optional input pre-chain;
-2. user-authored DSP chain, including user PEQ and gain;
-3. optional protection subsonic high-pass;
-4. weighted peak and RMS detection in parallel with the audio path;
-5. attenuation-only limiter gain and final ceiling enforcement;
-6. system ramp/mute and output.
+1. input mix;
+2. the ordered user-authored output filter stack and output gain/polarity/delay;
+3. protection detection in parallel with the signal path;
+4. lookahead attenuation and final ceiling clamp;
+5. system ramp/mute and output.
 
-The limiter is the final signal-processing stage after user PEQ and gain. Detection uses the configured weighting biquads and may request attenuation only. The limiter gain must never exceed unity and must never increase a signal level. The final sample invariant is `abs(y[n]) <= 10^(ceiling_dbfs/20)` for every output sample.
+The protection stage receives the signal after the crossover has already band-limited it. The RMS detector therefore operates on that unweighted signal. Do not apply detector weighting to the thermal RMS estimate. The configured weighting filters are used only by the peak detector.
 
-Lookahead is 1–2 ms at 48 kHz, i.e. 48–96 samples. The limiter's attenuation changes must ramp smoothly using the existing T18 ramp executor; do not introduce a second ramp implementation. Preserve T18's per-sample executor bound of `0.0011f`. The attack/release controls shape detector/control behavior; they do not authorize gain above unity or bypass the ceiling.
+The limiter uses a fixed 1 ms lookahead window (48 samples at 48 kHz). Its attenuation is applied across that lookahead window; it does not reuse the T18 S7 ramp as its attack mechanism. S7 is reserved for mute, configuration swap, and user gain transitions. The limiter's final hard clamp at `ceiling_dbfs` is the last-resort enforcer of the sample invariant:
 
-A protection block is mandatory for activation. Boot, reset, invalid/missing block, CRC failure, failed validation, or incomplete output coverage leaves the hardware muted. Output may be enabled only after the complete configuration and protection block validate and the DSP owner has installed the corresponding runtime state at a safe boundary.
+`|y[n]| <= 10^(ceiling_dbfs/20)`
+
+The limiter gain is attenuation-only: it must never exceed unity or increase signal level. The 1 ms lookahead and attack are a fixed implementation contract, not configurable JSON fields. Release remains configurable. The final hard clamp must remain effective even if the detector or lookahead attenuation path is late or otherwise insufficient.
+
+A protection record is mandatory for activation. Boot, reset, invalid/missing protection, failed validation, or incomplete output coverage leaves hardware muted. Output may be enabled only after the complete configuration validates and the DSP owner installs the corresponding runtime state at a safe boundary.
 
 ### 4. Static response oracle and retired production comparator
 
-Retire the production C comparator and its API (the former Gate 3). There is no firmware C comparator contract, no public comparator header, and no comparator task in this repository. Retire the former T/S-derived protection gates, including Gate 5 (sourced driver data), from firmware scope. They belong to designer-tool scope.
+Retire the production C comparator and its API. There is no firmware C comparator contract, public comparator header, or comparator task in this repository. Driver-model and T/S-derived protection gates belong to the designer tool.
 
-Keep the independent SciPy oracle as:
-- a designer-side margin report that evaluates exported protection weighting and the user signal chain against designer-provided response/limit data; and
-- a test oracle for C biquad and limiter numerical behavior, including coefficient response, detector weighting, attenuation, lookahead, and ceiling vectors.
+Keep the independent SciPy chain-response oracle and its deterministic vectors for checking parametric filter response. The oracle is not a firmware runtime dependency and does not establish physical loudspeaker safety. Its inputs must not require driver T/S, amplifier, or PSU model records.
 
-The oracle is not a firmware runtime dependency and is not a production C comparator. Its inputs must be limited to abstract exported coefficients/limits and synthetic or designer-side reference vectors. Driver T/S, amplifier, and PSU model records must not be required by firmware tests or embedded in firmware oracle fixtures.
-
-No phase-cancellation credit may be used in conservative multi-input margin reporting. Out-of-range or non-finite oracle inputs are errors; the oracle does not manufacture driver or amplifier facts. Any designer-side margin is a report to the speaker designer, not a firmware decision that proves a physical loudspeaker safe.
+No phase-cancellation credit may be used in conservative multi-input margin reporting if such designer-side reporting is retained. Out-of-range or non-finite oracle inputs are errors; the oracle does not manufacture driver or amplifier facts. Any designer-side margin is a report to the speaker designer, not a firmware decision that proves a physical loudspeaker safe.
 
 ### 5. Hardware safety is independent
 
@@ -84,16 +80,14 @@ A software ceiling does not protect against firmware faults, DAC/amp DC faults, 
 
 ## Consequences and implementation sequence
 
-- Update the device schema and worked example to this contract before implementing firmware.
-- Remove or relocate driver-model files, T/S fields, amplifier/PSU data, and T/S-derived oracle inputs during the Step-2 repository cleanup. They belong in the designer-tool repository, not firmware.
-- Reconcile ADR 0008, 0010, and 0013 and all requirements/task-card text against this ADR; no parallel legacy protection authority may remain.
-- The Step-2 rework must generate task cards from this contract rather than maintain repeated hand-edited contract fragments.
-- The next firmware implementation order is: protection validator (including CRC and stable biquads), weighted peak/RMS detector, lookahead limiter, then mandatory output-chain wiring. Each component requires unit tests against the independent SciPy oracle.
+- Migrate the schema, example, and guardrail validator together to the frozen parametric-filter contract.
+- Remove the obsolete protection comparator, curve-knot oracle, and their task-card authority. Keep the SciPy chain-response oracle and vectors.
+- Generate task cards from the schema rather than maintain repeated hand-edited contract fragments.
+- The firmware implementation sequence is: configuration validator and filter expansion, peak/RMS detector, fixed-lookahead limiter with final clamp, then mandatory output-chain wiring. Each component requires host tests against the relevant numerical oracle.
 - The 2.1 hardware bench slice follows only after the contract, implementation tests, hardware mute/DC/fuse provisions, and selected target memory budget are reviewed.
 
 ## Open decisions requiring explicit approval
 
-- Whether the optional shared-supply budget is included in the first 2.1 deployment; per-output limits remain sufficient when it is omitted.
 - Exact ESP32-S3 module and verified memory budget.
 - Final numeric protection limits and coefficients for each real output, supplied by the designer tool from sourced data and reviewed by the owner.
 - Hardware mute GPIO, DC-blocking implementation, fuse/PTC selection, and bench measurements.
