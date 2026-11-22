@@ -5,3 +5,6 @@ Planned: create a tested template/converter for exporting biquad coefficients in
 - `coverage_gate.py`: G2 gate, fails if line coverage of `firmware/components/dspblocks`
   is below 90 %. Run after a `--coverage` host build and `ctest` (see the
   `host-coverage` job in `.github/workflows/ci.yml`). Stdlib only, needs `gcov`.
+- `lookahead_screen.py`: HOST-SCREENING of limiter lookahead and attack against
+  excursion overshoot (ADR 0014 section 3). Prints a table; not a gate. Needs
+  numpy and scipy (`tools/requirements.txt`).
