@@ -1,33 +1,192 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "basis": {
     "repository": "rageshskutty/xover-esp32",
-    "base_branch": "main",
-    "base_commit": "cd2ae0d598fe7c414f4d128655083b0ffc5ec57d",
-    "inspected_at": "2026-11-18",
-    "verification": "REMOTE_SOURCE_INSPECTION_ONLY; no local checkout/build/hardware"
+    "base_branch": "architecture/7b-executable-engineering-plan",
+    "base_commit": "d8ce744e06edf0c05a50734d7e2ec13c764cebf2",
+    "inspected_at": "2026-11-19",
+    "verification": "REMOTE_GITHUB_SOURCE_INSPECTION; latest cleanup commits 622cc05044, 0a9535df38, and e6c35a80ad each passed GitHub Actions (guardrails, host-tests including C-vs-SciPy and protection oracle, host-sanitizers, host-coverage); no local test execution; hardware and safety contract remain unverified"
   },
   "active_task": null,
+  "decisions": [
+    {
+      "id": "ADR-0007",
+      "status": "superseded",
+      "approval": "superseded for product architecture by ADR-0012; retained for graph history"
+    },
+    {
+      "id": "ADR-0008",
+      "status": "proposed",
+      "approval": "human safety review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0009",
+      "status": "planning-accepted",
+      "approval": "hardware measurement required"
+    },
+    {
+      "id": "ADR-0010",
+      "status": "proposed",
+      "approval": "human safety review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0011",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0012",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
+    },
+    {
+      "id": "ADR-0013",
+      "status": "proposed",
+      "approval": "human review and CODEOWNERS approval required"
+    }
+  ],
   "items": [
-    {"id":"T06b1","state":"done","depends_on":[],"evidence":"Merged in main; current baseline."},
-    {"id":"T07a","state":"queued","depends_on":["T06b1"],"human_decisions":[]},
-    {"id":"T07b","state":"blocked","depends_on":["T07a"],"human_decisions":["protection record schema/limits owner review"]},
-    {"id":"T08a","state":"blocked","depends_on":["T06b1"],"human_decisions":["D1 module flash/PSRAM","D2 IDF version","D4 GPIO map","D5 PCM5122 board/straps","D6 protection limits"]},
-    {"id":"T08b","state":"blocked","depends_on":["T08a","T07b"],"human_decisions":["verified board pins/slots/registers and safe limits"]},
-    {"id":"T09a","state":"blocked","depends_on":["T06b1","accepted graph runtime API ADR"],"human_decisions":["review/freeze graph runtime API and arena sizing contract"]},
-    {"id":"T09b","state":"blocked","depends_on":["T09a","T07b","T08b","block-size/timing ADR"],"human_decisions":["resolve timing measurement definition and deadline margin"]},
-    {"id":"T10a","state":"blocked","depends_on":["T09b"],"human_decisions":["D2 IDF","D3 Arduino pairing","D8 source scope"]},
-    {"id":"T10b","state":"blocked","depends_on":["T10a","T09b","T08b"],"human_decisions":["approved source/dependency"]},
-    {"id":"T11","state":"blocked","depends_on":["T07b","T09a","T09b","T08a"],"human_decisions":["IDF/pin and NVS owner decisions"]},
-    {"id":"T12","state":"blocked","depends_on":["T11","T09a"],"human_decisions":["T11/T09a completion"]},
-    {"id":"T13","state":"blocked","depends_on":["T03","T04"],"human_decisions":["VituixCAD version/input vector"]},
-    {"id":"T14","state":"blocked","depends_on":["T08b","T10b","T11","T12","T13"],"human_decisions":["human hardware bring-up log"]},
-    {"id":"T15","state":"blocked","depends_on":["T14"],"human_decisions":["D7 license","all measured gates"]}
+    {
+      "id": "T07a1",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a2",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a3",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a4",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a5",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07a6",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T07b",
+      "state": "blocked",
+      "depends_on": [],
+      "human_decisions": [
+        "human safety review and CODEOWNERS approval of ADR 0008/0010/0012/0013",
+        "owner-approved protected block derivation and per-output limit curves",
+        "frozen comparator numeric conventions, dimensions, memory bound, and C interface",
+        "human-approved driver/amplifier/supply data and provisioning process"
+      ]
+    },
+    {
+      "id": "T08",
+      "state": "blocked",
+      "depends_on": [],
+      "human_decisions": [
+        "board/model/memory",
+        "IDF version",
+        "pins",
+        "DAC address/straps/registers",
+        "slot map",
+        "protection limits"
+      ]
+    },
+    {
+      "id": "T09",
+      "state": "retired",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T10-T15",
+      "state": "blocked",
+      "depends_on": [
+        "T07b",
+        "T08",
+        "T09-chain"
+      ],
+      "human_decisions": [
+        "dependency/license/source scope",
+        "target evidence and human bring-up"
+      ]
+    },
+    {
+      "id": "PRESTEP4-3",
+      "state": "ci_verified",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "PRESTEP4-4",
+      "state": "blocked",
+      "depends_on": [
+        "PRESTEP4-3"
+      ],
+      "human_decisions": [
+        "human/CODEOWNERS approval or rejection of proposed numerical conventions in docs/engineering/protection-numerical-contract-proposal.md",
+        "selected target module and verified memory budget; freeze maximum combined grid and response storage",
+        "reviewed exact dspchain_protect.h structs, pointer/length rules, ownership, dimensions, and function signature",
+        "human safety review and CODEOWNERS approval of ADRs 0008/0010/0012/0013",
+        "owner-approved protected-block derivation and real per-output limit curves, supported by cited driver/amplifier/supply evidence"
+      ]
+    },
+    {
+      "id": "STEP4",
+      "state": "blocked",
+      "depends_on": [
+        "PRESTEP4-4",
+        "T07b"
+      ],
+      "human_decisions": [
+        "human safety review and CODEOWNERS approval"
+      ]
+    },
+    {
+      "id": "T09-chain",
+      "state": "blocked",
+      "depends_on": [
+        "ADR-0012",
+        "ADR-0013"
+      ],
+      "human_decisions": [
+        "reviewed dspchain component contract: execution-table layout, bounded memory, ownership, response API, and DSP-task processing"
+      ]
+    }
   ],
-  "critical_conflicts": [
-    {"id":"C1","description":"docs/design.md specifies a 64-frame period (1.333 ms at 48 kHz); PLAN G4 gives p99.9 <=0.60 ms and max <=1.00 ms, apparently execution-time limits. Define measurement boundaries and deadline margin before runtime timing work."},
-    {"id":"C2","description":"Config/schema lists Bessel while device compilation rejects it as E_UNSUPPORTED; preserve rejection until normalization/implementation decision."},
-    {"id":"C3","description":"Repo says three PCM5122 on TDM, but pins/addresses/slot mapping and exact IDF/TDM driver compatibility are not confirmed."}
-  ],
-  "completion_record": null
+  "completion_record": null,
+  "migration": {
+    "architecture": "chain-per-output v1 (ADR 0012/0013)",
+    "legacy_graph_cards": "T07a1-T07a6 retired; archived for history only, not executable or queued",
+    "step3_schema": {
+      "state": "CI_VERIFIED",
+      "files": [
+        "configs/schema.json",
+        "configs/example_2way_sub.json",
+        "configs/example_lr_difference.json",
+        "configs/example_weight_boundaries.json",
+        "configs/invalid/*.json",
+        "configs/legacy/example_2way_sub.json",
+        "host/tests/test_graph_validate.c",
+        "tools/check.py"
+      ],
+      "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
+      "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
+    },
+    "pre_step4": "PRESTEP4-1/2/3 and documentation reconciliation are CI_VERIFIED through commit e6c35a80ad. ADR 0013 now agrees that auto_trim is disabled in chain v1; ADR 0010 distinguishes the Python reference oracle from the unimplemented C comparator; docs/PLAN.md labels legacy graph-era task cards retired. PRESTEP4-4 remains BLOCKED on explicit human safety/numeric approval, target memory and C-interface freeze, and owner-approved protected data. Do not start Step 4 until these gates are closed."
+  }
 }

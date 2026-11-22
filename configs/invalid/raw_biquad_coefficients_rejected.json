@@ -1,0 +1,40 @@
+{
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L"
+  ],
+  "outputs": [
+    {
+      "id": "raw_coefficients",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "biquad",
+          "f_hz": 1000,
+          "q": 0.7,
+          "gain_db": 0,
+          "b": [
+            1,
+            0,
+            0
+          ],
+          "a": [
+            -2,
+            1.2
+          ]
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
+    }
+  ],
+  "_expect": "E_SCHEMA"
+}

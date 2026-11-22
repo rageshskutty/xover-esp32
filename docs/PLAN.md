@@ -1,5 +1,26 @@
 # PLAN
 
+> **STATUS: RETIRED LEGACY PLAN — NOT AN EXECUTABLE TASK LIST**
+>
+> This file describes the former graph/DAG task sequence (including T04,
+> T06, and T07) and is retained for historical context only. It is
+> superseded for current product architecture and task sequencing by
+> ADRs 0012/0013 and `docs/engineering/task_state.json`. Do not assign,
+> execute, or generate 7B task cards from the legacy T00–T15 cards below.
+> In particular, the old graph-based T06/T07/T09 instructions are retired.
+>
+> Current work is on `work/pre-step4-cleanup`. Step 4 remains blocked until
+> PRESTEP4-4 numerical-contract approval, target memory/interface freeze,
+> protected-block provisioning evidence, and human safety/CODEOWNERS review.
+> See `docs/engineering/protection-numerical-contract-proposal.md` and
+> `docs/engineering/task_state.json` for the current gate state.
+>
+> The old G0–G6 criteria are not proof that the chain-v1 architecture has
+> been implemented or qualified. Do not use their historical task IDs or
+> acceptance criteria as current authority.
+>
+> ---
+>
 Rules for working on this plan are in AGENTS.md. Design is in docs/design.md,
 contracts in docs/api.md. Take the lowest-numbered unblocked task. One task =
 one branch = one PR.

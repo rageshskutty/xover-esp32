@@ -1,199 +1,133 @@
 {
-  "version": 1,
-  "sample_rate_hz": 48000,
-  "vars": {
-    "sub_xo": 80
-  },
-  "limits": {
-    "sub_xo": {
-      "min": 70,
-      "max": 120
-    }
-  },
-  "nodes": [
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "pre": [],
+  "outputs": [
     {
-      "id": "in_l",
-      "type": "input",
-      "channel": 0
+      "id": "left_woofer",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
-      "id": "in_r",
-      "type": "input",
-      "channel": 1
+      "id": "right_woofer",
+      "slot": 1,
+      "in": [
+        {
+          "channel": "R",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     },
     {
-      "id": "l_sub_hp",
-      "type": "crossover",
-      "mode": "highpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": "@sub_xo"
-    },
-    {
-      "id": "r_sub_hp",
-      "type": "crossover",
-      "mode": "highpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": "@sub_xo"
-    },
-    {
-      "id": "l_woofer_lp",
-      "type": "crossover",
-      "mode": "lowpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": 2400
-    },
-    {
-      "id": "l_tweeter_hp",
-      "type": "crossover",
-      "mode": "highpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": 2400
-    },
-    {
-      "id": "r_woofer_lp",
-      "type": "crossover",
-      "mode": "lowpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": 2400
-    },
-    {
-      "id": "r_tweeter_hp",
-      "type": "crossover",
-      "mode": "highpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": 2400
-    },
-    {
-      "id": "l_tweeter_gain",
-      "type": "gain",
-      "db": 0
-    },
-    {
-      "id": "r_tweeter_gain",
-      "type": "gain",
-      "db": 0
-    },
-    {
-      "id": "sub_sum",
-      "type": "mix",
-      "gains": [
-        0.5,
-        0.5
-      ]
-    },
-    {
-      "id": "sub_lp",
-      "type": "crossover",
-      "mode": "lowpass",
-      "family": "Linkwitz-Riley",
-      "order": 4,
-      "frequency_hz": "@sub_xo"
-    },
-    {
-      "id": "out_l_woofer",
-      "type": "output",
-      "slot": 0
-    },
-    {
-      "id": "out_l_tweeter",
-      "type": "output",
-      "slot": 1
-    },
-    {
-      "id": "out_r_woofer",
-      "type": "output",
-      "slot": 2
-    },
-    {
-      "id": "out_r_tweeter",
-      "type": "output",
-      "slot": 3
-    },
-    {
-      "id": "out_sub_a",
-      "type": "output",
-      "slot": 4
-    },
-    {
-      "id": "out_sub_b",
-      "type": "output",
-      "slot": 5
+      "id": "subwoofer",
+      "slot": 2,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 0.5
+        },
+        {
+          "channel": "R",
+          "weight": 0.5
+        }
+      ],
+      "filters": [
+        {
+          "type": "hp2",
+          "f_hz": 20,
+          "q": 0.7071,
+          "gain_db": 0
+        },
+        {
+          "type": "lp2",
+          "f_hz": 80,
+          "q": 0.7071,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": 0,
+      "polarity": 1,
+      "delay_samples": 0
     }
   ],
-  "edges": [
-    [
-      "in_l",
-      "l_sub_hp"
-    ],
-    [
-      "l_sub_hp",
-      "l_woofer_lp"
-    ],
-    [
-      "l_woofer_lp",
-      "out_l_woofer"
-    ],
-    [
-      "l_sub_hp",
-      "l_tweeter_hp"
-    ],
-    [
-      "l_tweeter_hp",
-      "l_tweeter_gain"
-    ],
-    [
-      "l_tweeter_gain",
-      "out_l_tweeter"
-    ],
-    [
-      "in_r",
-      "r_sub_hp"
-    ],
-    [
-      "r_sub_hp",
-      "r_woofer_lp"
-    ],
-    [
-      "r_woofer_lp",
-      "out_r_woofer"
-    ],
-    [
-      "r_sub_hp",
-      "r_tweeter_hp"
-    ],
-    [
-      "r_tweeter_hp",
-      "r_tweeter_gain"
-    ],
-    [
-      "r_tweeter_gain",
-      "out_r_tweeter"
-    ],
-    [
-      "in_l",
-      "sub_sum"
-    ],
-    [
-      "in_r",
-      "sub_sum"
-    ],
-    [
-      "sub_sum",
-      "sub_lp"
-    ],
-    [
-      "sub_lp",
-      "out_sub_a"
-    ],
-    [
-      "sub_lp",
-      "out_sub_b"
+  "protection": {
+    "outputs": [
+      {
+        "id": "left_woofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "right_woofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      },
+      {
+        "id": "subwoofer",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "rms_threshold_dbfs": -12,
+        "rms_tau_ms": 250,
+        "release_ms": 150,
+        "ceiling_dbfs": -1
+      }
     ]
-  ]
+  }
 }

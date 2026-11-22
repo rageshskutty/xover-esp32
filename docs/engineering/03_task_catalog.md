@@ -1,194 +1,89 @@
-# Micro-task catalog
+# 7B execution catalog (planning iteration 2)
 
-## Execution rule
-This catalog begins at the verified main state T06b1, commit `cd2ae0d598fe7c414f4d128655083b0ffc5ec57d`. It supplements `docs/PLAN.md`; it does not reopen completed DSP math/config tasks. Execute only the earliest unblocked task in `task_state.json`. One task = one branch/PR, <=400 changed lines excluding generated/golden data. No unrelated files. If acceptance exposes a contract conflict, stop and report; do not implement an interpretation.
+**Authority for this architecture iteration:** ADR 0012 (chain-per-output), ADR 0013 (protected block and limiter authority), ADR 0008 (protection curves), ADR 0010 (protection comparator seam), plus frozen `dspblocks` headers and `docs/api.md`. The graph-oriented T07a1–T07a6 cards below are historical planning material and are not executable under chain v1; they must be replaced by chain-response cards before implementation. If a card disagrees with an ADR/header, stop and report; never edit the interface.
+**Baseline:** this catalog originated from `architecture/7b-executable-engineering-plan` at `d8ce744e06edf0c05a50734d7e2ec13c764cebf2`. The current product architecture is chain-per-output; graph-runtime tasks are retired. No chain executor or protection evaluator is implemented.
+**Card sizing:** one card changes one behavior in one module. Target 30–80 handwritten production LOC; tests/golden data and generated files excluded. If estimation exceeds 80 production LOC, split before coding. All cards require test-first execution inside the same reviewable change: add the exact assertions, run and record the expected failing baseline, implement, rerun. Do not submit a red branch as complete.
 
-## Common required task fields
-Every card provides objective, context, dependencies, exact files, implementation specification, API contract, constraints, acceptance criteria, tests, build verification, regression requirements, and completion report. Unless overridden, build commands are `python tools/check.py`; `cmake -S host -B host/build -DCMAKE_BUILD_TYPE=Release`; `cmake --build host/build`; `ctest --test-dir host/build --output-on-failure`. Report actual output or UNVERIFIED. Update progress state and related docs in the same PR.
+## Required completion evidence (every card)
+List exact files changed, production LOC count, test names, command lines and exit codes, first-fail evidence before implementation, final test output, diff summary, and any deviations. Run `python tools/check.py`, host build and CTest. Run sanitizer host suite when the card touches parsing/graph math. Hardware results are UNVERIFIED unless an owner records them in bringup-log.md. No golden regeneration to make a failure pass.
 
-## Cards
+## Retired graph-era protection cards (T07a1–T07a6)
 
-### T07a — Pure protection response evaluator
-**Objective:** implement deterministic config-level protection evaluation independent of the future runtime graph.  
-**Context:** design.md §6 defines output response and device records; T06b1 has JSON validation/node compile, no runtime graph.  
-**Dependencies:** T06b1; protection schema review is required before final record fields are frozen.  
-**Files:** `firmware/components/dspgraph/{dspgraph_protect.c,internal/dspgraph_protect.h,CMakeLists.txt}`, `host/tests/test_protect.c`, `host/CMakeLists.txt`, `docs/api.md`, one ADR.  
-**Implementation:** parse validated config on core 0; walk bounded DAG/topological order and calculate complex response for each input→output including cascades/mix, on bounded 1054-point log grid. Compare to immutable supplied records. Missing/corrupt records fail closed; no actual driver thresholds are introduced.  
-**API:** ADR-freeze pure interface e.g. `dspg_check_protection(const char *json,size_t len,const dspg_protect_record_t *records,size_t n,dspg_report_t *report)`; no `dspg_t` dependency.  
-**Constraints:** core 0 only; no NVS writes, no RT code, preserve v1 config and current errors.  
-**Acceptance:** every protected output is evaluated; invalid record and violated limits rejected as E_PROTECT (or agreed record error); limits cannot be widened by upload; calculation is bounded and deterministic.  
-**Tests:** analytical safe/fail curves, band edges, peak gain, fanout/mix, missing/corrupt record and all invalid fixtures.  
-**Build:** common host checks plus sanitizer build/CTest.  
-**Regression:** G2/G3 and golden vectors unchanged.  
-**Completion report:** changed paths, math/reference, test output, unresolved human-supplied values.
+These cards are retained in Git history only. They specify graph-era APIs and dependencies that do not exist in chain-per-output v1. They are not queued, blocked implementation work, and must not be used as 7B instructions. In particular, do not implement `dspg_protect_check`, `dspg_protect_record_valid`, `dspg_protect_grid`, or `dspg_node_response` from these cards. A replacement chain-v1 protection plan requires a reviewed numerical contract and oracle before cards are authored.
 
-### T07b — Protection persistence and provisioning boundary
-**Objective:** runtime can read protection state; only serial provisioning can write.  
-**Context:** protection is safety authority, separate from user config.  
-**Dependencies:** T07a, owner-reviewed record schema, D1/D2.  
-**Files:** new `firmware/components/protection/*`, serial tool under `tools/`, `docs/{api.md,questions.md,bringup-log.md}`, firmware CMake.  
-**Implementation:** version/CRC/range validation; absent or corrupt record → muted; read-only runtime API; no web/config mutation path.  
-**API:** ADR freeze `protection_load` and `protection_validate`; provisioning transport offline serial-only.  
-**Constraints:** S1-S7; no guessed hardware/limit values.  
-**Acceptance:** absent/corrupt state cannot transition RUNNING; valid test record is owner-provided.  
-**Tests:** host storage adapter cases missing/corrupt/valid/rejected; target read-only boot check.  
-**Build:** common + pinned IDF when D2 is resolved.  
-**Regression:** G3, all host tests.  
-**Completion report:** record format, access boundary, evidence and human inputs.
+## T07b — Protection storage and provisioning
+**State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
 
-### T08a — Board/build decision closure
-**Objective:** make the target build reproducible without invented facts.  
-**Context:** current tree has no board_config.h; defaults assume 8MB and leave PSRAM off.  
-**Dependencies:** D1, D2, D4, D5, D6 from human.  
-**Files:** `firmware/main/board_config.h`, `firmware/Kconfig.projbuild`, `.github/workflows/ci.yml`, `docs/{hw-pinmap.md,questions.md,bringup-log.md}`.  
-**Implementation:** source every pin/address/board value from owner/cited datasheet; unset macros fail compile; pin IDF; add target CI build.  
-**API:** named compile-time board config only.  
-**Constraints:** no driver behavior; no main changes; preserve host CI.  
-**Acceptance:** removing any required value fails clearly; target skeleton builds for declared module.  
-**Tests:** negative compile test and target CI.  
-**Build:** pinned `idf.py build`.  
-**Regression:** host workflow unchanged and passing.  
-**Completion report:** exact IDF/module citations and build output.
+## T08 — Board and DAC integration
+**State:** human-blocked. Board model, module memory, IDF version, pin map, PCM5122 addressing/straps/registers, slot mapping and safety limits are not in the repository as verified facts. No 7B coding card until human evidence is recorded.
 
-### T08b — TDM output and DAC-safe bring-up
-**Objective:** implement DAC/I2S output after all board decisions.  
-**Context:** tdmout/pcm5122 are stubs; 8×32/48k is design intent only.  
-**Dependencies:** T08a,T07b.  
-**Files:** `firmware/components/{pcm5122,tdmout}/*`, hardware tests/docs.  
-**Implementation:** configure I2S TDM, six mapped outputs, hardware mute and safe startup based only on verified board record.  
-**API:** ADR freezes `tdmout_init/start/write_block/stop/mute`, `pcm5122_init/set_hardware_mute`; see `05_proposed_module_interfaces.md`.  
-**Constraints:** no guessed offsets/addresses/registers; <=-30dBFS; amps/speakers disconnected.  
-**Acceptance:** three DACs detected, clocks within existing G1 tolerance, six distinct tones, crosstalk and ramp gates pass.  
-**Tests:** host packing test and human hardware log.  
-**Build:** target build then bench protocol.  
-**Regression:** G1 and host.  
-**Completion report:** board, slot mapping, captures/meters, safety cap.
+## T09 — Graph runtime (retired)
 
-### T09a — Runtime graph execution and bounded memory
-**Objective:** execute validated DAG on host/target using bounded preallocated memory.  
-**Context:** current public graph API validates only; validated-node compile exists.  
-**Dependencies:** T06b1 and accepted opaque graph/arena API ADR.  
-**Files:** dspgraph runtime source/internal headers/CMake, public header, host tests, docs/api and ADR.  
-**Implementation:** topological execution plan, slots 0..7, two input channels, eight outputs, correct per-node/per-channel state; measure exact arena need before build; reject undersized arena before publication.  
-**API:** follow `05_proposed_module_interfaces.md` only after ADR; `dspg_process` fixed max frames, no allocations.  
-**Constraints:** no JSON/design/heap/logging/locks in RT; no public ABI drift without ADR.  
-**Acceptance:** deterministic output routing and defined alias policy; no shared channel state; teardown only after quiescence.  
-**Tests:** chain, fanout, mix, each node, memory exhaustion, channel independence and golden graph.  
-**Build:** common host commands, sanitizers, coverage.  
-**Regression:** G2/G3.  
-**Completion report:** worst path sections, arena bytes and tests.
+**State:** retired with the graph/DAG architecture by ADR 0012. Do not create graph runtime tasks from ADR 0007 or the old graph task bundle.
 
-### T09b — Core-1 runtime, ring and swap lifecycle
-**Objective:** integrate DSP worker, SPSC ring, mute state and safe graph generation swaps.  
-**Context:** source and executor absent; 64-frame period versus execution-time measurement definition is unresolved.  
-**Dependencies:** T09a,T07b,T08b and accepted timing ADR.  
-**Files:** new runtime/task, audiosrc, CMake, tests and design/API docs.  
-**Implementation:** fixed block pacing; SPSC only; generation handoff; retire graph only after task acknowledgment; underrun/overrun counters; non-finite output muted and fault-counted.  
-**API:** freeze runtime lifecycle/ring APIs in ADR.  
-**Constraints:** AGENTS R1-R6/S2/S7, no core-crossing lock, resolve 64-frame conflict first.  
-**Acceptance:** p99.9 <=0.60ms/max<=1.00ms 1h Wi-Fi, zero underruns (current PLAN targets, after timing ADR).  
-**Tests:** host ring/state stress; target timing instrumentation.  
-**Build:** common + pinned target build.  
-**Regression:** G4.  
-**Completion report:** block length, timing distribution, section count, SRAM/stack and evidence.
+## Chain runtime contract (future work; not Step 4)
 
-### T10a — Audio-source compatibility spike
-**Objective:** decide decoder/source integration before adding framework.  
-**Context:** docs/audio-source proposes ESP32-audioI2S hook but revision, license, pairing, pacing and memory are unresolved.  
-**Dependencies:** D2,D3,D8 and T09b.  
-**Files:** docs/audio-source, small build spike, manifest and ADR.  
-**Implementation:** pin revision; build exact callback; evaluate license, IDF/Arduino compatibility, task/core, pacing/backpressure, RAM/PSRAM, supported format and 48k output; reject with evidence or approve.  
-**API:** retain bounded audiosrc PCM interface.  
-**Constraints:** decoder never enters DSP task; no dependency without pin/license/ADR.  
-**Acceptance:** reproducible compile and measured buffer/pacing; dependency decision recorded.  
-**Tests:** hook adaptation and short stream.  
-**Build:** clean pinned target build.  
-**Regression:** host framework-free.  
-**Completion report:** revision/license evidence, measured behavior and decision.
+The chain-per-output executor, bounded execution-table layout, memory ownership, DSP-task processing contract, and chain response API require their own reviewed component contract. They are not defined by the protection comparator. No implementation card may infer these interfaces from graph-era headers.
 
-### T10b — Approved source and endurance
-**Objective:** deliver approved source playback on core 0.  
-**Context:** decoder should feed bounded ring; DSP remains paced by output DMA.  
-**Dependencies:** T10a,T09b,T08b.  
-**Files:** audiosrc component, main integration, tests/docs.  
-**Implementation:** exact PCM conversion, ring backpressure/underrun policy, Wi-Fi/decode separation.  
-**API:** approved source lifecycle plus fixed PCM frame contract.  
-**Constraints:** pinned dependency only; no PSRAM assumption; preserve output mapping.  
-**Acceptance:** one-hour 48k approved FLAC/HTTP, zero underruns, stable internal heap (PLAN G5 target).  
-**Tests:** host conversion/ring boundaries, target endurance.  
-**Build:** common + target.  
-**Regression:** G5.  
-**Completion report:** source, duration, counters, heap and formats.
+## T10–T15 — Source, control plane, bring-up and release
 
-### T11 — Authenticated config upload and atomic persistence
-**Objective:** safely upload, validate, store and activate configuration.  
-**Context:** xoweb stub, A/B config partitions exist but flash assumption unverified.  
-**Dependencies:** T07b,T09a,T09b,T08a.  
-**Files:** xoweb, config-store component, web UI, tests/docs.  
-**Implementation:** NVS token constant-time compare; body<=32KiB/depth<=8; validate/build/protect inactive graph; inactive A/B slot write, CRC/readback, marker swap; E_BUSY; stable error codes.  
-**API:** ADR freezes route/method/body/status; no protection writes.  
-**Constraints:** no secrets logged; no audio-thread allocation; failed upload preserves previous state or stays safely muted.  
-**Acceptance:** upload <=1s target; invalid fixture code exact; power-loss selects last verified config.  
-**Tests:** host transaction adapter, auth, oversized/malformed and power-loss simulation.  
-**Build:** common + target.  
-**Regression:** G3/G5/S2/S4.  
-**Completion report:** endpoint examples, timing, flash recovery evidence.
+**State:** dependent human/architecture gates remain. Existing broad cards are retired; they are not executable work orders. Reissue them as micro-cards only after the chain runtime contract, T07b protection provisioning, and T08 board facts are reviewed and explicit per-card signatures, test inputs and expected outputs are committed. No 7B may decide external dependencies, hardware behavior, protection policy, licenses or release status.
 
-### T12 — Status and response endpoint
-**Objective:** expose read-only device state and frequency response.  
-**Context:** response evaluation already exists at DSP SOS level, not graph HTTP level.  
-**Dependencies:** T11,T09a.  
-**Files:** xoweb, docs/api, host endpoint tests.  
-**Implementation:** expose state/generation/counters/fault/config digest; calculate response on core 0 using active config/graph.  
-**API:** bounded query/response schema in ADR.  
-**Constraints:** no DSP-thread work; no token/protection leak.  
-**Acceptance:** agrees with host graph evaluation within 0.01dB; invalid/unauthorized requests rejected.  
-**Tests:** endpoint schema, bound and integration response.  
-**Build:** common + target.  
-**Regression:** G5/security.  
-**Completion report:** comparison output and endpoint fields.
+## Explicit 7B execution criteria
+Before beginning, the task bundle must give: one objective; exact paths; immutable signatures and relevant header text; exact accepted/rejected inputs; expected output values/tolerance; commands; expected baseline failure; 5 or fewer applicable rules; stop conditions. Card passes review only if:
+1. No design/API/architecture choice is deferred to implementer.
+2. Production scope is 30–80 LOC or has been split; tests excluded from this count.
+3. Every numerical assertion has a value and tolerance.
+4. Tests precede implementation and protect existing golden vectors.
+5. Host logic has no ESP-IDF/hardware dependency.
+6. Human/hardware gates are clearly blocked, never guessed.
+7. Retry protocol is bounded and output is diff-only.
 
-### T13 — VituixCAD convention proof/export
-**Objective:** resolve external coefficient/export conventions by golden evidence.  
-**Context:** design flags denominator sign and Bessel normalization VERIFY.  
-**Dependencies:** existing T03/T04; owner-provided app/version/reference vector.  
-**Files:** converter tool/fixtures/docs/design/ADR.  
-**Implementation:** prove transfer convention independently; Bessel stays E_UNSUPPORTED until owner decision.  
-**API:** versioned offline file format; no runtime ABI changes.  
-**Constraints:** do not change DSP math to match unverified convention.  
-**Acceptance:** converter fixtures match declared tolerance and reject unsupported syntax.  
-**Tests:** positive/negative round-trip vectors.  
-**Build:** tool tests + common.  
-**Regression:** preserve all existing golden behavior.  
-**Completion report:** source/version, vectors, convention decision.
+## Step 3 — Chain JSON v1 schema and semantic contract
 
-### T14 — User build, install and bring-up documentation
-**Objective:** document safe reproducible operation after implementation evidence exists.  
-**Context:** pinmap, bring-up and licensing docs currently contain unresolved entries.  
-**Dependencies:** T08b,T10b,T11,T12,T13 and human bring-up log.  
-**Files:** README and relevant docs.  
-**Implementation:** wiring only from verified pinmap; build/upload/auth/recovery/rollback/safety/known limits.  
-**API:** none.  
-**Constraints:** every claim evidence-labeled; no guessed device instructions.  
-**Acceptance:** reviewer follows safe muted boot and approved test procedure.  
-**Tests:** links/path check, tools/check.py and human dry run.  
-**Build:** common + target.  
-**Regression:** AGENTS safety language consistent.  
-**Completion report:** tested procedure and open questions.
+**State:** schema, 2.1 example, chain examples, and negative fixtures drafted on
+`architecture/chain-per-output-protection-v1`. Tool execution is still
+required before this task can be marked verified.
 
-### T15 — Release readiness/license gate
-**Objective:** establish evidence-based release readiness; no architecture rewrite.  
-**Context:** human owns license and release.  
-**Dependencies:** T14 and all G0-G6 gates.  
-**Files:** docs/licenses and release docs/workflow only if approved.  
-**Implementation:** dependency/license inventory, exact version pins, gate evidence and known limitations.  
-**API:** no API changes.  
-**Constraints:** human makes license/merge/tag decision.  
-**Acceptance:** every gate evidenced, accepted license, no blocker.  
-**Tests:** full host CI and target build; hardware report by human.  
-**Build:** clean reproducibility procedure.  
-**Regression:** all API/safety/backward-compatibility checks.  
-**Completion report:** evidence links, revisions, unresolved items; no automatic merge/tag.
+**Files:** `configs/schema.json`, `configs/example_2way_sub.json`,
+`configs/example_lr_difference.json`, `configs/example_weight_boundaries.json`, `configs/invalid/*.json`,
+`tools/check.py`, ADRs 0012/0013, `docs/design.md`, `docs/architecture.md`,
+`docs/requirements.md`, and `docs/api.md`.
 
-## Dependency order
-Parallel after baseline: T07a, T09a (after API ADR), T13 (after owner vector), T08a only after board decisions. T07b follows T07a; T08b follows T08a+T07b; T09b follows T09a+T07b+T08b+timing ADR; T10a→T10b; T11 after safety/runtime/board; T12 after T11/T09a; T14 after all operational modules; T15 after T14 and owner gates.
+**Frozen schema contract:**
+- `v=1`, `fs=48000`; top-level `inputs` is a unique non-empty subset of
+  `L,R,C,LFE,SL,SR`; optional `pre`; 1–8 outputs.
+- `pre[].channel`, each output's `in[].channel`, output `id`, and output
+  `slot` are unique in their respective scopes. All referenced channels
+  must be in `inputs`. A missing pre-chain is identity.
+- Each output has 1–8 input mix entries. Weights are finite, non-zero and
+  inclusive [-4,+4]. Negative weights are valid; protection uses absolute
+  weights.
+- Slot 0–31 is only a schema sanity range. The protected TDM slot count is
+  authoritative. Output `id` joins one-to-one with protected `out_id`.
+- Chain block forms are closed in the JSON Schema: designed biquad, gain,
+  delay, polarity, and fs-tagged SOS. PEQ alone may carry optional `role`.
+- `protect` permits optional `attack_ms`, `release_ms`, and
+  `lookahead_ms=0). Missing attack/release use protected `lim_default`;
+  out-of-bounds values return `E_LIMIT`; non-zero lookahead and any
+  threshold/ceiling/margin authority key return `E_SCHEMA`.
+- Empty `chain` passes JSON Schema but fails semantic protection with
+  `E_PROTECT`. Static response validation must prove attenuation below the
+  protected `min_freq_hz`; a non-empty chain is not automatically safe.
+- Cross-field uniqueness, channel references, protected-record joins,
+  limiter bounds/defaults, TDM slot authority, and static response checks are
+  semantic rules, not JSON Schema features.
+
+**Acceptance:** validate the schema itself; every positive config passes;
+every chain-v1 fixture under `configs/invalid/` fails with its exact `_expect`
+code. Fixtures cover declared-input membership, all uniqueness scopes,
+weight bounds/zero/negative acceptance, array bounds, version/sample-rate,
+block shape, PEQ-only role, look-ahead, designer threshold/ceiling/margin
+keys, protected record missing/unknown keys, output/protected-ID join,
+limiter bounds, unstable `x_model`, `vpk_at_0dbfs > clip_v`, protected TDM
+slot count, static sum-bound violation, missing subsonic HP, empty chain,
+and SOS sample-rate mismatch. Legacy graph fixtures remain explicitly
+excluded from the chain-v1 schema gate and continue to feed the old C
+validator regression test. Synthetic protected metadata is test-only and
+must never imply hardware-approved values. Run `python tools/check.py`, host
+build, CTest, sanitizers, and coverage; record command output.

@@ -65,7 +65,7 @@ static int run_fixture(const char *name, int invalid, dspg_report_t *rep, char *
     cJSON *root;
     const cJSON *e;
     dspg_parse_issue_t pi;
-    (void)snprintf(dir, sizeof(dir), "%s/%s", XOVER_CONFIG_DIR, invalid ? "invalid" : ".");
+    (void)snprintf(dir, sizeof(dir), "%s/%s", XOVER_CONFIG_DIR, invalid ? "legacy/invalid" : ".");
     n = load(dir, name, file_buf, sizeof(file_buf));
     if (n == 0U) {
         return -1;
@@ -131,7 +131,7 @@ int main(void)
     char many[1024];
     size_t used = 0U;
 
-    CHECK(run_fixture("example_2way_sub", 0, &rep, expect) == 0);
+    CHECK(run_fixture("legacy/example_2way_sub", 0, &rep, expect) == 0);
     CHECK(rep.n == 0U);
 
     for (size_t i = 0U; i < sizeof(REJECTED_HERE) / sizeof(REJECTED_HERE[0]); i++) {
