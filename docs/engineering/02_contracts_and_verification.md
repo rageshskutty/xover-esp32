@@ -9,7 +9,7 @@ These ADRs are proposals, not approved implementation authority. ADR 0008, ADR 0
 ## Implemented interfaces
 
 - dspblocks: see `firmware/components/dspblocks/include/dspblocks.h`. Response APIs include `dsp_sos_eval(...)` and `dsp_log_grid(...)`; both are core-0-only.
-- dspgraph: retained legacy code and tests only; it is not the product execution architecture and must not receive new graph features.
+- dspgraph: deleted (branch work/delete-dspgraph); it was legacy graph code, not the product execution architecture. Git history keeps it.
 - chain-v1 JSON: schema in `configs/schema.json`; 48 kHz, at most 64 blocks per chain, 1–8 outputs, declared input channels and ordered output chains. This is a schema/guardrail contract only; no chain compiler or runtime exists.
 
 ## Protection contract status

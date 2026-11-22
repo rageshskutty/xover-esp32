@@ -192,6 +192,6 @@
       "verification": "GitHub Actions run 44923727206 passed guardrails, host-tests, host-sanitizers, and host-coverage on commit 5c9265665583c11260e493c5d0aefa8ee18d7cf1. Host CI only; no hardware behavior or real protected data is verified.",
       "safety": "Example limiter values intentionally omitted so protected lim_default remains the sole default authority"
     },
-    "pre_step4": "Superseded by ADR 0014 and contract v1.1. The comparator, curve-knot and graph-era protection test files were removed; tools/protection_oracle.py still contains the retired curve code and must be re-pointed at the parametric filter schema in the next task."
+    "pre_step4": "Superseded by ADR 0014 and contract v1.1. The comparator, curve-knot and graph-era protection test files were removed, and the graph-era dspgraph component, its host tests, validate_cli and tools/test_validator_diff.py were deleted on work/delete-dspgraph; tools/protection_oracle.py still contains the retired curve code and must be re-pointed at the parametric filter schema in the next task."
   }
 }
