@@ -1,6 +1,6 @@
 # ADR 0014: Firmware protection contract — designer-derived limits only
 
-- Status: Proposed; requires maintainer and hardware-safety review before implementation or unmuting hardware.
+- Status: Proposed (amended 2026-11-22: contract v1.1); requires maintainer and hardware-safety review before implementation or unmuting hardware.
 - Date: 2026-11-22
 - Supersedes: the protection/comparator decisions in ADRs 0008, 0010, and 0013.
 - Applies to: device JSON, firmware validation, DSP protection execution, and the Step-4 bench slice.
@@ -27,12 +27,18 @@ Each output protection record contains:
 
 - `weighting`: a detector-only `filters[]` list, at most four parametric filters. It applies to the peak detector path only. An empty list means flat peak weighting.
 - `peak_threshold_dbfs`: weighted peak detector threshold in dBFS.
-- `rms_threshold_dbfs`: unweighted RMS detector threshold in dBFS.
-- `rms_tau_ms`: RMS detector integration time constant.
-- `release_ms`: attenuation release time.
+- `hold_ms`: peak-hold applied to the weighted peak detector before the gain computer. The designer sets it to at least half the period of the lowest in-band frequency so the gain does not follow the waveform within a cycle.
+- `thermal`: one or two unweighted RMS detector stages, each `{rms_threshold_dbfs, rms_tau_ms}`. Stage time constants must be strictly increasing, so stage 1 models the fast (voice-coil) pole and stage 2 the slow (magnet/frame) pole. The gain reduction is the larger reduction of the stages.
+- `release_ms`: attenuation release time of the peak path. Thermal gain follows its RMS detectors directly and has no separate release.
 - `ceiling_dbfs`: final per-output sample ceiling in dBFS.
 
-The weighting filter entries use the same parametric filter representation as output chains: `type`, `f_hz`, `q`, and `gain_db`. The permitted filter types and numeric bounds are defined by the schema. Cross-field validation requires `peak_threshold_dbfs <= 0 dBFS`, `rms_threshold_dbfs <= 0 dBFS`, and `ceiling_dbfs <= 0 dBFS`. All numeric bounds, including the RMS integration and release ranges, filter frequency/Q/gain limits, and filter-count limits, are normative in `configs/schema.json`. That schema is the single source of truth; this ADR intentionally does not duplicate those values. The protection record does not contain `lookahead_ms`, `attack_ms`, `subsonic_hp`, or a protection `crc32`. Since there is no separate `subsonic_hp` field, infrasonic attenuation is entirely the speaker designer's responsibility through the exported crossover/filter design and peak-detector weighting; firmware must not imply that an independent infrasonic protection stage exists.
+**RMS reference.** `rms_threshold_dbfs` is the RMS of the normalised output samples with full scale = 1.0. A full-scale sine therefore reads -3.01 dBFS, and a full-scale square wave reads 0 dBFS. The designer must use the same reference when converting a power or voltage limit.
+
+**Links.** The optional top-level `links` is a list of groups of output IDs (2 to 8 IDs per group, at most 4 groups). Every ID must name a configured output and may appear in at most one group, once. Within a group the applied gain is the minimum (largest reduction) across the members, so linking can only attenuate more than an unlinked output would. Linking is for image stability of matched pairs; do not link different ways of one speaker.
+
+**Resource bound.** The total filter count across `pre`, output chains and detector weighting is at most 96 (`E_RESOURCE`), with at most 16 filters per list. The 96 cap is a planning value pending bench CPU measurement.
+
+The weighting filter entries use the same parametric filter representation as output chains: `type`, `f_hz`, `q`, and `gain_db`. The permitted filter types and numeric bounds are defined by the schema. Cross-field validation requires every threshold and the ceiling to be at most 0 dBFS (schema bounds), unique links, and strictly increasing thermal time constants. All numeric bounds, including the RMS integration and release ranges, filter frequency/Q/gain limits, and filter-count limits, are normative in `configs/schema.json`. That schema is the single source of truth; this ADR intentionally does not duplicate those values. The protection record does not contain `lookahead_ms`, `attack_ms`, per-detector attack fields, `subsonic_hp`, or a protection `crc32`. Since there is no separate `subsonic_hp` field, infrasonic attenuation is entirely the speaker designer's responsibility through the exported crossover/filter design and peak-detector weighting; firmware must not imply that an independent infrasonic protection stage exists.
 
 The output chain is designer-authored as a bounded `filters[]` list. An empty output `filters[]` is valid and means no user-authored filtering; it is the speaker designer's responsibility to ensure that a full-range signal is not accidentally routed to a driver (for example, a tweeter) that requires a crossover. Firmware expands the parametric filters into biquad sections once during configuration load; the real-time audio path does not design filters.
 
@@ -50,7 +56,7 @@ For every output, the mandatory order is:
 4. lookahead attenuation and final ceiling clamp;
 5. system ramp/mute and output.
 
-The protection stage receives the signal after the crossover has already band-limited it. The RMS detector therefore operates on that unweighted signal. Do not apply detector weighting to the thermal RMS estimate. The configured weighting filters are used only by the peak detector.
+The protection stage receives the signal after the crossover has already band-limited it. The RMS detectors therefore operate on that unweighted signal. Do not apply detector weighting to the thermal RMS estimate. The configured weighting filters are used only by the peak detector.
 
 The limiter uses a fixed 1 ms lookahead window (48 samples at 48 kHz). Its algorithm class is a lookahead peak limiter: delay the audio path by 48 samples; compute the required attenuation gain from the undelayed detector signal; take the minimum required gain over the corresponding 48-sample lookahead window; then smooth the applied gain so it reaches that target no later than the end of the 1 ms window. The exact gain-envelope interpolation must be deterministic and covered by host vectors. It does not reuse the T18 S7 ramp as its attack mechanism. S7 is reserved for mute, configuration swap, and user gain transitions. Required vectors cover an isolated single-sample peak, a short burst, and a sustained sine. The limiter's final hard clamp at `ceiling_dbfs` is the last-resort enforcer of the sample invariant:
 
@@ -87,6 +93,9 @@ A software ceiling does not protect against firmware faults, DAC/amp DC faults, 
 - The 2.1 hardware bench slice follows only after the contract, implementation tests, hardware mute/DC/fuse provisions, and selected target memory budget are reviewed.
 
 ## Open decisions requiring explicit approval
+
+- **Lookahead length (safety behaviour).** The fixed 1 ms value above is unchanged pending this decision. A host screening model (30 Hz full-scale burst, linear sealed-box excursion weighting, instantaneous-abs detector; not a loudspeaker simulation) showed excursion overshoot of about 3.9 dB at 1 ms lookahead/attack, 2.0 dB at 6 ms, and steady-state gain-modulation distortion of 2.3-2.8 % that fell to 0 % with a 17 ms peak-hold. The recommendation is a fixed lookahead near 6 ms with attack equal to the lookahead; confirm by the bench overshoot measurement before freezing.
+- **Where the protection block is stored and who may change it.** AGENTS.md S2-S5 describe protection limits in NVS written only by a serial provisioning tool and never overridable over the network. This ADR places the protection block in the uploaded configuration. One of the two must change. Recommended: keep one document, and accept a change to the protection block only while a serial or physical provisioning mode is active.
 
 - Exact ESP32-S3 module and verified memory budget.
 - Final numeric protection limits and coefficients for each real output, supplied by the designer tool from sourced data and reviewed by the owner.

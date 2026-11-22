@@ -14,10 +14,6 @@ The following files are present under `host/tests/` but are intentionally not re
 |---|---|---|
 | `test_app_state_machine.c` | `app_state_machine.h` | Orphaned application state-machine test |
 | `test_config_slot.c` | `config_slot.h` | Orphaned configuration-slot test |
-| `test_protect.c` | `dspgraph_protect.h` | Retired graph-era protection API |
-| `test_protect_grid.c` | `dspgraph_protect.h` | Retired graph-era protection API |
-| `test_protect_layout.c` | Protection record types from `dspgraph.h` are not present | Retired graph-era protection layout test |
-| `test_protect_record.c` | `dspgraph_protect.h` | Retired graph-era protection API |
 | `test_node_response.c` | `dspgraph_response.h` | Retired graph-era response seam |
 | `test_request_bounds.c` | `xoweb_bounds.h` | Orphaned web request-bounds test |
 | `test_s7_ramp.c` | `dsp_s7_ramp.h` | Orphaned ramp helper test |

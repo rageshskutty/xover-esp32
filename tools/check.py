@@ -8,6 +8,8 @@ import re
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# Total filters across pre-chains, output chains and detector weighting. Re-derive from bench CPU data.
+MAX_BIQUADS = 96
 
 def load(path):
     def reject_constant(value):
@@ -52,8 +54,25 @@ def semantic_errors(cfg):
             if ch in seen:
                 errs.append("E_SCHEMA: output %s repeats input channel %r" % (out.get("id"),ch))
             seen.add(ch)
+    biquads = sum(len(x.get("filters", [])) for x in pre) + sum(len(x.get("filters", [])) for x in outputs)
+    biquads += sum(len(r.get("weighting", {}).get("filters", []))
+                   for r in cfg.get("protection", {}).get("outputs", []))
+    if biquads > MAX_BIQUADS:
+        errs.append("E_RESOURCE: %d filters exceed the %d biquad budget" % (biquads, MAX_BIQUADS))
+    seen_linked = set()
+    for group in cfg.get("links", []):
+        for oid in group:
+            if oid not in ids:
+                errs.append("E_PROTECT: link references unknown output %r" % oid)
+            if oid in seen_linked:
+                errs.append("E_PROTECT: output %r appears in more than one link slot" % oid)
+            seen_linked.add(oid)
     protection=cfg.get("protection")
     if protection is not None:
+        for rec in protection.get("outputs",[]):
+            taus=[st.get("rms_tau_ms") for st in rec.get("thermal",[])]
+            if taus!=sorted(set(taus)):
+                errs.append("E_PROTECT: output %s thermal rms_tau_ms must be strictly increasing" % rec.get("id"))
         records=protection.get("outputs",[])
         record_ids=[x.get("id") for x in records]
         if len(record_ids)!=len(set(record_ids)):

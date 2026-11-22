@@ -1,0 +1,888 @@
+{
+  "_expect": "E_RESOURCE",
+  "v": 1,
+  "fs": 48000,
+  "inputs": [
+    "L",
+    "R"
+  ],
+  "pre": [],
+  "outputs": [
+    {
+      "id": "out0",
+      "slot": 0,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out1",
+      "slot": 1,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out2",
+      "slot": 2,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out3",
+      "slot": 3,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out4",
+      "slot": 4,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out5",
+      "slot": 5,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out6",
+      "slot": 6,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    },
+    {
+      "id": "out7",
+      "slot": 7,
+      "in": [
+        {
+          "channel": "L",
+          "weight": 1
+        }
+      ],
+      "filters": [
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        },
+        {
+          "type": "peq",
+          "f_hz": 1000,
+          "q": 1.0,
+          "gain_db": 0
+        }
+      ],
+      "gain_db": -3,
+      "polarity": 1,
+      "delay_samples": 0
+    }
+  ],
+  "protection": {
+    "outputs": [
+      {
+        "id": "out0",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out1",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out2",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out3",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out4",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out5",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out6",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      },
+      {
+        "id": "out7",
+        "weighting": {
+          "filters": []
+        },
+        "peak_threshold_dbfs": -6,
+        "release_ms": 150,
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
+      }
+    ]
+  }
+}

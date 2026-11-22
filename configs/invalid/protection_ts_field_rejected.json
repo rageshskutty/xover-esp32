@@ -101,11 +101,16 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
         "ceiling_dbfs": -1,
-        "Qts": 0.38
+        "Qts": 0.38,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       },
       {
         "id": "right_woofer",
@@ -113,10 +118,15 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
-        "ceiling_dbfs": -1
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       },
       {
         "id": "subwoofer",
@@ -124,10 +134,15 @@
           "filters": []
         },
         "peak_threshold_dbfs": -6,
-        "rms_threshold_dbfs": -12,
-        "rms_tau_ms": 250,
         "release_ms": 150,
-        "ceiling_dbfs": -1
+        "ceiling_dbfs": -1,
+        "thermal": [
+          {
+            "rms_threshold_dbfs": -12,
+            "rms_tau_ms": 250
+          }
+        ],
+        "hold_ms": 20
       }
     ]
   },
