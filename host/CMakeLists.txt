@@ -115,6 +115,16 @@ if(NOT MSVC)
 endif()
 add_test(NAME test_f32 COMMAND test_f32)
 
+add_library(tdm_pack STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/tdmout/tdm_pack.c
+)
+target_include_directories(tdm_pack PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/tdmout/internal
+)
+add_executable(test_tdm_pack tests/test_tdm_pack.c)
+target_link_libraries(test_tdm_pack PRIVATE tdm_pack)
+add_test(NAME test_tdm_pack COMMAND test_tdm_pack)
+
 add_executable(test_sos_response tests/test_sos_response.c)
 target_link_libraries(test_sos_response PRIVATE dspblocks)
 if(NOT MSVC)
