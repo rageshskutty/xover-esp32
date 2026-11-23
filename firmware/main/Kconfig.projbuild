@@ -1,0 +1,38 @@
+menu "xover-esp32 Configuration"
+
+    choice XOVER_BRINGUP_MODE
+        prompt "Bring-up mode"
+        default XOVER_BRINGUP_MODE_NONE
+        help
+            Select the bring-up mode for the xover-esp32 firmware.
+
+        config XOVER_BRINGUP_MODE_NONE
+            bool "NONE"
+            help
+                Mute DAC outputs, log once and idle. No audio is started.
+
+        config XOVER_BRINGUP_MODE_PINWALK
+            bool "PINWALK"
+            help
+                Pin walk test mode (Phase 2). Toggles signal pins one by one for 3 seconds.
+
+        config XOVER_BRINGUP_MODE_I2CSCAN
+            bool "I2CSCAN"
+            help
+                I2C scan test mode (Phase 5). Scans I2C bus every 2 seconds.
+    endchoice
+
+    config XOVER_BRINGUP_PINWALK_MUTE
+        bool "Include DAC mute pin in pin walk"
+        default n
+        help
+            If enabled, XOVER_PIN_DAC_MUTE_N is walked last in PINWALK mode.
+
+    config XOVER_BRINGUP_MAX_DBFS
+        int "Bring-up maximum dBFS level"
+        range -120 -30
+        default -30
+        help
+            Cap on test signal level in dBFS for bring-up audio modes.
+
+endmenu
