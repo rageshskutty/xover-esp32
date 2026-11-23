@@ -30,9 +30,13 @@ add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/blocks_rt.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_s7_ramp.c
 )
 target_include_directories(dspblocks PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/include
+)
+target_include_directories(dspblocks PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/internal
 )
 
 add_library(dspblocks_eval SHARED
@@ -117,6 +121,16 @@ if(NOT MSVC)
     target_link_libraries(test_sos_response PRIVATE m)
 endif()
 add_test(NAME test_sos_response COMMAND test_sos_response)
+
+add_executable(test_s7_ramp tests/test_s7_ramp.c)
+target_include_directories(test_s7_ramp PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/internal
+)
+target_link_libraries(test_s7_ramp PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_s7_ramp PRIVATE m)
+endif()
+add_test(NAME test_s7_ramp COMMAND test_s7_ramp)
 
 # pthread.h and C11 atomics are not available with MSVC; the ring test is built on Linux/CI only.
 if(NOT MSVC)
