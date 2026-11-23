@@ -30,9 +30,13 @@ add_library(dspblocks STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dspblocks.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_sos_rt.c
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/blocks_rt.c
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/dsp_s7_ramp.c
 )
 target_include_directories(dspblocks PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/include
+)
+target_include_directories(dspblocks PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/internal
 )
 
 add_library(dspblocks_eval SHARED
@@ -111,13 +115,6 @@ if(NOT MSVC)
 endif()
 add_test(NAME test_f32 COMMAND test_f32)
 
-add_executable(test_sos_response tests/test_sos_response.c)
-target_link_libraries(test_sos_response PRIVATE dspblocks)
-if(NOT MSVC)
-    target_link_libraries(test_sos_response PRIVATE m)
-endif()
-add_test(NAME test_sos_response COMMAND test_sos_response)
-
 add_library(tdm_pack STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/tdmout/tdm_pack.c
 )
@@ -127,3 +124,34 @@ target_include_directories(tdm_pack PUBLIC
 add_executable(test_tdm_pack tests/test_tdm_pack.c)
 target_link_libraries(test_tdm_pack PRIVATE tdm_pack)
 add_test(NAME test_tdm_pack COMMAND test_tdm_pack)
+
+add_executable(test_sos_response tests/test_sos_response.c)
+target_link_libraries(test_sos_response PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_sos_response PRIVATE m)
+endif()
+add_test(NAME test_sos_response COMMAND test_sos_response)
+
+add_executable(test_s7_ramp tests/test_s7_ramp.c)
+target_include_directories(test_s7_ramp PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/dspblocks/internal
+)
+target_link_libraries(test_s7_ramp PRIVATE dspblocks)
+if(NOT MSVC)
+    target_link_libraries(test_s7_ramp PRIVATE m)
+endif()
+add_test(NAME test_s7_ramp COMMAND test_s7_ramp)
+
+# pthread.h and C11 atomics are not available with MSVC; the ring test is built on Linux/CI only.
+if(NOT MSVC)
+    find_package(Threads REQUIRED)
+    add_library(audiosrc_ring STATIC
+        ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/audiosrc/audiosrc_ring.c
+    )
+    target_include_directories(audiosrc_ring PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/audiosrc/internal
+    )
+    add_executable(test_spsc_ring tests/test_spsc_ring.c)
+    target_link_libraries(test_spsc_ring PRIVATE audiosrc_ring Threads::Threads)
+    add_test(NAME test_spsc_ring COMMAND test_spsc_ring)
+endif()
