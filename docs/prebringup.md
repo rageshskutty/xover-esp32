@@ -1,14 +1,24 @@
 # Pre-bring-up checklist: from purchase to the first tone test
 
-Status: PROPOSED. Companion to `docs/hw-pinmap.md` and `docs/bom.md`.
+Status: PROPOSED procedure (AGENTS.md: agents add procedures, never results). Companion to
+`docs/hw-pinmap.md`, `docs/hw-verification-notes.md` and `docs/bom.md`.
 Scope: everything the maintainer does after the parts arrive and before the first
-six-tone test (gate G1). Amplifiers and speakers stay disconnected throughout.
-Record every result in `docs/bringup-log.md` (template at the end).
+six-tone test (gate G1). Amplifiers and speakers stay disconnected throughout (AGENTS S3).
+Results go in `docs/bringup-log.md`, entered by the human who ran the measurement, using
+that file's own template. This document does not define a second template.
 
 Rules for the whole sequence:
 - One phase at a time. Do not start a phase until every step of the previous one passes.
 - A failed step is a stop. Log it, do not work around it.
-- Nothing is HW-VERIFIED until it has a log entry with a measured value.
+- Nothing is HW-VERIFIED until it has a `bringup-log.md` entry with a measured value.
+
+## Gate 0: maintainer approval of the pin map (before any bring-up firmware)
+
+The pin map is HUMAN-ONLY (AGENTS section 2) and `docs/hw-pinmap.md` is still PROPOSED.
+Bring-up firmware (pin-walk, I2C scan, T08 tone app) cannot be written under AGENTS S1
+and the T08 entry in `docs/engineering/03_task_catalog.md` until the maintainer records
+approval of sections 2 to 4 of the pin map. Approval for bring-up use is not hardware
+verification; the bring-up steps below are what verify it.
 
 ## Phase 0: Receiving inspection (no power)
 
@@ -32,6 +42,8 @@ Rules for the whole sequence:
 
 ## Phase 2: ESP32 board alone (nothing else attached)
 
+Needs Gate 0 for steps P2.4 and P2.5 (they use pin numbers).
+
 | ID | Step | Pass criterion |
 |---|---|---|
 | P2.1 | Plug the UART USB-C. Run `python -m esptool --chip esp32s3 flash_id` | Reports 16 MB flash |
@@ -49,7 +61,7 @@ Rules for the whole sequence:
 | P3.1 | Solder headers where missing | Clean joints, no bridges |
 | P3.2 | Measure strap pad levels with the board unpowered and powered, no ties yet | MOD1, MOD2, A1, A2 read low (pulled to ground), as `hw-pinmap.md` section 6 states |
 | P3.3 | Measure the MUTE pad with it floating | Near 3.3 V (default unmuted) |
-| P3.4 | Pull the MUTE pad to GND with a wire and listen or scope the line output with a tone source later | Record which level mutes. If it is the opposite of the guide, change the pull-down to a pull-up (section 6 of the pin map) and log it |
+| P3.4 | Pull the MUTE pad to GND with a wire; later confirm silence with a tone source | Record which level mutes. The chip mutes on XSMT low (`hw-verification-notes.md`), so low should mute. If the board does the opposite, change the pull-down to a pull-up (pin map section 6) and log it |
 | P3.5 | Tie MOD2 to 3V3 on every board; tie A1 to 3V3 on board 1 and A2 to 3V3 on board 2 | Meter confirms levels from the table in section 3 of the pin map; board 0 has A1 and A2 open |
 | P3.6 | Label the boards DAC 0, DAC 1, DAC 2 on the board itself | Labels on all three |
 
@@ -80,27 +92,17 @@ Rules for the whole sequence:
 
 ## Phase 6: Hand-off to the bring-up test
 
-Entry criteria for the six-tone test (G1): P0 to P5 all pass and are logged.
+Entry criteria for the six-tone test (G1): Gate 0 and P0 to P5 all pass and are logged.
 Then follow `hw-pinmap.md` section 7:
 
 1. Scope BCK = 12.288 MHz, MCLK = 12.288 MHz, sync pulse one BCK wide.
-2. Resolve the three UNVERIFIED TDM items in section 4 of the pin map.
-3. Six distinct tones, one per slot, at no more than -30 dBFS, captured on the audio interface, amplifiers and speakers disconnected.
+2. Settle the two remaining UNVERIFIED TDM items (`hw-verification-notes.md` section 2): right sample position, and the one-BCK offset ambiguity.
+3. With clocks running, read back the detected-clock registers (`hw-verification-notes.md` section 4): 48 kHz detected, SCK 256 x fS, BCK 256 per frame, no clock error.
+4. Six distinct tones, one per slot, at no more than -30 dBFS (Kconfig `XOVER_BRINGUP_MAX_DBFS`, AGENTS S3), captured on the audio interface, amplifiers and speakers disconnected.
 
 ## Open items that block this checklist
 
-- Technical Reference Manual check that I2S signals can be routed to GPIO 4, 5, 6, 7 (pin map section 2).
-- The three UNVERIFIED TDM items (pin map section 4).
-- `docs/bringup-log.md` does not exist yet; create it from the template below.
-- Firmware needed: pin-walk app, I2C scan, then the T08 TDM tone app. None is built yet.
-
-## `docs/bringup-log.md` template
-
-```
-## <date> <phase-id> <step-id>
-- Setup: <board, wiring state, firmware commit>
-- Measured: <value and unit, instrument>
-- Expected: <from this document>
-- Result: PASS / FAIL
-- Notes / photos: <links>
-```
+- Gate 0: maintainer approval of the pin map for bring-up use.
+- T08 stays human-blocked in `docs/engineering/03_task_catalog.md` until Gate 0 evidence is recorded; no coding card exists yet.
+- Firmware needed after Gate 0: pin-walk app, I2C scan, then the T08 TDM tone app. None is built.
+- ESP-IDF I2S TDM driver behaviour (short sync, slot masks) has not been read yet.
