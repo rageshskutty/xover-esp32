@@ -155,3 +155,18 @@ if(NOT MSVC)
     target_link_libraries(test_spsc_ring PRIVATE audiosrc_ring Threads::Threads)
     add_test(NAME test_spsc_ring COMMAND test_spsc_ring)
 endif()
+
+add_library(pcm5122_regs STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/pcm5122/pcm5122_regs.c
+)
+target_include_directories(pcm5122_regs PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/pcm5122/internal
+)
+
+add_executable(test_pcm5122_regs tests/test_pcm5122_regs.c)
+target_include_directories(test_pcm5122_regs PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/main
+)
+target_link_libraries(test_pcm5122_regs PRIVATE pcm5122_regs)
+add_test(NAME test_pcm5122_regs COMMAND test_pcm5122_regs)
+
