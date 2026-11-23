@@ -30,13 +30,16 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
 - S3 Until a human records HW-VERIFIED protection limits in docs/bringup-log.md,
   test signals are capped at -30 dBFS (Kconfig XOVER_BRINGUP_MAX_DBFS) and are
   only played with speakers and amps disconnected.
-- S4 The protection block is part of the single device JSON and changes only in
-  provisioning mode, entered through a local channel (serial command or
-  physical switch), never from the network. A network upload must carry a
-  protection block numerically identical to the committed one, otherwise it is
-  rejected with E_PROTECT_LOCKED and nothing changes (ADR 0014 section 6). No
-  HTTP endpoint, JSON field or API may enter provisioning mode or alter
-  protection by any other route.
+- S4 The protection block is part of the single device JSON and changes only
+  inside an admin window (ADR 0014 section 6, P3). Outside a window, a network
+  upload must carry a protection block numerically identical to the committed
+  one, otherwise it is rejected with E_PROTECT_LOCKED and nothing changes. The
+  window is armed only by a local physical action (admin button held 5 s, or
+  the USB serial command), never by an HTTP endpoint, JSON field, timer or any
+  other API. While it is open the outputs stay muted. It is single use and
+  closes on the first commit, on timeout (5 min), on reboot and after 5 failed
+  authentication attempts. Edits inside the window need the upload token (X2)
+  and full validation, and every arm, failure and commit is logged.
 - S5 `pre`, output chains and links are network-editable. The protection stage
   is mandatory, runs after the output chain, and no config field may bypass,
   reorder or disable it. Designer-exported weighting and thresholds must stay
