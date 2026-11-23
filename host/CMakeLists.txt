@@ -170,6 +170,18 @@ target_include_directories(test_pcm5122_regs PRIVATE
 target_link_libraries(test_pcm5122_regs PRIVATE pcm5122_regs)
 add_test(NAME test_pcm5122_regs COMMAND test_pcm5122_regs)
 
+add_library(pcm5122_ctl STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/pcm5122/pcm5122_ctl.c
+)
+target_include_directories(pcm5122_ctl PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/pcm5122/internal
+)
+target_link_libraries(pcm5122_ctl PUBLIC pcm5122_regs)
+
+add_executable(test_pcm5122_ctl tests/test_pcm5122_ctl.c)
+target_link_libraries(test_pcm5122_ctl PRIVATE pcm5122_ctl)
+add_test(NAME test_pcm5122_ctl COMMAND test_pcm5122_ctl)
+
 add_library(bringup_tone STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../firmware/main/bringup_tone.c
 )
