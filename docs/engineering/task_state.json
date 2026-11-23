@@ -47,7 +47,7 @@
     {
       "id": "ADR-0014",
       "status": "proposed",
-      "approval": "human safety review and CODEOWNERS approval required; maintainer decisions recorded 2026-11-22: limiter lookahead 12 ms / attack 2 ms, protection locked to the committed block (E_PROTECT_LOCKED); open: provisioning mechanism and timeout, weighting group-delay check"
+      "approval": "human safety review and CODEOWNERS approval required; maintainer decisions recorded 2026-11-22: limiter lookahead 12 ms / attack 2 ms, protection locked to the committed block (E_PROTECT_LOCKED); admin window (physical 5 s hold or USB serial arm, single use, 5-minute timeout, token required) proposed by the maintainer 2026-11-23 and pending review; open: HTTPS for admin routes, LED patterns, weighting group-delay check"
     }
   ],
   "items": [
@@ -101,7 +101,7 @@
       "depends_on": [],
       "human_decisions": [
         "human safety review and CODEOWNERS approval of ADR 0014",
-        "provisioning mechanism, confirmation step and timeout (ADR 0014 section 6)",
+        "review of the admin window proposed in ADR 0014 section 6 P3 (HTTPS for admin routes, LED patterns, serial arm command in production)",
         "human-approved driver/amplifier/supply data supplied through the designer tool"
       ]
     },

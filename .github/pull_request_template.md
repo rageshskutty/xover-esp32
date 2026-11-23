@@ -13,7 +13,7 @@
 ## Safety and hard-rule review
 - [ ] No hardware facts guessed
 - [ ] Outputs remain fail-closed
-- [ ] Protection limits cannot be widened or changed over the network
+- [ ] Protection limits cannot be widened or changed over the network outside an armed admin window (ADR 0014 P3)
 - [ ] CODEOWNERS paths have rejecting tests
 - [ ] RT rules checked
 - [ ] No secrets or unpinned dependencies
