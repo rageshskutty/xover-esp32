@@ -117,3 +117,17 @@ if(NOT MSVC)
     target_link_libraries(test_sos_response PRIVATE m)
 endif()
 add_test(NAME test_sos_response COMMAND test_sos_response)
+
+# pthread.h and C11 atomics are not available with MSVC; the ring test is built on Linux/CI only.
+if(NOT MSVC)
+    find_package(Threads REQUIRED)
+    add_library(audiosrc_ring STATIC
+        ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/audiosrc/audiosrc_ring.c
+    )
+    target_include_directories(audiosrc_ring PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/audiosrc/internal
+    )
+    add_executable(test_spsc_ring tests/test_spsc_ring.c)
+    target_link_libraries(test_spsc_ring PRIVATE audiosrc_ring Threads::Threads)
+    add_test(NAME test_spsc_ring COMMAND test_spsc_ring)
+endif()
