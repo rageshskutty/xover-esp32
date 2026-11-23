@@ -15,7 +15,7 @@ These cards are retained in Git history only. They specify graph-era APIs and de
 **State:** human-blocked. Requires owner-approved record values/ranges, NVS layout, serial provisioning transport and CODEOWNERS approval. No task card until these facts are provided. Runtime must remain muted with missing/corrupt records.
 
 ## T08 — Board and DAC integration
-**State:** human-blocked. Board model, module memory, IDF version, pin map, PCM5122 addressing/straps/registers, slot mapping and safety limits are not in the repository as verified facts. No 7B coding card until human evidence is recorded.
+**State:** split into micro-cards T23–T27. The pin map is merged (`docs/hw-pinmap.md`) and PCM5122 register values are taken from cited datasheet sections (`docs/hw-verification-notes.md`); neither is hardware-verified. T23, T24 and T26 are ready; T25 follows T23. T27 (the ESP-IDF TDM driver) stays human-blocked until the IDF TDM details and the two open TDM timing items are settled. Procedure for the human bring-up is `docs/prebringup.md`; results go only in `docs/bringup-log.md`.
 
 ## T09 — Graph runtime (retired)
 

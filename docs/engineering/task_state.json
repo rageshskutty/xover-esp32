@@ -107,15 +107,12 @@
     },
     {
       "id": "T08",
-      "state": "blocked",
+      "state": "split",
       "depends_on": [],
       "human_decisions": [
-        "board/model/memory",
-        "IDF version",
-        "pins",
-        "DAC address/straps/registers",
-        "slot map",
-        "protection limits"
+        "TDM offset 0/64/128 vs 1/65/129 on real boards",
+        "right-sample position",
+        "MCLK through GPIO matrix on real board"
       ]
     },
     {
@@ -170,6 +167,49 @@
       ],
       "human_decisions": [
         "reviewed dspchain component contract: execution-table layout, bounded memory, ownership, response API, and DSP-task processing"
+      ]
+    },
+    {
+      "id": "T23",
+      "state": "ready",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T24",
+      "state": "ready",
+      "depends_on": [],
+      "human_decisions": []
+    },
+    {
+      "id": "T25",
+      "state": "blocked",
+      "depends_on": [
+        "T23"
+      ],
+      "human_decisions": []
+    },
+    {
+      "id": "T26",
+      "state": "ready",
+      "depends_on": [],
+      "human_decisions": [
+        "maintainer builds and runs; results go in bringup-log.md"
+      ]
+    },
+    {
+      "id": "T27",
+      "state": "blocked",
+      "depends_on": [
+        "T17",
+        "T23",
+        "T24",
+        "T25",
+        "T26"
+      ],
+      "human_decisions": [
+        "IDF TDM short-sync details",
+        "bring-up measurements"
       ]
     }
   ],
