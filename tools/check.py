@@ -199,6 +199,93 @@ def check_secrets():
     return failures
 
 
+ADD_TEST_RE = re.compile(r"add_test\(\s*NAME\s+(\w+)")
+
+
+def planning_errors(state, cmake_text, test_files, existing_paths):
+    """Pure rule: every host test is owned by a task or explicitly deferred, and nothing is orphaned.
+
+    state: parsed task_state.json; cmake_text: host/CMakeLists.txt; test_files: file names under
+    host/tests (top level, test_*.c); existing_paths: set of repo-relative paths that exist.
+    """
+    errs = []
+    if not isinstance(state, dict) or not isinstance(state.get("tasks"), list):
+        return ["task_state.json: must be an object with a 'tasks' list"]
+    ids, owned = set(), set()
+    for task in state["tasks"]:
+        tid = task.get("id") if isinstance(task, dict) else None
+        if not tid or not task.get("state"):
+            errs.append("task_state.json: every task needs id and state (got %r)" % (task,))
+            continue
+        if tid in ids:
+            errs.append("task_state.json: duplicate task id %s" % tid)
+        ids.add(tid)
+        tests = task.get("tests", [])
+        if not isinstance(tests, list) or not all(isinstance(t, str) for t in tests):
+            errs.append("task_state.json: %s tests must be a list of strings" % tid)
+            continue
+        for t in tests:
+            if t in owned:
+                errs.append("task_state.json: test %s is owned by more than one task" % t)
+            owned.add(t)
+    deferred = set()
+    for d in state.get("deferred_tests", []):
+        path = d.get("path") if isinstance(d, dict) else None
+        if not path or not d.get("reason"):
+            errs.append("task_state.json: deferred test needs path and reason (got %r)" % (d,))
+            continue
+        deferred.add(path)
+        if path not in existing_paths:
+            errs.append("task_state.json: deferred test %s does not exist" % path)
+    registered = set(ADD_TEST_RE.findall(cmake_text))
+    for name in sorted(registered):
+        if name not in owned:
+            errs.append("orphan test: %s is built in host/CMakeLists.txt but owned by no task" % name)
+    for name in sorted(owned):
+        if name not in registered:
+            errs.append("task_state.json: test %s is not registered in host/CMakeLists.txt" % name)
+    for fname in sorted(test_files):
+        stem = os.path.splitext(fname)[0]
+        if stem not in registered and "host/tests/" + fname not in deferred:
+            errs.append("orphan test: host/tests/%s is neither built nor listed in deferred_tests" % fname)
+    return errs
+
+
+def check_planning():
+    state_path = os.path.join(ROOT, "docs", "engineering", "task_state.json")
+    try:
+        state = load(state_path)
+    except (OSError, ValueError) as exc:
+        return ["docs/engineering/task_state.json: %s" % exc]
+    with open(os.path.join(ROOT, "host", "CMakeLists.txt"), encoding="utf-8") as fh:
+        cmake_text = fh.read()
+    tests_dir = os.path.join(ROOT, "host", "tests")
+    test_files = [f for f in os.listdir(tests_dir) if re.fullmatch(r"test_\w+\.c", f)]
+    existing = {"host/tests/" + f for f in os.listdir(tests_dir)}
+    errs = planning_errors(state, cmake_text, test_files, existing)
+    if not errs:
+        print("  ok   %d task(s), %d test file(s) accounted for" % (len(state["tasks"]), len(test_files)))
+    return errs
+
+
+def selftest_planning():
+    good = {"tasks": [{"id": "A", "state": "merged", "tests": ["test_a"]}],
+            "deferred_tests": [{"path": "host/tests/test_b.c", "reason": "x"}]}
+    cmake = "add_test(NAME test_a COMMAND test_a)"
+    files = ["test_a.c", "test_b.c"]
+    paths = {"host/tests/test_a.c", "host/tests/test_b.c"}
+    bad = []
+    if planning_errors(good, cmake, files, paths):
+        bad.append("planning rule false positive on a consistent state")
+    if not planning_errors(good, cmake, files + ["test_c.c"], paths | {"host/tests/test_c.c"}):
+        bad.append("planning rule missed an unbuilt, undeferred test file")
+    if not planning_errors(good, cmake + "\nadd_test(NAME test_d COMMAND test_d)", files, paths):
+        bad.append("planning rule missed a built test that no task owns")
+    if not planning_errors({"tasks": []}, cmake, files, paths):
+        bad.append("planning rule missed a task list that owns no test")
+    return bad
+
+
 def main():
     try:
         import jsonschema
@@ -206,7 +293,8 @@ def main():
         print("jsonschema missing: pip install -r tools/requirements.txt")
         return 2
     failures = []
-    for title, fn in (("scanner self-test", selftest_rt_scan), ("configs", check_configs),
+    for title, fn in (("scanner self-test", selftest_rt_scan), ("planning self-test", selftest_planning),
+                      ("configs", check_configs), ("planning integrity", check_planning),
                       ("real-time scan", check_rt_files), ("secrets", check_secrets)):
         print("[%s]" % title)
         failures += fn()
