@@ -173,7 +173,66 @@ The proposed ESP32 GPIO wiring and slot plan live in P1, not here. This table ma
 
 The visible breakout pad set has no pads labelled GPIO1–GPIO6. Do not plan a PCM5122 GPIO status-wire connection from these photos. Internal chip GPIO functions are not equivalent to breakout GPIO pads.
 
-## 10. Known, proposed and still requiring measurement
+## 10. ESP32-S3 TRM cross-reference: peripheral signals, GPIO matrix and registers
+
+**Source:** Espressif, *ESP32-S3 Technical Reference Manual*, Version 1.8 (2026-03-04), supplied project copy `esp32-s3_technical_reference_manual_en.pdf`. This is the silicon reference. The module datasheet still governs module-specific unavailable pins and strapping restrictions; the project pin map governs the current proposal.
+
+### 10.1 Proposed DAC signal to ESP32-S3 signal path
+
+The current proposal in `docs/hw-pinmap.md` / `firmware/main/board_config.h` assigns GPIO4–7 to the shared DAC serial bus. TRM Chapter 6, Table 6.11-1 (printed pages 483–484) identifies the I2S0 output signals available through the GPIO matrix. These are peripheral signal names, not fixed GPIO numbers.
+
+| Project signal | ESP32-S3 GPIO proposal | I2S0 peripheral output in TRM Table 6.11-1 | Adafruit pad | TI PCM5122 pin |
+|---|---:|---|---|---|
+| MCLK | GPIO4 | I2S0_MCLK_out (signal 23) | MCK | SCK |
+| BCLK | GPIO5 | I2S0O_BCK_out (signal 22) | BCK | BCK |
+| Frame sync / WS | GPIO6 | I2S0O_WS_out (signal 24) | WSEL | LRCK |
+| Serial audio data | GPIO7 | I2S0O_SD_out (signal 25) | DIN | DIN |
+| I2C SDA | GPIO8 | I2C controller output routed through GPIO matrix / open-drain pad configuration | SDA | SDA |
+| I2C SCL | GPIO9 | I2C controller output routed through GPIO matrix / open-drain pad configuration | SCL | SCL |
+| Hardware mute | GPIO10 | ordinary GPIO output | MUTE | XSMT |
+
+**What the TRM proves:** Table 6.11-1 lists the I2S0 MCLK, BCK, WS and SD output signals as GPIO-matrix outputs; it marks these signals as not direct IO-MUX output functions. Table 6.12-1 lists GPIO4–10 as ordinary GPIO-capable pads (GPIO8–10 have additional alternate functions, but GPIO-matrix routing remains available). Thus the proposed GPIO4–7 assignment is structurally routable through the GPIO matrix. It does not prove that a particular board header is electrically connected as expected, nor that the current firmware configures the matrix correctly.
+
+### 10.2 GPIO matrix register model
+
+TRM Chapter 6:
+- Section 6.11 and Table 6.11-1 (printed pages 482–492): peripheral signal numbers, valid input/output signals and output-enable semantics.
+- Section 6.5 / register descriptions (GPIO chapter register map, printed pages 496 onward): GPIO pin configuration, peripheral input selection and per-GPIO peripheral output selection.
+- GPIO peripheral input selection registers are `GPIO_FUNCn_IN_SEL_CFG_REG`; output selection registers are `GPIO_FUNCn_OUT_SEL_CFG_REG`. The TRM register map lists their address offsets in the GPIO block. GPIO peripheral base is `0x6000_4000` (TRM Table 4.3-3).
+- For GPIO-matrix outputs, the output-enable selection bit determines whether enable comes from the GPIO enable register or from the peripheral output-enable signal. Follow the TRM semantics; do not assume a mux selection alone enables the pad.
+
+This reference deliberately does not prescribe raw GPIO register values. Use the ESP-IDF I2S/GPIO driver for the selected ESP-IDF release unless a separately reviewed low-level implementation task requires direct register programming.
+
+### 10.3 I2S controller register cross-reference
+
+TRM Chapter 28 (I2S Controller):
+- I2S0 peripheral base: `0x6000_F000`; I2S1 base: `0x6002_D000` (TRM Table 4.3-3, printed pages 408–409).
+- `I2S_TX_CONF_REG`, offset `0x0024`: TX enable/start/reset and `I2S_TX_TDM_EN`, plus alignment, bit order and channel mode controls (Register 28.12, printed pages 1068–1069).
+- `I2S_TX_CONF1_REG`, offset `0x002C`: `I2S_TX_TDM_WS_WIDTH`, `I2S_TX_BCK_DIV_NUM`, `I2S_TX_BITS_MOD`, `I2S_TX_HALF_SAMPLE_BITS`, `I2S_TX_TDM_CHAN_BITS`, `I2S_TX_MSB_SHIFT` and `I2S_TX_BCK_NO_DLY` (Register 28.13, printed page 1069).
+- `I2S_TX_CLKM_CONF_REG`, offset `0x0034`: TX clock source/divider configuration (Register 28.14, printed page 1070).
+- Chapter 28 also defines the TX TDM channel control register and DMA/FIFO path. Consult the exact field definitions for the silicon revision before configuring slot masks/channel count.
+
+For the project's 48-kHz, eight-slot, 32-bit proposal, the frame has 256 BCK per sample and a 12.288-MHz BCK. The corresponding intended I2S TX setup is TDM enabled, 32 valid bits per channel/slot and eight total slots. The exact WS pulse width, MSB shift, BCK divider and clock-source values must be derived together from the TRM, ESP-IDF version and PCM5122 timing diagrams; they are not finalized by this cross-reference. Do not translate the descriptive target into raw register constants without a dedicated review and waveform test.
+
+### 10.4 I2C controller cross-reference
+
+The ESP32-S3 TRM Table 4.3-3 places I2C0 at `0x6001_3000` and I2C1 at `0x6002_7000`. GPIO8/GPIO9 are the project-selected SDA/SCL pads; the I2C controller signals are routed through the GPIO matrix and configured open-drain. The Adafruit breakout is in I2C software-control mode (MOD1 low, MOD2 high) for TDM configuration. The I2C bus frequency remains 100 kHz for bring-up, with 400 kHz only after signal-integrity checks, per `docs/hw-pinmap.md`.
+
+### 10.5 Mapping confidence and remaining checks
+
+| Mapping / configuration | Evidence status | What remains |
+|---|---|---|
+| GPIO4–7 can route I2S0 MCLK/BCK/WS/SD through GPIO matrix | TRM-SOURCED | Confirm actual ESP-IDF configuration and scope waveforms |
+| GPIO8/9 available as proposed I2C pads | TRM + module-pin-map sourced | Confirm board header wiring and I2C scan |
+| GPIO10 as mute output | TRM + board pin-map proposal | Measure MUTE polarity/boot level on actual breakout |
+| I2S0 TDM TX capability and control fields | TRM-SOURCED | Confirm ESP-IDF release, exact driver semantics and selected clock/framing values |
+| 48 kHz × 8 × 32-bit target = 12.288 MHz BCK | Calculated from proposal | Scope-verify clock and frame |
+| Three DACs receive correct slots/offsets | PROPOSED | Bench-test with low-level unique slot tones, amps/speakers disconnected |
+| Register configuration values and GPIO matrix routing in firmware | NOT YET VERIFIED HERE | Trace actual firmware/ESP-IDF driver implementation and compare to TRM |
+
+The TRM is a register and peripheral reference, not a substitute for the ESP32-S3 module datasheet, dev-board schematic, ESP-IDF programming guide or bench measurements. This section does not upgrade the pin map or TDM plan from PROPOSED to HW-VERIFIED.
+
+## 11. Known, proposed and still requiring measurement
 
 | Item | Classification | Evidence / next action |
 |---|---|---|
@@ -190,7 +249,7 @@ The visible breakout pad set has no pads labelled GPIO1–GPIO6. Do not plan a P
 
 No statement here upgrades a proposed pin map or unmeasured board characteristic to HW-VERIFIED. Record measurements only in docs/bringup-log.md, with person, instrument, setup and measured result.
 
-## 11. Related repository files and change discipline
+## 12. Related repository files and change discipline
 
 - docs/hw-pinmap.md — project pin numbers, proposed wiring and slot plan.
 - docs/hw-verification-notes.md — datasheet findings and unresolved questions.
