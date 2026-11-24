@@ -6,6 +6,8 @@
 #define PCM5122_I2C_ADDR_MIN 0x08U
 #define PCM5122_I2C_ADDR_MAX 0x77U
 #define PCM5122_STATUS_REG_COUNT 6U
+/* Page 0 / Register 95 (0x5F): CKMF is bit 2 and CERF is bit 0.
+ * TI SLAS763C, Table 108, p. 95 (CERF description continues on p. 96). */
 #define PCM5122_CLK_ERR_FLAGS 0x05U
 
 static const uint8_t s_status_regs[PCM5122_STATUS_REG_COUNT] = {
