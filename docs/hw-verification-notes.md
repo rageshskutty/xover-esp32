@@ -4,7 +4,7 @@ Status: DATASHEET-SOURCED. Nothing here is HW-VERIFIED. Each finding names the d
 section it came from. Sources: TI SLAS763C (PCM5121/PCM5122 datasheet, Oct 2018) and the
 ESP-IDF ESP32-S3 GPIO programming guide.
 
-This note answers the UNVERIFIED lists in `docs/hw-pinmap.md` sections 2 and 4.
+This note answers the UNVERIFIED lists in `docs/hw-pinmap.md` sections 2 and 4. The consolidated breakout pinout, strap/address guide and cross-reference to the Adafruit user guide and TI datasheet are in [docs/hardware/adafruit-pcm5122-breakout.md](hardware/adafruit-pcm5122-breakout.md).
 
 ## 1. Resolved from the datasheet
 
