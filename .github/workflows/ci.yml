@@ -70,3 +70,40 @@ jobs:
         run: ctest --test-dir host/build-cov --output-on-failure
       - name: G2 gate, dspblocks line coverage >= 90 %
         run: python tools/coverage_gate.py host/build-cov
+
+  target-build:
+    name: target-build (${{ matrix.mode }})
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.6
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [none, pinwalk, pinwalk-mute, i2cscan]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Mark workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Build firmware for ESP32-S3 with -Werror
+        shell: bash
+        working-directory: firmware
+        env:
+          MODE: ${{ matrix.mode }}
+        run: |
+          . "$IDF_PATH/export.sh"
+          case "$MODE" in
+            none) overrides="" ;;
+            pinwalk) overrides="CONFIG_XOVER_BRINGUP_MODE_PINWALK=y" ;;
+            pinwalk-mute) overrides=$'CONFIG_XOVER_BRINGUP_MODE_PINWALK=y\nCONFIG_XOVER_BRINGUP_PINWALK_MUTE=y' ;;
+            i2cscan) overrides="CONFIG_XOVER_BRINGUP_MODE_I2CSCAN=y" ;;
+            *) echo "unknown mode $MODE"; exit 1 ;;
+          esac
+          mkdir -p "build/$MODE"
+          printf '%s\n' "$overrides" > "build/$MODE/mode.defaults"
+          idf.py -B "build/$MODE" \
+            -DIDF_TARGET=esp32s3 \
+            -DSDKCONFIG="$PWD/build/$MODE/sdkconfig" \
+            -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;$PWD/build/$MODE/mode.defaults" \
+            -DXOVER_WERROR=ON \
+            build

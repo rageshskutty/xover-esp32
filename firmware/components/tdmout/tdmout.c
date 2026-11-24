@@ -21,6 +21,8 @@ _Static_assert(XOVER_SAMPLE_RATE_HZ == 48000, "sample rate must be 48 kHz");
 _Static_assert(XOVER_TDM_SLOT_BITS == 32, "slot bits must be 32");
 _Static_assert(XOVER_TDM_SLOTS_PER_FRAME == 8, "slots per frame must be 8");
 _Static_assert(XOVER_TDM_SLOT_MASK == 0x3F, "slot mask must be 0x3F");
+_Static_assert((XOVER_TDM_SLOT_BITS * XOVER_TDM_SLOTS_PER_FRAME) <= I2S_LL_SLOT_FRAME_BIT_MAX,
+               "TDM frame exceeds the ESP32-S3 I2S frame limit (I2S_LL_SLOT_FRAME_BIT_MAX); see ADR 0015");
 
 #define TDMOUT_BYTES_PER_SLOT (sizeof(int32_t))
 #define TDMOUT_FRAME_SIZE_BYTES ((size_t)(XOVER_TDM_SLOTS_PER_FRAME * TDMOUT_BYTES_PER_SLOT))
