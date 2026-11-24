@@ -26,7 +26,9 @@ menu "xover-esp32 Configuration"
         bool "Include DAC mute pin in pin walk"
         default n
         help
-            If enabled, XOVER_PIN_DAC_MUTE_N is walked last in PINWALK mode.
+            If enabled, XOVER_PIN_DAC_MUTE_N keeps its 3-second slot last in
+            PINWALK mode, but is held low (muted) and never driven high or
+            switched to input.
 
     config XOVER_BRINGUP_MAX_DBFS
         int "Bring-up maximum dBFS level"
