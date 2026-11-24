@@ -87,15 +87,21 @@ void dsp_delay_process(dsp_delay_t *d, const float *in, float *out, size_t n_fra
     d->write_pos = wp;
 }
 
-void dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
-                     float *out, size_t n_frames)
+dsp_err_t dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
+                          float *out, size_t n_frames)
 {
-    if (!inputs || !gains || !out || n_inputs == 0U || n_frames == 0U) return;
+    if (!out) return DSP_E_PARAM;
+    if (n_inputs == 0U || n_inputs > DSP_MAX_MIX_INPUTS) {
+        for (size_t i = 0U; i < n_frames; ++i) out[i] = 0.0f;
+        return DSP_E_RANGE;
+    }
+    if (!inputs || !gains) return DSP_E_PARAM;
     for (size_t i = 0U; i < n_frames; ++i) {
         float sum = 0.0f;
         for (size_t k = 0U; k < n_inputs; ++k) sum += inputs[k][i] * gains[k];
         out[i] = sum;
     }
+    return DSP_OK;
 }
 
 bool dsp_check_nan_inf(const float *buf, size_t n_frames)

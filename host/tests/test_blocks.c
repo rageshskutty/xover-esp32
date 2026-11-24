@@ -74,10 +74,45 @@ static bool test_polarity_and_mix(void)
     CHECK(out[0] == 1.0f && out[1] == -2.0f);
 
     const float *inputs[2] = {ch0, ch1}, gains[2] = {0.5f, 0.25f};
-    dsp_mix_process(inputs, gains, 2U, out, 4U);
+    CHECK(dsp_mix_process(inputs, gains, 2U, out, 4U) == DSP_OK);
     CHECK(fabsf(out[0] - 1.0f) < 1e-6f && fabsf(out[1] - 2.0f) < 1e-6f);
-    dsp_mix_process(inputs, gains, 2U, ch0, 4U);
+    CHECK(dsp_mix_process(inputs, gains, 2U, ch0, 4U) == DSP_OK);
     CHECK(fabsf(ch0[0] - 1.0f) < 1e-6f);
+
+    /* M4 / Q8: mix bounds tests */
+    /* n_inputs = 1 (accepted, correct sum) */
+    const float *in1[1] = {ch1};
+    const float g1[1] = {0.5f};
+    CHECK(dsp_mix_process(in1, g1, 1U, out, 4U) == DSP_OK);
+    CHECK(fabsf(out[0] - 1.0f) < 1e-6f && fabsf(out[1] - 2.0f) < 1e-6f &&
+          fabsf(out[2] - 3.0f) < 1e-6f && fabsf(out[3] - 4.0f) < 1e-6f);
+
+    /* n_inputs = 8 (DSP_MAX_MIX_INPUTS accepted, correct sum) */
+    float ch8[DSP_MAX_MIX_INPUTS][4];
+    const float *in8[DSP_MAX_MIX_INPUTS];
+    float g8[DSP_MAX_MIX_INPUTS];
+    for (size_t k = 0U; k < (size_t)DSP_MAX_MIX_INPUTS; ++k) {
+        for (size_t i = 0U; i < 4U; ++i) ch8[k][i] = (float)(k + 1U);
+        in8[k] = ch8[k];
+        g8[k] = 1.0f;
+    }
+    CHECK(dsp_mix_process(in8, g8, 8U, out, 4U) == DSP_OK);
+    for (size_t i = 0U; i < 4U; ++i) CHECK(fabsf(out[i] - 36.0f) < 1e-6f);
+
+    /* n_inputs = 9 (rejected, output zeroed, inputs not dereferenced) */
+    for (size_t i = 0U; i < 4U; ++i) out[i] = 99.0f;
+    CHECK(dsp_mix_process(NULL, NULL, 9U, out, 4U) == DSP_E_RANGE);
+    for (size_t i = 0U; i < 4U; ++i) CHECK(out[i] == 0.0f);
+
+    /* n_inputs = 0 (rejected, output zeroed, inputs not dereferenced) */
+    for (size_t i = 0U; i < 4U; ++i) out[i] = 99.0f;
+    CHECK(dsp_mix_process(NULL, NULL, 0U, out, 4U) == DSP_E_RANGE);
+    for (size_t i = 0U; i < 4U; ++i) CHECK(out[i] == 0.0f);
+
+    /* n_inputs = UINT32_MAX (rejected, output zeroed, inputs not dereferenced) */
+    for (size_t i = 0U; i < 4U; ++i) out[i] = 99.0f;
+    CHECK(dsp_mix_process(NULL, NULL, (size_t)UINT32_MAX, out, 4U) == DSP_E_RANGE);
+    for (size_t i = 0U; i < 4U; ++i) CHECK(out[i] == 0.0f);
     return true;
 }
 
