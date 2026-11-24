@@ -1,1 +1,28 @@
-PLACEHOLDER
+{
+  "schema": 1,
+  "updated": "2026-11-24",
+  "note": "Task ids for tests were inferred from docs/PLAN.md and docs/engineering/03_task_catalog.md; the maintainer must confirm entries marked inferred=true.",
+  "tasks": [
+    {"id": "T02", "title": "Host build and biquad engine", "state": "merged", "inferred": false, "tests": ["test_sos"]},
+    {"id": "T03", "title": "Filter design and golden vectors", "state": "merged", "inferred": false, "tests": ["test_design"]},
+    {"id": "T04", "title": "Response evaluation", "state": "merged", "inferred": true, "tests": ["test_eval", "test_eval_analytic", "test_sos_response"]},
+    {"id": "T05", "title": "Simple blocks and numeric safety", "state": "merged", "inferred": true, "tests": ["test_blocks"]},
+    {"id": "S7-RAMP", "title": "S7 gain ramp", "state": "merged", "inferred": true, "tests": ["test_s7_ramp"]},
+    {"id": "AUDIOSRC-RING", "title": "audiosrc SPSC ring", "state": "merged", "inferred": true, "tests": ["test_spsc_ring"]},
+    {"id": "T23", "title": "PCM5122 register table", "state": "merged", "inferred": false, "tests": ["test_pcm5122_regs"]},
+    {"id": "T24", "title": "PCM5122 control sequence", "state": "merged", "inferred": true, "tests": ["test_pcm5122_ctl"]},
+    {"id": "T26", "title": "Bring-up tone generator", "state": "merged", "inferred": true, "tests": ["test_bringup_tone"]},
+    {"id": "T27", "title": "tdmout TDM packing (rework under T29, ADR 0015)", "state": "needs_rework", "inferred": true, "tests": ["test_tdm_pack"]},
+    {"id": "T31", "title": "DSP: EQ limit, stability in double, M4 clamps, protection bound", "state": "open", "inferred": false, "tests": ["test_f32"]}
+  ],
+  "deferred_tests": [
+    {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
+    {"path": "host/tests/test_config_slot.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
+    {"path": "host/tests/test_request_bounds.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
+    {"path": "host/tests/test_token_auth.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."}
+  ],
+  "blocked": [
+    {"id": "STEP4", "reason": "PRESTEP4-4 numerical-contract approval, target memory/interface freeze, protected-block provisioning evidence, human safety/CODEOWNERS review (ADR 0014)."},
+    {"id": "ADR0015", "reason": "Proposed until the Step 1 bench spike passes on hardware."}
+  ]
+}
