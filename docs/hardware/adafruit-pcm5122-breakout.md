@@ -6,7 +6,7 @@
 
 | ID | Source | Authority |
 |---|---|---|
-| A1 | [Adafruit PCM5122 I2S DAC guide](https://learn.adafruit.com/adafruit-pcm5122-i2s-dac) (updated 2025-09-26; supplied guide PDF, 25 pages) | Breakout pin names, VIN, straps, addresses, clock-direction jumper, usage examples |
+| A1 | [Adafruit guide — Overview](https://learn.adafruit.com/adafruit-pcm5122-i2s-dac/overview) (published/edited 2025-09-26) | Default-mode quick-start wiring, optional MCLK, format/word-width overview, analog-output constraints, hardware vs software configurability |\n| A1a | [Adafruit guide — Pinouts](https://learn.adafruit.com/adafruit-pcm5122-i2s-dac/pinouts) (published/edited 2025-09-26) | Board pad names, mode multiplexing, address straps, clock-direction jumper |\n| A1b | [Adafruit guide — full guide](https://learn.adafruit.com/adafruit-pcm5122-i2s-dac) | CircuitPython, Arduino and Raspberry Pi examples; schematic/download resources |
 | A2 | [TI PCM5121/PCM5122 datasheet SLAS763C](https://www.ti.com/lit/ds/symlink/pcm5122.pdf) (revised 2018-10) | Silicon pin functions, electrical limits, formats, TDM timing, registers and status |
 | A3 | Project-supplied front-side board photo | Physical silk labels and pad layout |
 | A4 | Project-supplied back-side board photo | Board identity, feature markings and CLK Dir Sel jumper |
@@ -37,7 +37,7 @@ The front photo shows the PCM5122 IC, 3.5 mm line-out jack and two rows of break
 | Rout | Right analog line output | OUTR |
 | 3.5-mm jack | Stereo line output | Same line-level output path; not a headphone driver |
 
-Adafruit says the output is ground-centred and not AC-coupled. It specifies a load of at least 1 kΩ and explicitly says the jack cannot drive headphones. Check downstream input/load and ground reference; do not connect headphones directly.
+Adafruit's Overview and Pinouts pages say the output is ground-centred and not AC-coupled. It specifies a load of at least 1 kΩ and explicitly says the jack cannot drive headphones. Check downstream input/load and ground reference; do not connect headphones directly. The Overview says the default path needs only BCK, WSEL and DIN: no MCLK and no I²C configuration are required for a basic hardware-mode I²S stream. The chip internally generates its main clock from BCK unless MCK is supplied.
 
 ### 2.2 Configuration and control pads
 
@@ -49,7 +49,7 @@ Adafruit says the output is ground-centred and not AC-coupled. It specifies a lo
 | A2 | I²C address bit | Adds +2 to 7-bit I²C address |
 | SDA | I²C data; SPI MOSI; ATT2 in hardware mode | Same pad, mode-dependent function |
 | SCL | I²C clock; SPI clock; ATT1 in hardware mode | Same pad, mode-dependent function |
-| ATT0 | Hardware-mode gain/attenuation control | Not an I²C signal |
+| ATT0 | Hardware-mode gain/attenuation control | Together with ATT1 (SCL) and ATT2 (SDA), selects output gain/attenuation; Adafruit Overview describes the range as −6 dB to +15 dB (see TI datasheet Table 3 for exact combinations) |
 | AGN | Hardware-mode analog gain selector | Low = 0 dB; high = −6 dB per Adafruit |
 | FMT | Hardware-mode audio format selector | Low = I²S; high = left-justified per Adafruit; TDM is selected in software mode |
 | FILT | Hardware-mode interpolation filter | Low = normal latency; high = low latency |
@@ -69,7 +69,7 @@ Adafruit guide Pinouts pages 7–9:
 
 Both MOD pins open by default select hardware mode. Adafruit's I²C example wires MOD2 high.
 
-**TDM integration consequence:** TI datasheet section 8.3.2.2 says TDM/DSP and right-justified formats are available only in software-control mode. Therefore TDM/DSP requires I²C or SPI control and register configuration. This project uses I²C: proposed strap is MOD1 low / MOD2 high. Do not use hardware-only FMT to select TDM.
+**Two distinct operating paths:** (1) Basic stereo I²S quick-start: default hardware mode, with BCK/WSEL/DIN, no MCLK required, and no I²C setup required. Adafruit's Overview says the device detects the audio word format from the WSEL/BCK ratio; it lists 16-, 24- and 32-bit audio. (2) Configurable/TDM path: volume, software mute, EQ/filter settings use register control; TI datasheet section 8.3.2.2 says TDM/DSP and right-justified formats are available only in software-control mode. Therefore this project's TDM/DSP path requires I²C or SPI register configuration. Project proposal remains I²C: MOD1 low / MOD2 high. Do not use hardware-only FMT to select TDM. The supplied rear-board silk separately prints 16/20/24/32-bit; record this as a board marking, not as a substitute for the Overview's advertised 16/24/32-bit quick-start statement or TI's mode-specific word-length tables.
 
 The hardware MUTE input remains usable in all control modes. Adafruit says pulling MUTE low sets outputs to ground. TI identifies XSMT low as soft mute and high as soft unmute (section 6.1, Pin Functions).
 
@@ -122,7 +122,7 @@ Do not infer regulator topology, current consumption, input protection, output d
 
 ## 7. PCM5122 audio-interface facts relevant to Xover-ESP32
 
-Sources: TI SLAS763C section 8.3.2.1 / Table 4, section 8.3.2.2 and Figures 13–18 (printed pages 15–18).
+Sources: TI SLAS763C section 8.3.2.1 / Table 4, section 8.3.2.2 and Figures 13–18 (printed pages 15–18); Adafruit guide Overview and Pinouts pages.
 
 - Serial interface signals are LRCK, BCK and DIN. DIN is sampled on the rising edge of BCK.
 - Audio words are MSB-first, two's-complement, up to 32 bits.
@@ -150,7 +150,7 @@ The clock-ignore register is not a way to make invalid clocks acceptable. Defaul
 
 ## 8. Adafruit guide examples and limits
 
-The 25-page guide includes CircuitPython hardware-mode wiring/tone example (pages 9–10), CircuitPython I²C wiring and volume/mute example (pages 11–13), Arduino hardware-mode example (pages 13–15), Arduino I²C example (pages 15 onward), Raspberry Pi setup/test (pages 22–24), and schematic/fabrication downloads (page 24).
+The official Adafruit guide is organized into Overview, Pinouts, CircuitPython Hardware Mode, CircuitPython I²C Mode, Arduino Hardware Mode, Arduino I²C Mode, Raspberry Pi and Downloads. Its Overview establishes the simplest three-signal I²S path and the optional-MCLK behaviour; Pinouts is the authority for the pad functions, mode-dependent pin reuse, address straps and clock-direction jumper. The code/example sections are useful for basic stereo bring-up and software-control patterns, but they do not demonstrate this project's ESP32-S3 multi-board TDM implementation.
 
 These examples help bring up a basic stereo breakout and software-control interface. They do **not** prove the project's ESP32-S3 two-lane TDM arrangement, eight-slot framing, three-DAC synchronisation, clock integrity or output-slot mapping. Those remain separate integration/bench tasks.
 
@@ -178,7 +178,7 @@ The visible breakout pad set has no pads labelled GPIO1–GPIO6. Do not plan a P
 | Item | Classification | Evidence / next action |
 |---|---|---|
 | Board identity and silk labels | PHOTO-OBSERVED | Supplied front/back photos |
-| Pad functions, mode/address scheme | GUIDE-SOURCED | Adafruit guide Pinouts pages 6–9 |
+| Default stereo wiring and optional MCLK | GUIDE-SOURCED | Adafruit Overview |\n| Pad functions, mode/address scheme and CLK Dir jumper | GUIDE-SOURCED | Adafruit Pinouts |
 | PCM5122 TDM capability and register meanings | DATASHEET-SOURCED | TI SLAS763C citations above |
 | Three-board ESP32 GPIO wiring and address allocation | PROPOSED | P1; maintainer approval required by AGENTS.md |
 | CLK Dir jumper open on all three boards | UNVERIFIED | Inspect/photograph each board (P0.4) |
