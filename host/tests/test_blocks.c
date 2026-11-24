@@ -12,6 +12,18 @@ static bool test_delay(void)
     CHECK(dsp_delay_init(&d, buf, DSP_MAX_DELAY_SAMPLES, 5U) == DSP_OK);
     CHECK(dsp_delay_us_to_samples(20000.0, 48000.0) == 960U && dsp_delay_us_to_samples(0.0, 48000.0) == 0U);
 
+    /* M4: delay conversion at 0, 1, 959, 960, 961 samples worth of microseconds */
+    CHECK(dsp_delay_us_to_samples(0.0, 48000.0) == 0U);
+    CHECK(dsp_delay_us_to_samples(20.833333333333332, 48000.0) == 1U);
+    CHECK(dsp_delay_us_to_samples(19979.166666666668, 48000.0) == 959U);
+    CHECK(dsp_delay_us_to_samples(20000.0, 48000.0) == 960U);
+    CHECK(dsp_delay_us_to_samples(20020.833333333332, 48000.0) == 960U); /* clamps to 960 */
+    CHECK(dsp_delay_us_to_samples(4294967296.0, 48000.0) == 960U);        /* UINT32-scale clamped */
+    CHECK(dsp_delay_us_to_samples(1e300, 48000.0) == 960U);               /* huge double clamped */
+    CHECK(dsp_delay_us_to_samples(-1.0, 48000.0) == 0U);
+    CHECK(dsp_delay_us_to_samples(NAN, 48000.0) == 0U);
+    CHECK(dsp_delay_us_to_samples(INFINITY, 48000.0) == 0U);
+
     dsp_delay_process(&d, in, out, 16U);
     for (size_t i = 0U; i < 5U; ++i) CHECK(out[i] == 0.0f);
     CHECK(out[5] == 1.0f);
