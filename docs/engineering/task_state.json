@@ -13,7 +13,9 @@
     {"id": "T24", "title": "PCM5122 control sequence", "state": "merged", "inferred": true, "tests": ["test_pcm5122_ctl"]},
     {"id": "T26", "title": "Bring-up tone generator", "state": "merged", "inferred": true, "tests": ["test_bringup_tone"]},
     {"id": "T27", "title": "tdmout TDM packing (rework under T29, ADR 0015)", "state": "needs_rework", "inferred": true, "tests": ["test_tdm_pack"]},
-    {"id": "T31", "title": "DSP: EQ limit, stability in double, M4 clamps, protection bound", "state": "open", "inferred": false, "tests": ["test_f32"]}
+    {"id": "T31", "title": "DSP precision, stability in double, M4 delay clamps", "state": "merged", "inferred": false, "tests": ["test_f32"]},
+    {"id": "T31b", "title": "Notch dual-metric assertions and mix input bound", "state": "merged", "inferred": false, "tests": []},
+    {"id": "T32", "title": "Peak chain gain cap", "state": "merged", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
     {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
