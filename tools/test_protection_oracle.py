@@ -162,6 +162,14 @@ class RejectionTests(unittest.TestCase):
         self.check([filt("peq", gain_db=24.5, q=1.0)], "gain_db must")
         self.check([filt("lshelf", gain_db=-24.5)], "gain_db must")
 
+    def test_boost_is_capped_at_plus_12_db(self):
+        # Q2: same cap as dsp_design_peq / dsp_design_shelf; cuts stay at -24 dB.
+        for kind in ("peq", "lshelf", "hshelf"):
+            with self.subTest(kind):
+                self.check([filt(kind, gain_db=12.1, q=1.0)], "gain_db must")
+                self.assertIsNotNone(oracle.design_filter(filt(kind, gain_db=12.0, q=1.0), 48000.0))
+                self.assertIsNotNone(oracle.design_filter(filt(kind, gain_db=-24.0, q=1.0), 48000.0))
+
     def test_gain_on_a_type_without_gain_is_rejected(self):
         for kind in ("lp1", "hp1", "lp2", "hp2", "ap1", "ap2", "notch"):
             with self.subTest(kind):
