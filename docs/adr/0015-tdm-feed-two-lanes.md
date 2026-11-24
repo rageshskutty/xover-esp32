@@ -24,7 +24,14 @@ using the stock IDF clock path with no private `i2s_ll_*` calls. The
 `pcm5122_status_is_running_48k_tdm` check derives `bck_per_frame` and
 `sck_ratio_code` from the configured values instead of hard-coding 256 BCK and
 256 x fS. Fallback if the PCM5122 datasheet does not allow 384 x fS: 512 x fS
-(24.576 MHz, divider 4).
+(24.576 MHz, divider 4). The fallback is not needed, see Datasheet check below.
+
+## Datasheet check (done 2026-11-24, SLAS763C, PCM5121/PCM5122)
+384 x fS at 48 kHz is allowed. Table 32: 48 kHz row, 384 fS column = 18.432 MHz,
+no PLL footnote (supported without the PLL), below the 50 MHz SCK limit.
+Table 104 (Reg 0x5B, DTSR): code 0111 = SCK 384 FS. Table 133 (SCK as master
+clock, 48 kHz, RSCK 384): NMAC 1, NDAC 3, DOSR 8, NCP 4. Checked against the
+datasheet page images by the maintainer.
 
 ## Alternatives considered
 - B, 8 x 16 bit: fits 128 BCK but gives a 96 dB floor. Acceptable for the first tone test only.
@@ -36,8 +43,9 @@ using the stock IDF clock path with no private `i2s_ll_*` calls. The
 UNVERIFIED until the bench check passes: (1) DAC2 data is not one or more BCLK
 late (the IDF guide says a TDM slave needs `bclk_div` >= 8 and its data can lag
 by more than one BCLK), (2) the driver does not reconfigure the shared BCLK/WS
-pins as input-only, (3) the PCM5122 SCK table allows the chosen ratio. If (1) or
-(2) fails, switch to Option C. Code and doc changes: `board_config.h`
+pins as input-only. Item (3), the PCM5122 SCK table allowing the chosen ratio,
+is verified (see Datasheet check). If (1) or (2) fails, switch to Option C.
+Code and doc changes: `board_config.h`
 (4 slots, DOUT2, per-lane offset assertion), `tdm_pack_4slot`, `tdmout`
 (two lanes, start order), `pcm5122_ctl`, `hw-pinmap.md`,
 `hw-verification-notes.md`, `bom.md`.
