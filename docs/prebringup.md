@@ -1,7 +1,7 @@
 # Pre-bring-up checklist: from purchase to the first tone test
 
 Status: PROPOSED procedure (AGENTS.md: agents add procedures, never results). Companion to
-`docs/hw-pinmap.md`, `docs/hw-verification-notes.md` and `docs/bom.md`.
+`docs/hw-pinmap.md`, `docs/hw-verification-notes.md` and `docs/bom.md`. The board-specific pad/strap/datasheet crosswalk is in [docs/hardware/adafruit-pcm5122-breakout.md](hardware/adafruit-pcm5122-breakout.md).
 Scope: everything the maintainer does after the parts arrive and before the first
 six-tone test (gate G1). Amplifiers and speakers stay disconnected throughout (AGENTS S3).
 Results go in `docs/bringup-log.md`, entered by the human who ran the measurement, using
