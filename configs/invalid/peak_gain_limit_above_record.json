@@ -1,0 +1,26 @@
+{
+  "v": 1,
+  "fs": 48000,
+  "inputs": ["L"],
+  "outputs": [{
+    "id": "o",
+    "slot": 0,
+    "in": [{"channel": "L", "weight": 1}],
+    "filters": [],
+    "gain_db": 0,
+    "polarity": 1,
+    "delay_samples": 0
+  }],
+  "peak_gain_limit_db": 15,
+  "protection": {"outputs": [{
+    "id": "o",
+    "weighting": {"filters": []},
+    "peak_threshold_dbfs": -6,
+    "hold_ms": 20,
+    "thermal": [{"rms_threshold_dbfs": -12, "rms_tau_ms": 250}],
+    "release_ms": 150,
+    "ceiling_dbfs": -1,
+    "peak_gain_cap_db": 12
+  }]},
+  "_expect": "E_PROTECT"
+}

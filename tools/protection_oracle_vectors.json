@@ -327,5 +327,64 @@
         6.020599913279624
       ]
     }
+  ],
+  "peak_gain": [
+    {
+      "name": "three_stacked_boosts_rejected",
+      "filters": [
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12},
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12},
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12}
+      ],
+      "expected": "E_PROTECT"
+    },
+    {
+      "name": "separate_boosts_accepted",
+      "filters": [
+        {"type": "peq", "f_hz": 50, "q": 1, "gain_db": 12},
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12},
+        {"type": "peq", "f_hz": 10000, "q": 1, "gain_db": 12}
+      ],
+      "expected": null
+    },
+    {
+      "name": "single_boost_accepted",
+      "filters": [
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12}
+      ],
+      "expected": null
+    },
+    {
+      "name": "boost_plus_gain_rejected",
+      "filters": [
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12}
+      ],
+      "output_gain_db": 12,
+      "expected": "E_PROTECT"
+    },
+    {
+      "name": "lower_config_cap_enforced",
+      "filters": [
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 12}
+      ],
+      "output_gain_db": 3,
+      "limit_db": 12,
+      "expected": "E_PROTECT"
+    },
+    {
+      "name": "lower_config_cap_accepts_in_limit",
+      "filters": [
+        {"type": "peq", "f_hz": 1000, "q": 1, "gain_db": 10}
+      ],
+      "limit_db": 12,
+      "expected": null
+    },
+    {
+      "name": "config_cannot_raise_record_cap",
+      "filters": [],
+      "record_cap_db": 12,
+      "limit_db": 15,
+      "expected": "E_PROTECT"
+    }
   ]
 }

@@ -79,6 +79,13 @@ def semantic_errors(cfg):
             errs.append("E_PROTECT: protection output id must be unique")
         if set(record_ids)!=set(ids):
             errs.append("E_PROTECT: protection records must cover configured outputs exactly")
+        if not errs:
+            try:
+                from protection_oracle import PEAK_GAIN_GRID, check_peak_gain
+                if check_peak_gain(cfg, PEAK_GAIN_GRID) == "E_PROTECT":
+                    errs.append("E_PROTECT: output chain peak gain exceeds its cap")
+            except (ValueError, KeyError, TypeError) as exc:
+                errs.append("E_PROTECT: could not evaluate output chain peak gain: %s" % exc)
     return errs
 
 def check_configs():

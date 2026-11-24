@@ -30,19 +30,24 @@ def output(oid, mix, filters=(), gain_db=0.0, slot=0):
             "polarity": 1, "delay_samples": 0}
 
 
-def config(outputs, pre=(), protection=None):
+def config(outputs, pre=(), protection=None, peak_gain_limit_db=None):
     cfg = {"v": 1, "fs": 48000, "inputs": ["L", "R"],
            "pre": list(pre), "outputs": list(outputs)}
     if protection is not None:
         cfg["protection"] = {"outputs": protection}
+    if peak_gain_limit_db is not None:
+        cfg["peak_gain_limit_db"] = peak_gain_limit_db
     return cfg
 
 
-def record(oid, weighting=()):
-    return {"id": oid, "weighting": {"filters": list(weighting)},
-            "peak_threshold_dbfs": -6.0, "hold_ms": 20.0,
-            "thermal": [{"rms_threshold_dbfs": -12.0, "rms_tau_ms": 250.0}],
-            "release_ms": 150.0, "ceiling_dbfs": -1.0}
+def record(oid, weighting=(), peak_gain_cap_db=None):
+    rec = {"id": oid, "weighting": {"filters": list(weighting)},
+           "peak_threshold_dbfs": -6.0, "hold_ms": 20.0,
+           "thermal": [{"rms_threshold_dbfs": -12.0, "rms_tau_ms": 250.0}],
+           "release_ms": 150.0, "ceiling_dbfs": -1.0}
+    if peak_gain_cap_db is not None:
+        rec["peak_gain_cap_db"] = peak_gain_cap_db
+    return rec
 
 
 def db(x):
@@ -73,6 +78,16 @@ class VectorTests(unittest.TestCase):
                 got = conservative_bound_db(v["weights"], v["magnitudes"])
                 np.testing.assert_allclose(got, v["expected_bound_db"],
                                            rtol=0.0, atol=1e-9)
+
+    def test_peak_gain_vectors(self):
+        for v in self.vectors["peak_gain"]:
+            with self.subTest(v["name"]):
+                cfg = config([output("o", [("L", 1.0)], filters=v["filters"],
+                                      gain_db=v.get("output_gain_db", 0.0))],
+                             protection=[record("o", peak_gain_cap_db=v.get("record_cap_db"))],
+                             peak_gain_limit_db=v.get("limit_db"))
+                self.assertEqual(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID),
+                                 v["expected"])
 
     def test_main_runs_all_vectors(self):
         buf = io.StringIO()
@@ -217,6 +232,55 @@ class RejectionTests(unittest.TestCase):
     def test_zero_floor_is_finite(self):
         got = conservative_bound_db([1.0], [[0.0]])
         self.assertEqual(float(got[0]), ZERO_FLOOR_DB)
+
+
+class PeakGainCapTests(unittest.TestCase):
+    def test_three_stacked_12db_at_one_frequency_rejected(self):
+        filters = [filt("peq", f_hz=1000.0, q=1.0, gain_db=12.0) for _ in range(3)]
+        cfg = config([output("o", [("L", 1.0)], filters=filters)],
+                     protection=[record("o")])
+        self.assertEqual(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID), "E_PROTECT")
+
+    def test_same_three_at_far_apart_frequencies_accepted(self):
+        filters = [
+            filt("peq", f_hz=50.0, q=1.0, gain_db=12.0),
+            filt("peq", f_hz=1000.0, q=1.0, gain_db=12.0),
+            filt("peq", f_hz=10000.0, q=1.0, gain_db=12.0),
+        ]
+        cfg = config([output("o", [("L", 1.0)], filters=filters)],
+                     protection=[record("o")])
+        self.assertIsNone(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID))
+
+    def test_one_12db_accepted(self):
+        filters = [filt("peq", f_hz=1000.0, q=1.0, gain_db=12.0)]
+        cfg = config([output("o", [("L", 1.0)], filters=filters)],
+                     protection=[record("o")])
+        self.assertIsNone(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID))
+
+    def test_12db_boost_plus_12db_gain_block_rejected(self):
+        filters = [filt("peq", f_hz=1000.0, q=1.0, gain_db=12.0)]
+        cfg = config([output("o", [("L", 1.0)], filters=filters, gain_db=12.0)],
+                     protection=[record("o")])
+        self.assertEqual(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID), "E_PROTECT")
+
+    def test_config_limit_12_with_15db_peak_rejected(self):
+        filters = [filt("peq", f_hz=1000.0, q=1.0, gain_db=12.0)]
+        cfg = config([output("o", [("L", 1.0)], filters=filters, gain_db=3.0)],
+                     protection=[record("o")],
+                     peak_gain_limit_db=12.0)
+        self.assertEqual(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID), "E_PROTECT")
+
+    def test_config_limit_12_with_10db_peak_accepted(self):
+        filters = [filt("peq", f_hz=1000.0, q=1.0, gain_db=10.0)]
+        cfg = config([output("o", [("L", 1.0)], filters=filters)],
+                     protection=[record("o")], peak_gain_limit_db=12.0)
+        self.assertIsNone(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID))
+
+    def test_config_limit_above_record_rejected(self):
+        cfg = config([output("o", [("L", 1.0)])],
+                     protection=[record("o", peak_gain_cap_db=12.0)],
+                     peak_gain_limit_db=15.0)
+        self.assertEqual(oracle.check_peak_gain(cfg, oracle.PEAK_GAIN_GRID), "E_PROTECT")
 
 
 class RetiredApiTests(unittest.TestCase):

@@ -40,13 +40,8 @@ stack.
 - A web-adjustable cap that can go up: rejected, it breaks AGENTS S4.
 
 ## Consequences (include measured data when changing a gate)
-Implementation card (not yet written, needs this ADR Accepted): add the cap
-field to the protection record schema and to `tools/protection_oracle.py`,
-return `E_PROTECT` above the cap, add a `configs/invalid/` fixture, tests for
-three stacked +12 dB filters at one frequency (rejected), the same filters
-spread over far-apart frequencies (accepted), one +12 dB filter (accepted), a
-lower web value (accepted), and a web value above the record (rejected). The C
-protection evaluator must apply the same rule; Python and C share the vectors in
-`tools/protection_oracle_vectors.json`. UNVERIFIED: the evaluation grid
-resolution is the oracle's existing grid (1/96 octave per PLAN risk table); a
-very narrow peak between grid points is the already-recorded residual risk.
+T32 implements the schema fields, Python oracle comparison, checker integration,
+invalid fixtures, tests and shared vectors. The C protection evaluator remains
+for a later task; the vectors are ready for it. The evaluation grid is 1/96
+octave from 20 Hz to Nyquist, so a very narrow peak between grid points remains
+the already-recorded residual risk.
