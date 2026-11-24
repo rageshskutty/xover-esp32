@@ -73,11 +73,25 @@ void app_main(void)
         for (size_t i = 0U; i < pinwalk_count; i++) {
             const gpio_num_t pin = pinwalk_pins[i];
             const int btn = gpio_get_level((gpio_num_t)XOVER_PIN_ADMIN_BUTTON);
-            ESP_LOGI(TAG, "PINWALK button gpio0=%d", btn);
+            ESP_LOGI(TAG, "PINWALK button gpio%d=%d", XOVER_PIN_ADMIN_BUTTON, btn);
 
+#if defined(CONFIG_XOVER_BRINGUP_PINWALK_MUTE)
+            if (pin == (gpio_num_t)XOVER_PIN_DAC_MUTE_N) {
+                ESP_ERROR_CHECK(gpio_set_level(pin, 0));
+                ESP_LOGI(TAG, "PINWALK gpio=%d held low (DAC muted)", (int)pin);
+                vTaskDelay(pdMS_TO_TICKS(PINWALK_HOLD_MS));
+                continue;
+            }
+#endif
+
+            gpio_mode_t pin_mode = GPIO_MODE_OUTPUT;
+            if (pin == (gpio_num_t)XOVER_PIN_I2C_SDA ||
+                pin == (gpio_num_t)XOVER_PIN_I2C_SCL) {
+                pin_mode = GPIO_MODE_OUTPUT_OD;
+            }
             const gpio_config_t out_cfg = {
                 .pin_bit_mask = (1ULL << pin),
-                .mode = GPIO_MODE_OUTPUT,
+                .mode = pin_mode,
                 .pull_up_en = GPIO_PULLUP_DISABLE,
                 .pull_down_en = GPIO_PULLDOWN_DISABLE,
                 .intr_type = GPIO_INTR_DISABLE,
