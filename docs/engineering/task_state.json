@@ -16,7 +16,7 @@
     {"id": "T31", "title": "DSP precision, stability in double, M4 delay clamps", "state": "merged", "inferred": false, "tests": ["test_f32"]},
     {"id": "T31b", "title": "Notch dual-metric assertions and mix input bound", "state": "merged", "inferred": false, "tests": []},
     {"id": "T32", "title": "Peak chain gain cap", "state": "merged", "inferred": false, "tests": []},
-    {"id": "T28", "title": "Target CI job (ESP-IDF 5.5.6, 4 bring-up modes, -Werror) and TDM frame-size assertion", "state": "open", "inferred": false, "tests": []},
+    {"id": "T28", "title": "Target CI job (ESP-IDF 5.5.6, 4 bring-up modes, -Werror) and TDM frame-size assertion", "state": "merged", "inferred": false, "tests": []},
     {"id": "T29a", "title": "tdm_pack_4slot (host-only)", "state": "blocked", "inferred": false, "tests": []},
     {"id": "T29b", "title": "tdmout two-lane driver and board_config.h constants", "state": "blocked", "inferred": false, "tests": []},
     {"id": "T29c", "title": "pcm5122_status_is_running_48k_tdm derives expected values", "state": "blocked", "inferred": false, "tests": []},
