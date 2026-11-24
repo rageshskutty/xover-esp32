@@ -8,11 +8,17 @@
 dsp_err_t dsp_check_stable(const dsp_sos_t *s)
 {
     if (!s) return DSP_E_PARAM;
-    if (isnan(s->b0) || isnan(s->b1) || isnan(s->b2) || isnan(s->a1) || isnan(s->a2) ||
-        isinf(s->b0) || isinf(s->b1) || isinf(s->b2) || isinf(s->a1) || isinf(s->a2)) {
+    if (!isfinite(s->b0) || !isfinite(s->b1) || !isfinite(s->b2) ||
+        !isfinite(s->a1) || !isfinite(s->a2) ||
+        !isfinite(s->da1) || !isfinite(s->da2)) {
         return DSP_E_UNSTABLE;
     }
-    return (fabsf(s->a2) < 1.0f && (1.0f + s->a1 + s->a2) > 0.0f && (1.0f - s->a1 + s->a2) > 0.0f)
+    const double a1 = (double)s->a1 + (double)s->da1;
+    const double a2 = (double)s->a2 + (double)s->da2;
+    if (!isfinite(a1) || !isfinite(a2)) {
+        return DSP_E_UNSTABLE;
+    }
+    return (fabs(a2) < 1.0 && (1.0 + a1 + a2) > 0.0 && (1.0 - a1 + a2) > 0.0)
         ? DSP_OK : DSP_E_UNSTABLE;
 }
 
@@ -237,8 +243,10 @@ float dsp_linear_to_db(float lin)
 
 uint32_t dsp_delay_us_to_samples(double delay_us, double fs_hz)
 {
-    if (delay_us <= 0.0 || fs_hz <= 0.0 || isnan(delay_us) || isinf(delay_us) ||
-        isnan(fs_hz) || isinf(fs_hz)) return 0U;
+    /* M4: range-check double before cast; values above DSP_MAX_DELAY_SAMPLES clamp to 960 */
+    if (delay_us <= 0.0 || fs_hz <= 0.0 || !isfinite(delay_us) || !isfinite(fs_hz)) return 0U;
     double s = delay_us * 1e-6 * fs_hz + 0.5;
-    return (s <= 0.0) ? 0U : (uint32_t)s;
+    if (s <= 0.0) return 0U;
+    if (s >= (double)DSP_MAX_DELAY_SAMPLES) return DSP_MAX_DELAY_SAMPLES;
+    return (uint32_t)s;
 }

@@ -187,6 +187,67 @@ static bool test_zero_sections_passthrough(void)
     return true;
 }
 
+static bool test_stability_double(void)
+{
+    printf("Running test_stability_double...\n");
+
+    /* (a) Pole near radius 1 (margin 1+a1+a2 ~ 1e-6) where float misjudges and double accepts */
+    const dsp_sos_t near_stable = {
+        .b0 = 1.0f, .b1 = 0.0f, .b2 = 0.0f,
+        .a1 = -1.999999f, .a2 = 0.999998f,
+        .da1 = 2.0e-6f, .da2 = 0.0f
+    };
+    if (dsp_check_stable(&near_stable) != DSP_OK) {
+        fprintf(stderr, "FAIL: case (a) near_stable expected DSP_OK\n");
+        return false;
+    }
+
+    /* (b) Margin just below zero (-1e-9) that must be rejected */
+    const dsp_sos_t margin_neg = {
+        .b0 = 1.0f, .b1 = 0.0f, .b2 = 0.0f,
+        .a1 = -1.999999f, .a2 = 0.999999f,
+        .da1 = -1.0e-9f, .da2 = 0.0f
+    };
+    if (dsp_check_stable(&margin_neg) != DSP_E_UNSTABLE) {
+        fprintf(stderr, "FAIL: case (b) margin_neg expected DSP_E_UNSTABLE\n");
+        return false;
+    }
+
+    /* (c) Existing stable and unstable cases */
+    const dsp_sos_t std_stable = {
+        .b0 = 1.0f, .b1 = 0.0f, .b2 = 0.0f,
+        .a1 = -0.5f, .a2 = 0.25f,
+        .da1 = 0.0f, .da2 = 0.0f
+    };
+    if (dsp_check_stable(&std_stable) != DSP_OK) {
+        fprintf(stderr, "FAIL: case (c) std_stable expected DSP_OK\n");
+        return false;
+    }
+    const dsp_sos_t std_unstable = {
+        .b0 = 1.0f, .b1 = 0.0f, .b2 = 0.0f,
+        .a1 = -2.5f, .a2 = 1.5f,
+        .da1 = 0.0f, .da2 = 0.0f
+    };
+    if (dsp_check_stable(&std_unstable) != DSP_E_UNSTABLE) {
+        fprintf(stderr, "FAIL: case (c) std_unstable expected DSP_E_UNSTABLE\n");
+        return false;
+    }
+
+    /* (d) Hi+lo where da changes the verdict: float says stable (+1e-6), da makes it unstable (-1e-6) */
+    const dsp_sos_t da_reject = {
+        .b0 = 1.0f, .b1 = 0.0f, .b2 = 0.0f,
+        .a1 = -1.999998f, .a2 = 0.999999f,
+        .da1 = -2.0e-6f, .da2 = 0.0f
+    };
+    if (dsp_check_stable(&da_reject) != DSP_E_UNSTABLE) {
+        fprintf(stderr, "FAIL: case (d) da_reject expected DSP_E_UNSTABLE\n");
+        return false;
+    }
+
+    printf("  PASS: stability check in double precision\n");
+    return true;
+}
+
 int main(void)
 {
     printf("=== dspblocks test_sos ===\n");
@@ -196,6 +257,7 @@ int main(void)
     ok = ok && test_inplace_vs_outofplace();
     ok = ok && test_block_continuity();
     ok = ok && test_zero_sections_passthrough();
+    ok = ok && test_stability_double();
 
     if (!ok) {
         printf("FAILED\n");

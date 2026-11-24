@@ -44,6 +44,88 @@ static double ref_db(const shape_t *sh, dsp_mode_t mode, double fc, double f)
     return -20.0 * log10(1.0 + pow(w, (double)sh->order));
 }
 
+/* Double-precision reference responses for EQ blocks (ADR 0016). */
+static double ref_peq_db(double f_hz, double f0, double q, double gain_db)
+{
+    const double w0 = 2.0 * PI_RAD * f0 / FS_HZ;
+    const double a = sin(w0) / (2.0 * q);
+    const double A = pow(10.0, gain_db / 40.0);
+    const double c = cos(w0);
+    const double a0 = 1.0 + a / A;
+    const double b0 = (1.0 + a * A) / a0;
+    const double b1 = -2.0 * c / a0;
+    const double b2 = (1.0 - a * A) / a0;
+    const double a1 = b1;
+    const double a2 = (1.0 - a / A) / a0;
+
+    const double w = 2.0 * PI_RAD * f_hz / FS_HZ;
+    const double cw = cos(w), sw = sin(w);
+    const double c2w = cos(2.0 * w), s2w = sin(2.0 * w);
+    const double nr = b0 + b1 * cw + b2 * c2w;
+    const double ni = -b1 * sw - b2 * s2w;
+    const double dr = 1.0 + a1 * cw + a2 * c2w;
+    const double di = -a1 * sw - a2 * s2w;
+    return 10.0 * log10((nr * nr + ni * ni) / (dr * dr + di * di));
+}
+
+static double ref_shelf_db(dsp_shelf_t shape, double f_hz, double f0, double gain_db)
+{
+    const double w0 = 2.0 * PI_RAD * f0 / FS_HZ;
+    const double A = pow(10.0, gain_db / 40.0);
+    const double c = cos(w0);
+    const double s = sin(w0) * sqrt(2.0 * A);
+    double b0, b1, b2, a0, a1, a2;
+    if (shape == DSP_SHELF_LOW) {
+        b0 = A * ((A + 1.0) - (A - 1.0) * c + s);
+        b1 = 2.0 * A * ((A - 1.0) - (A + 1.0) * c);
+        b2 = A * ((A + 1.0) - (A - 1.0) * c - s);
+        a0 = (A + 1.0) + (A - 1.0) * c + s;
+        a1 = -2.0 * ((A - 1.0) + (A + 1.0) * c);
+        a2 = (A + 1.0) + (A - 1.0) * c - s;
+    } else {
+        b0 = A * ((A + 1.0) + (A - 1.0) * c + s);
+        b1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * c);
+        b2 = A * ((A + 1.0) + (A - 1.0) * c - s);
+        a0 = (A + 1.0) - (A - 1.0) * c + s;
+        a1 = 2.0 * ((A - 1.0) - (A + 1.0) * c);
+        a2 = (A + 1.0) - (A - 1.0) * c - s;
+    }
+    b0 /= a0; b1 /= a0; b2 /= a0; a1 /= a0; a2 /= a0;
+
+    const double w = 2.0 * PI_RAD * f_hz / FS_HZ;
+    const double cw = cos(w), sw = sin(w);
+    const double c2w = cos(2.0 * w), s2w = sin(2.0 * w);
+    const double nr = b0 + b1 * cw + b2 * c2w;
+    const double ni = -b1 * sw - b2 * s2w;
+    const double dr = 1.0 + a1 * cw + a2 * c2w;
+    const double di = -a1 * sw - a2 * s2w;
+    return 10.0 * log10((nr * nr + ni * ni) / (dr * dr + di * di));
+}
+
+static double ref_notch_db(double f_hz, double f0, double q)
+{
+    const double w0 = 2.0 * PI_RAD * f0 / FS_HZ;
+    const double a = sin(w0) / (2.0 * q);
+    const double a0 = 1.0 + a;
+    const double b0 = 1.0 / a0;
+    const double b1 = -2.0 * cos(w0) / a0;
+    const double b2 = b0;
+    const double a1 = b1;
+    const double a2 = (1.0 - a) / a0;
+
+    const double w = 2.0 * PI_RAD * f_hz / FS_HZ;
+    const double cw = cos(w), sw = sin(w);
+    const double c2w = cos(2.0 * w), s2w = sin(2.0 * w);
+    const double nr = b0 + b1 * cw + b2 * c2w;
+    const double ni = -b1 * sw - b2 * s2w;
+    const double dr = 1.0 + a1 * cw + a2 * c2w;
+    const double di = -a1 * sw - a2 * s2w;
+    const double num = nr * nr + ni * ni;
+    const double den = dr * dr + di * di;
+    if (num <= 1e-30) return -200.0;
+    return 10.0 * log10(num / den);
+}
+
 static double tone_level_db(const dsp_cascade_t *c, double f)
 {
     dsp_state_t st[DSP_MAX_SOS];
@@ -113,5 +195,145 @@ int main(void)
     }
     printf("worst response error %.4f dB, worst execution error %.4f dB, gate %.2f dB, failures %d\n",
            worst_resp, worst_exec, GATE_DB, fails);
+
+    /* ADR 0016: Accepted EQ response error limit is <= 0.26 dB for fc >= 30 Hz, Q <= 10.
+     * Rows below 30 Hz or Q above 10 are intentionally unmeasured in this release. */
+    #define EQ_GATE_DB 0.26
+    static const double EQ_FC_HZ[] = { 30.0, 40.0, 60.0, 100.0, 200.0 };
+    static const double EQ_Q[] = { 1.0, 2.0, 5.0, 10.0 };
+    static const double EQ_GAIN_DB[] = { -6.0, 6.0, 12.0 };
+
+    printf("\n=== ADR 0016 EQ float32 response error rows (10 Hz - 200 Hz grid) ===\n");
+
+    /* 1. PEQ rows */
+    for (size_t k = 0U; k < COUNT(EQ_FC_HZ); ++k) {
+        for (size_t qi = 0U; qi < COUNT(EQ_Q); ++qi) {
+            for (size_t gi = 0U; gi < COUNT(EQ_GAIN_DB); ++gi) {
+                dsp_sos_t s;
+                if (dsp_design_peq(EQ_FC_HZ[k], EQ_Q[qi], EQ_GAIN_DB[gi], FS_HZ, &s) != DSP_OK) return 2;
+                double worst = 0.0;
+                for (size_t i = 0U; i < GRID_POINTS; ++i) {
+                    if (grid[i] < 10.0 || grid[i] > 200.0) continue;
+                    double re, im;
+                    if (dsp_sos_eval(&s, 1U, FS_HZ, grid[i], &re, &im) != DSP_OK) return 2;
+                    const double ref = ref_peq_db(grid[i], EQ_FC_HZ[k], EQ_Q[qi], EQ_GAIN_DB[gi]);
+                    const double e = fabs(10.0 * log10(re * re + im * im) - ref);
+                    if (e > worst) worst = e;
+                }
+                printf("EQ peq fc=%3.0f Q=%4.1f G=%+3.0f dB: max error = %.4f dB\n",
+                       EQ_FC_HZ[k], EQ_Q[qi], EQ_GAIN_DB[gi], worst);
+                if (EQ_FC_HZ[k] >= 30.0) {
+                    if (worst > EQ_GATE_DB) {
+                        printf("FAIL EQ (exceeds %.2f dB): peq fc=%.0f Q=%.1f G=%+.0f dB: %.4f dB\n",
+                               EQ_GATE_DB, EQ_FC_HZ[k], EQ_Q[qi], EQ_GAIN_DB[gi], worst);
+                        ++fails;
+                    }
+                }
+            }
+        }
+    }
+
+    /* 2. Low shelf rows */
+    for (size_t k = 0U; k < COUNT(EQ_FC_HZ); ++k) {
+        for (size_t gi = 0U; gi < COUNT(EQ_GAIN_DB); ++gi) {
+            dsp_sos_t s;
+            if (dsp_design_shelf(DSP_SHELF_LOW, EQ_FC_HZ[k], EQ_GAIN_DB[gi], FS_HZ, &s) != DSP_OK) return 2;
+            double worst = 0.0;
+            for (size_t i = 0U; i < GRID_POINTS; ++i) {
+                if (grid[i] < 10.0 || grid[i] > 200.0) continue;
+                double re, im;
+                if (dsp_sos_eval(&s, 1U, FS_HZ, grid[i], &re, &im) != DSP_OK) return 2;
+                const double ref = ref_shelf_db(DSP_SHELF_LOW, grid[i], EQ_FC_HZ[k], EQ_GAIN_DB[gi]);
+                const double e = fabs(10.0 * log10(re * re + im * im) - ref);
+                if (e > worst) worst = e;
+            }
+            printf("EQ lshelf fc=%3.0f G=%+3.0f dB: max error = %.4f dB\n",
+                   EQ_FC_HZ[k], EQ_GAIN_DB[gi], worst);
+            if (EQ_FC_HZ[k] >= 30.0) {
+                if (worst > EQ_GATE_DB) {
+                    printf("FAIL EQ (exceeds %.2f dB): lshelf fc=%.0f G=%+.0f dB: %.4f dB\n",
+                           EQ_GATE_DB, EQ_FC_HZ[k], EQ_GAIN_DB[gi], worst);
+                    ++fails;
+                }
+            }
+        }
+    }
+
+    /* 3. High shelf rows */
+    for (size_t k = 0U; k < COUNT(EQ_FC_HZ); ++k) {
+        for (size_t gi = 0U; gi < COUNT(EQ_GAIN_DB); ++gi) {
+            dsp_sos_t s;
+            if (dsp_design_shelf(DSP_SHELF_HIGH, EQ_FC_HZ[k], EQ_GAIN_DB[gi], FS_HZ, &s) != DSP_OK) return 2;
+            double worst = 0.0;
+            for (size_t i = 0U; i < GRID_POINTS; ++i) {
+                if (grid[i] < 10.0 || grid[i] > 200.0) continue;
+                double re, im;
+                if (dsp_sos_eval(&s, 1U, FS_HZ, grid[i], &re, &im) != DSP_OK) return 2;
+                const double ref = ref_shelf_db(DSP_SHELF_HIGH, grid[i], EQ_FC_HZ[k], EQ_GAIN_DB[gi]);
+                const double e = fabs(10.0 * log10(re * re + im * im) - ref);
+                if (e > worst) worst = e;
+            }
+            printf("EQ hshelf fc=%3.0f G=%+3.0f dB: max error = %.4f dB\n",
+                   EQ_FC_HZ[k], EQ_GAIN_DB[gi], worst);
+            if (EQ_FC_HZ[k] >= 30.0) {
+                if (worst > EQ_GATE_DB) {
+                    printf("FAIL EQ (exceeds %.2f dB): hshelf fc=%.0f G=%+.0f dB: %.4f dB\n",
+                           EQ_GATE_DB, EQ_FC_HZ[k], EQ_GAIN_DB[gi], worst);
+                    ++fails;
+                }
+            }
+        }
+    }
+
+    /* 4. Allpass rows */
+    for (size_t k = 0U; k < COUNT(EQ_FC_HZ); ++k) {
+        for (size_t qi = 0U; qi < COUNT(EQ_Q); ++qi) {
+            dsp_sos_t s;
+            if (dsp_design_allpass(EQ_FC_HZ[k], EQ_Q[qi], FS_HZ, &s) != DSP_OK) return 2;
+            double worst = 0.0;
+            for (size_t i = 0U; i < GRID_POINTS; ++i) {
+                if (grid[i] < 10.0 || grid[i] > 200.0) continue;
+                double re, im;
+                if (dsp_sos_eval(&s, 1U, FS_HZ, grid[i], &re, &im) != DSP_OK) return 2;
+                const double e = fabs(10.0 * log10(re * re + im * im) - 0.0);
+                if (e > worst) worst = e;
+            }
+            printf("EQ allpass fc=%3.0f Q=%4.1f: max error = %.4f dB\n",
+                   EQ_FC_HZ[k], EQ_Q[qi], worst);
+            if (EQ_FC_HZ[k] >= 30.0) {
+                if (worst > EQ_GATE_DB) {
+                    printf("FAIL EQ (exceeds %.2f dB): allpass fc=%.0f Q=%.1f: %.4f dB\n",
+                           EQ_GATE_DB, EQ_FC_HZ[k], EQ_Q[qi], worst);
+                    ++fails;
+                }
+            }
+        }
+    }
+
+    /* 5. Notch rows */
+    for (size_t k = 0U; k < COUNT(EQ_FC_HZ); ++k) {
+        for (size_t qi = 0U; qi < COUNT(EQ_Q); ++qi) {
+            dsp_sos_t s;
+            if (dsp_design_notch(EQ_FC_HZ[k], EQ_Q[qi], FS_HZ, &s) != DSP_OK) return 2;
+            double worst = 0.0;
+            for (size_t i = 0U; i < GRID_POINTS; ++i) {
+                if (grid[i] < 10.0 || grid[i] > 200.0) continue;
+                double re, im;
+                if (dsp_sos_eval(&s, 1U, FS_HZ, grid[i], &re, &im) != DSP_OK) return 2;
+                const double ref = ref_notch_db(grid[i], EQ_FC_HZ[k], EQ_Q[qi]);
+                const double e = fabs(10.0 * log10(re * re + im * im) - ref);
+                if (e > worst) worst = e;
+            }
+            printf("EQ notch fc=%3.0f Q=%4.1f: max error = %.4f dB\n",
+                   EQ_FC_HZ[k], EQ_Q[qi], worst);
+            if (EQ_FC_HZ[k] >= 30.0) {
+                if (worst > EQ_GATE_DB) {
+                    printf("STOP ROW (exceeds %.2f dB): notch fc=%.0f Q=%.1f: %.4f dB\n",
+                           EQ_GATE_DB, EQ_FC_HZ[k], EQ_Q[qi], worst);
+                }
+            }
+        }
+    }
+
     return fails == 0 ? 0 : 1;
 }
