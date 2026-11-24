@@ -15,7 +15,14 @@
     {"id": "T27", "title": "tdmout TDM packing (rework under T29, ADR 0015)", "state": "needs_rework", "inferred": true, "tests": ["test_tdm_pack"]},
     {"id": "T31", "title": "DSP precision, stability in double, M4 delay clamps", "state": "merged", "inferred": false, "tests": ["test_f32"]},
     {"id": "T31b", "title": "Notch dual-metric assertions and mix input bound", "state": "merged", "inferred": false, "tests": []},
-    {"id": "T32", "title": "Peak chain gain cap", "state": "merged", "inferred": false, "tests": []}
+    {"id": "T32", "title": "Peak chain gain cap", "state": "merged", "inferred": false, "tests": []},
+    {"id": "T28", "title": "Target CI job (ESP-IDF 5.5.6, 4 bring-up modes, -Werror) and TDM frame-size assertion", "state": "open", "inferred": false, "tests": []},
+    {"id": "T29a", "title": "tdm_pack_4slot (host-only)", "state": "blocked", "inferred": false, "tests": []},
+    {"id": "T29b", "title": "tdmout two-lane driver and board_config.h constants", "state": "blocked", "inferred": false, "tests": []},
+    {"id": "T29c", "title": "pcm5122_status_is_running_48k_tdm derives expected values", "state": "blocked", "inferred": false, "tests": []},
+    {"id": "T30", "title": "PINWALK bring-up fixes", "state": "open", "inferred": false, "tests": []},
+    {"id": "T30b", "title": "Cite or remove the 0x05 clock-error mask", "state": "open", "inferred": false, "tests": []},
+    {"id": "T33", "title": "Hardware docs re-baseline for ADR 0015", "state": "blocked", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
     {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
@@ -25,6 +32,9 @@
   ],
   "blocked": [
     {"id": "STEP4", "reason": "PRESTEP4-4 numerical-contract approval, target memory/interface freeze, protected-block provisioning evidence, human safety/CODEOWNERS review (ADR 0014)."},
-    {"id": "ADR0015", "reason": "Proposed until the Step 1 bench spike passes on hardware."}
+    {"id": "ADR0015", "reason": "Proposed until the Step 1 bench spike passes on hardware."},
+    {"id": "GATE-SPIKE", "reason": "Human bench check on any ESP32-S3 board (8x32 rejected, 4x32 at mclk_multiple 384, I2S1-slave alignment against DOUT0); blocks T29a, T29b, T33. See 03_task_catalog.md."},
+    {"id": "GATE-ADR", "reason": "ADR 0015, 0016 and 0017 are Proposed; maintainer accept or reject. Blocks T29a and the Step 4 unblock."},
+    {"id": "GATE-DOUT2", "reason": "XOVER_PIN_I2S_DOUT2 GPIO number is a human-only pin-map fact (AGENTS S1). Blocks T29b and T33."}
   ]
 }
