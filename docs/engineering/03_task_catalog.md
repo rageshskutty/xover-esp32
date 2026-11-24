@@ -98,7 +98,7 @@ build, CTest, sanitizers, and coverage; record command output.
 
 | Card | State | Waits for |
 |---|---|---|
-| T28 | open | nothing |
+| T28 | merged | nothing |
 | T30 | open | nothing (parallel with T28) |
 | T30b | open, partly human | datasheet citation for the `0x05` mask |
 | GATE-SPIKE | human | a bench with any ESP32-S3 board, no DAC |
@@ -117,7 +117,7 @@ Test ownership: `tools/check.py` fails if two tasks own the same test. `test_tdm
 
 ## T28 — Target CI job and TDM frame-size assertion
 
-**State:** open. No dependency. Must be reviewed before T29b so the current 8 x 32 code fails red.
+**State:** merged (PR #55). No dependency. The target-build matrix and frame-size assertion are on main; T29b may now depend on this merged gate.
 
 **Objective:** CI builds the firmware for ESP32-S3 in four bring-up configurations with `-Werror`, and `tdmout.c` cannot compile a TDM frame larger than the S3 limit.
 
