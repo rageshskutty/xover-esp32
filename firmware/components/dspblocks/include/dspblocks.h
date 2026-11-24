@@ -86,8 +86,9 @@ void dsp_polarity_process(bool invert, const float *in, float *out, size_t n_fra
 dsp_err_t dsp_delay_init(dsp_delay_t *d, float *buffer, size_t capacity, size_t delay_samples);
 dsp_err_t dsp_delay_set_delay(dsp_delay_t *d, size_t delay_samples);
 void dsp_delay_process(dsp_delay_t *d, const float *in, float *out, size_t n_frames);
-void dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
-                     float *out, size_t n_frames);
+#define DSP_MAX_MIX_INPUTS 8 /* matches schema outputs[].in maxItems */
+dsp_err_t dsp_mix_process(const float *const *inputs, const float *gains, size_t n_inputs,
+                          float *out, size_t n_frames);
 
 static inline bool dsp_is_nan_or_inf(float x)
 {
