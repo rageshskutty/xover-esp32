@@ -50,6 +50,11 @@
     "protection": {
       "$ref": "#/$defs/protection"
     },
+    "peak_gain_limit_db": {
+      "type": "number",
+      "maximum": 18,
+      "description": "Optional lower peak-chain-gain cap; may not exceed the provisioned per-output cap."
+    },
     "links": {
       "type": "array",
       "maxItems": 4,
@@ -266,6 +271,12 @@
           "type": "number",
           "minimum": -120,
           "maximum": 0
+        },
+        "peak_gain_cap_db": {
+          "type": "number",
+          "maximum": 18,
+          "default": 18,
+          "description": "Provisioned maximum static chain gain in dB; omitted means +18 dB."
         },
         "hold_ms": {
           "type": "number",

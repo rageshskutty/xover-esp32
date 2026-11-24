@@ -3,10 +3,9 @@
 
 Host-side numerical oracle for the device JSON in configs/schema.json (ADR 0014
 section 4). It is not firmware, not a limit generator and not a safety proof:
-it never reads driver, amplifier or supply data and it makes no pass/fail
-decision against a limit. It reports, per output, the conservative static
-magnitude bound of the signal path and the magnitude of the peak-detector
-weighting, for the speaker designer to judge.
+it never reads driver, amplifier or supply data. It reports, per output, the
+conservative static magnitude bound and peak-detector weighting, and checks the
+ADR 0017 static chain-gain cap for protected configs.
 
 Filter designs mirror firmware/components/dspblocks/dspblocks.c, including the
 float32 coefficient rounding and the split hi/lo denominator of lp/hp types.
@@ -32,6 +31,10 @@ WEIGHT_LIMIT = 4.0
 GAIN_TYPES = ("peq", "lshelf", "hshelf")
 FILTER_TYPES = ("lp1", "hp1", "lp2", "hp2", "peq", "lshelf", "hshelf",
                 "ap1", "ap2", "notch")
+PEAK_GAIN_CAP_DB = 18.0
+PEAK_GAIN_STEPS = math.floor(96.0 * math.log2((FS_HZ / 2.0) / F_MIN_HZ))
+PEAK_GAIN_GRID = np.append(
+    20.0 * 2.0 ** (np.arange(PEAK_GAIN_STEPS + 1) / 96.0), FS_HZ / 2.0)
 
 
 def _finite_array(value, name, *, ndim=None):
@@ -242,6 +245,28 @@ def evaluate_config(config, frequencies_hz):
         report[out["id"]] = {"bound_db": conservative_bound_db(weights, mags),
                              "weighting_db": weighting}
     return report
+
+
+def check_peak_gain(config, frequencies_hz):
+    """Return E_PROTECT when a protected config exceeds its provisioned cap."""
+    protection = config.get("protection")
+    if protection is None:
+        return None
+    records = {record["id"]: record for record in protection.get("outputs", [])}
+    limit = config.get("peak_gain_limit_db", PEAK_GAIN_CAP_DB)
+    if not math.isfinite(float(limit)) or float(limit) > PEAK_GAIN_CAP_DB:
+        return "E_PROTECT"
+    report = evaluate_config(config, frequencies_hz)
+    for output in config["outputs"]:
+        record = records.get(output["id"])
+        if record is None:
+            return "E_PROTECT"
+        record_cap = float(record.get("peak_gain_cap_db", PEAK_GAIN_CAP_DB))
+        if not math.isfinite(record_cap) or record_cap > PEAK_GAIN_CAP_DB or float(limit) > record_cap:
+            return "E_PROTECT"
+        if float(np.max(report[output["id"]]["bound_db"])) > min(record_cap, float(limit)):
+            return "E_PROTECT"
+    return None
 
 
 def main():
