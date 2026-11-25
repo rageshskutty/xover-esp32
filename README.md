@@ -9,8 +9,8 @@ See docs/requirements.md, docs/architecture.md, docs/audio-source.md, and docs/h
 
 ## Status
 The architecture is chain-per-output (ADR 0012 and ADR 0014; both are Proposed).
-The DSP block library and host tests are implemented; the firmware has no chain executor, protection evaluator or JSON loader.
-`idf.py build` currently builds the bring-up modes only.
+The DSP block library and host tests are implemented; the firmware has no chain executor, firmware protection evaluator or JSON loader (the host-side config checker is separate).
+`idf.py build` is currently configured for the bring-up modes; target-build CI remains red on the known baseline.
 Do not connect speakers: outputs remain fail-closed and bring-up signals are limited to -30 dBFS until human verification (AGENTS S2 and S3).
 The live task state is tracked in `docs/engineering/task_state.json`.
 
