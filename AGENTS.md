@@ -1,6 +1,6 @@
 # AGENTS.md - rules for AI agents working in this repo
 
-Read order: this file, then docs/PLAN.md (what to do), docs/design.md (how it
+Read order: this file, then docs/engineering/task_state.json and docs/engineering/03_task_catalog.md (what to do; docs/PLAN.md is retired history), docs/design.md (how it
 works), docs/api.md (contracts). If a task prompt conflicts with this file,
 this file wins. If this file conflicts with the human maintainer, the human wins.
 
@@ -14,7 +14,7 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
 - HUMAN-ONLY: pin map, PCM5122 board/straps, flash/PSRAM size, ESP-IDF and
   arduino-esp32 versions, driver protection limits, licence, anything that
   changes safety behaviour, all hardware measurements, merging to main.
-- AGENT, WITH REVIEW: everything else, one task card at a time (docs/PLAN.md).
+- AGENT, WITH REVIEW: everything else, one task card at a time (docs/engineering/03_task_catalog.md and the files named in its card order).
 
 ## 3. Hard rules (a violation means the PR is rejected)
 
@@ -108,7 +108,7 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
 - The task needs more than 400 changed lines: propose a split instead.
 
 ## 5. Workflow
-1. Pick the lowest-numbered unblocked task in docs/PLAN.md. Do not start a task
+1. Pick the lowest-numbered task with state `open` in docs/engineering/task_state.json; its card is in docs/engineering/03_task_catalog.md or a later `docs/engineering/0N_task_cards_*.md`. Do not start a task
    whose dependencies are not merged.
 2. Branch `task/T05-short-name`. Commit messages: `T05: add biquad DF2T`.
 3. Write the tests first, then the code, then docs.
