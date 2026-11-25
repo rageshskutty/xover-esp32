@@ -194,9 +194,9 @@
     "tools/lookahead_screen.py",
     "tools/protection_oracle.py",
     "tools/protection_oracle_vectors.json",
+    "tools/requirements.txt",
     "tools/test_protection_oracle.py",
     "tools/test_scipy_compare.py",
-    "tools/test_validator_diff.py",
     "web/index.html"
   ]
 }
