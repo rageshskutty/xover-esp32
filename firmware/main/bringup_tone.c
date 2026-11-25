@@ -13,13 +13,18 @@ const uint32_t bringup_tone_freq_hz[BRINGUP_TONE_CHANNELS] = {
     400U, 700U, 1100U, 1700U, 2300U, 3100U
 };
 
-int bringup_tone_fill(float level_dbfs, uint32_t start_frame, size_t n_frames,
+int bringup_tone_fill(float level_dbfs, float cap_dbfs, uint32_t start_frame, size_t n_frames,
                       int32_t *const channels[BRINGUP_TONE_CHANNELS])
 {
-    /* 1. Return -1 if level_dbfs is not finite, above -30.0 or below -120.0 */
-    if (!isfinite(level_dbfs) ||
-        level_dbfs > BRINGUP_TONE_MAX_DBFS ||
+    /* 1. Return -1 if level or cap is not finite, either is below -120.0, or level exceeds
+     *    the effective cap min(-30.0, cap_dbfs) */
+    if (!isfinite(level_dbfs) || !isfinite(cap_dbfs) ||
+        cap_dbfs < BRINGUP_TONE_MIN_DBFS ||
         level_dbfs < BRINGUP_TONE_MIN_DBFS) {
+        return -1;
+    }
+    const float effective_cap = (cap_dbfs < BRINGUP_TONE_MAX_DBFS) ? cap_dbfs : BRINGUP_TONE_MAX_DBFS;
+    if (level_dbfs > effective_cap) {
         return -1;
     }
 

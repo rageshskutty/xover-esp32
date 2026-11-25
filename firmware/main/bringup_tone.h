@@ -11,7 +11,8 @@
 
 extern const uint32_t bringup_tone_freq_hz[BRINGUP_TONE_CHANNELS];
 
-int bringup_tone_fill(float level_dbfs, uint32_t start_frame, size_t n_frames,
+/* Effective cap is min(BRINGUP_TONE_MAX_DBFS, cap_dbfs). The caller passes CONFIG_XOVER_BRINGUP_MAX_DBFS. */
+int bringup_tone_fill(float level_dbfs, float cap_dbfs, uint32_t start_frame, size_t n_frames,
                       int32_t *const channels[BRINGUP_TONE_CHANNELS]);
 
 #endif /* BRINGUP_TONE_H */
