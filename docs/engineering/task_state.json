@@ -29,7 +29,7 @@
     {"id": "T35", "title": "check.py planning-integrity rules", "state": "merged", "inferred": false, "tests": []},
     {"id": "T36", "title": "AGENTS.md read order and README status", "state": "merged", "inferred": false, "tests": []},
     {"id": "T37", "title": "C8 rule and TODO task ids", "state": "merged", "inferred": false, "tests": []},
-    {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "open", "inferred": false, "tests": []}
+    {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "merged", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
     {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
