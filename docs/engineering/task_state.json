@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "note": "Task ids for tests were inferred from docs/PLAN.md and docs/engineering/03_task_catalog.md; the maintainer must confirm entries marked inferred=true.",
   "tasks": [
     {"id": "T02", "title": "Host build and biquad engine", "state": "merged", "inferred": false, "tests": ["test_sos"]},
@@ -22,7 +22,12 @@
     {"id": "T29c", "title": "pcm5122_status_is_running_48k_tdm derives expected values", "state": "blocked", "inferred": false, "tests": []},
     {"id": "T30", "title": "PINWALK bring-up fixes", "state": "open", "inferred": false, "tests": []},
     {"id": "T30b", "title": "Cite or remove the 0x05 clock-error mask", "state": "open", "inferred": false, "tests": []},
-    {"id": "T33", "title": "Hardware docs re-baseline for ADR 0015", "state": "blocked", "inferred": false, "tests": []}
+    {"id": "T33", "title": "Hardware docs re-baseline for ADR 0015", "state": "blocked", "inferred": false, "tests": []},
+    {"id": "T34", "title": "Planning state sync and basis commit", "state": "open", "inferred": false, "tests": []},
+    {"id": "T35", "title": "check.py planning-integrity rules", "state": "open", "inferred": false, "tests": []},
+    {"id": "T36", "title": "AGENTS.md read order and README status", "state": "open", "inferred": false, "tests": []},
+    {"id": "T37", "title": "C8 rule and TODO task ids", "state": "open", "inferred": false, "tests": []},
+    {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "open", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
     {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
