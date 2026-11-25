@@ -114,15 +114,14 @@ load before the first long run.
 
 ## 6. Resistors and termination
 
-Read from the low-resolution Adafruit schematic image, so confirm each point
-with a multimeter on the real boards.
+Read from the Adafruit Eagle schematic/netlist in `adafruit/Adafruit-PCM5122-I2S-DAC-PCB` (not only the low-resolution schematic image). Electrical behaviour is source-resolved below; measure the assembled system during bring-up.
 
 | Item | Finding | What to do |
 |---|---|---|
 | I2C pull-ups | each DAC board pulls SDA and SCL up to its 3.3 V (about 10 kohm; three boards in parallel are about 3.3 kohm) | add none; do not enable the ESP32 internal pull-ups; start at 100 kHz, try 400 kHz after a scope check |
 | I2S lines | 12.288 MHz clocks over jumper wires to three loads | 33 ohm series resistor at the ESP32 end of MCLK, BCLK, WS and DOUT; keep wires short, with a ground wire beside each clock; tune on a scope |
-| MUTE | each board pulls MUTE up to 3.3 V (default unmuted), and the chip's mute input is active low | 470 ohm from GPIO10 to GND so the DACs stay muted while the ESP32 boots; with three boards that gives about 0.4 V |
-| MUTE note | the schematic text says "LOW = Mute Off, HIGH = Mute On", which contradicts the Adafruit guide ("pull low to mute") | measure first: with the pad floating, outputs should be live; pulled low, silent. If it is the other way round, swap the pull-down for a pull-up |
+| MUTE | Each board has a 10 kΩ pull-up from 3.3 V to MUTE (Adafruit schematic R1, gate G$4); MUTE connects directly to XSMT pin 25 with no inverter. XSMT is active-low: low = mute, high = unmute. | Keep the proposed 470 Ω pull-down from GPIO10 to GND for muted-at-boot behaviour; with three 10 kΩ pull-ups in parallel (about 3.33 kΩ), the shared line is about 0.41 V. GPIO10 high must override this pull-down to unmute; verify the actual high level/current on the assembled system before releasing the safety gate. |
+| MUTE note | The schematic's text annotation “LOW = Mute Off / HIGH = Mute On” is incorrect. The TI datasheet, Adafruit guide and schematic netlist agree: MUTE is directly connected to active-low XSMT, with an onboard 10 kΩ pull-up. | Do not reverse the project's polarity or swap the 470 Ω pull-down. Verify the assembled idle voltage and that GPIO10 low mutes / high unmutes; if the measurement disagrees, stop and inspect the board revision/wiring rather than assuming an inverter. |
 | Strap pins | MOD1, MOD2, A1 and A2 are pulled to ground on the board | tie to 3V3 only where section 3 says |
 | Admin LED | plain LED on GPIO21 | 470 ohm series resistor to the LED, then GND |
 
@@ -131,7 +130,7 @@ section 5 (amplifier mute, DC blocking, fuse) still apply.
 
 ## 7. Checks for the first bring-up (human)
 
-1. Multimeter: MUTE polarity, SDA/SCL pull-up voltage, strap pad levels, 3V3 at each VIN.
+1. Multimeter: assembled MUTE idle voltage and GPIO10 low/high levels, SDA/SCL pull-up voltage, strap pad levels, 3V3 at each VIN.
 2. I2C scan finds 0x4C, 0x4D and 0x4E and nothing else.
 3. Scope: BCK = 12.288 MHz, MCLK = 12.288 MHz, sync pulse one BCK wide.
 4. Six distinct tones, one per slot, at no more than -30 dBFS with amplifiers and speakers disconnected (gate G1).
