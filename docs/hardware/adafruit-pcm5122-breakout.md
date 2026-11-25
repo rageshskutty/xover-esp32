@@ -31,7 +31,7 @@ The front photo shows the PCM5122 IC, 3.5 mm line-out jack and two rows of break
 | DIN | Serial audio data input | DIN; sampled on rising BCK |
 | BCK | Audio bit clock | BCK |
 | MCK | Optional main/system clock input | SCK; optional per Adafruit guide |
-| MUTE | Hardware mute input | XSMT; low = mute, high = unmute |
+| MUTE | Hardware mute input | XSMT pin 25; active-low mute. Adafruit's schematic connects the pad net directly to XSMT and shows a 10 kΩ pull-up to 3.3 V (R1, gate G$4); no inverter is present. |
 | Lout | Left analog line output | OUTL |
 | GND (audio side) | Analog output ground | Adafruit describes this as clean analog ground |
 | Rout | Right analog line output | OUTR |
@@ -71,7 +71,7 @@ Both MOD pins open by default select hardware mode. Adafruit's I²C example wire
 
 **Two distinct operating paths:** (1) Basic stereo I²S quick-start: default hardware mode, with BCK/WSEL/DIN, no MCLK required, and no I²C setup required. Adafruit's Overview says the device detects the audio word format from the WSEL/BCK ratio; it lists 16-, 24- and 32-bit audio. (2) Configurable/TDM path: volume, software mute, EQ/filter settings use register control; TI datasheet section 8.3.2.2 says TDM/DSP and right-justified formats are available only in software-control mode. Therefore this project's TDM/DSP path requires I²C or SPI register configuration. Project proposal remains I²C: MOD1 low / MOD2 high. Do not use hardware-only FMT to select TDM. The supplied rear-board silk separately prints 16/20/24/32-bit; record this as a board marking, not as a substitute for the Overview's advertised 16/24/32-bit quick-start statement or TI's mode-specific word-length tables.
 
-The hardware MUTE input remains usable in all control modes. Adafruit says pulling MUTE low sets outputs to ground. TI identifies XSMT low as soft mute and high as soft unmute (section 6.1, Pin Functions).
+The hardware MUTE input remains usable in all control modes. Adafruit says pulling MUTE low sets outputs to ground. TI identifies XSMT low as soft mute and high as soft unmute (Pin Functions table, printed page 6; section 8.3.3, printed page 19). The Adafruit Eagle schematic/netlist resolves the board path: the MUTE net connects directly to PCM5122 XSMT pin 25 and to JP3 MUTE pad 7; resistor pack R1, gate G$4, is 10 kΩ from 3.3 V to that net. There is no inverter. Therefore, with the pad otherwise undriven and the board powered, the breakout's own pull-up makes MUTE high (unmuted); pulling the pad low mutes it. The schematic annotation saying “LOW = Mute Off / HIGH = Mute On” is reversed and is an error in the schematic text, not the electrical circuit.
 
 ## 4. I²C address selection
 
@@ -115,7 +115,7 @@ Do not confuse this jumper with MCK: the jumper selects clock direction; MCK is 
 | MCK | Optional; PCM5122 can generate its internal main clock from BCK per Adafruit | Do not assume MCK is mandatory; project proposes it and must validate timing |
 | Line output | Ground-centred, not AC-coupled | Check downstream input topology and ground reference |
 | Minimum load | At least 1 kΩ | Not suitable for direct headphone drive |
-| MUTE | Low mutes per Adafruit; TI XSMT low = mute | Keep mute asserted until system safety gates permit release |
+| MUTE | Active-low XSMT; Adafruit schematic shows direct pad-to-pin connection and 10 kΩ pull-up to 3.3 V | Project's external 470 Ω pull-down holds the shared line low at boot; GPIO10 must drive it high to unmute, subject to the project's safety gate |
 | Audio timing | TI samples DIN on rising BCK | Validate timing against ESP-IDF peripheral configuration |
 
 Do not infer regulator topology, current consumption, input protection, output drive beyond the published load guidance, or safe power sequencing from the photos.
@@ -224,7 +224,7 @@ The ESP32-S3 TRM Table 4.3-3 places I2C0 at `0x6001_3000` and I2C1 at `0x6002_70
 |---|---|---|
 | GPIO4–7 can route I2S0 MCLK/BCK/WS/SD through GPIO matrix | TRM-SOURCED | Confirm actual ESP-IDF configuration and scope waveforms |
 | GPIO8/9 available as proposed I2C pads | TRM + module-pin-map sourced | Confirm board header wiring and I2C scan |
-| GPIO10 as mute output | TRM + board pin-map proposal | Measure MUTE polarity/boot level on actual breakout |
+| GPIO10 as mute output | TRM + board pin-map proposal; MUTE-to-XSMT polarity and onboard pull-up are schematic/datasheet sourced | Measure the assembled shared-line voltage with the external 470 Ω pull-down and verify GPIO10 low=mute / high=unmute |
 | I2S0 TDM TX capability and control fields | TRM-SOURCED | Confirm ESP-IDF release, exact driver semantics and selected clock/framing values |
 | 48 kHz × 8 × 32-bit target = 12.288 MHz BCK | Calculated from proposal | Scope-verify clock and frame |
 | Three DACs receive correct slots/offsets | PROPOSED | Bench-test with low-level unique slot tones, amps/speakers disconnected |
@@ -242,7 +242,7 @@ The TRM is a register and peripheral reference, not a substitute for the ESP32-S
 | Three-board ESP32 GPIO wiring and address allocation | PROPOSED | P1; maintainer approval required by AGENTS.md |
 | CLK Dir jumper open on all three boards | UNVERIFIED | Inspect/photograph each board (P0.4) |
 | Actual MOD1/MOD2/A1/A2 strap voltages | UNVERIFIED | Measure before connection (P3.2/P3.5) |
-| MUTE polarity and pull-down voltage | UNVERIFIED | Meter/tone checks (P3.3/P3.4/P5.4) |
+| MUTE polarity and breakout topology | SOURCE-VERIFIED: TI XSMT is active-low; Adafruit netlist connects MUTE directly to XSMT and R1 G$4 pulls it up to 3.3 V through 10 kΩ | Measure the assembled three-board line voltage with the project's 470 Ω pull-down and confirm mute/unmute operation (P3.3/P3.4/P5.4) |
 | I²C addresses on assembled bus | UNVERIFIED | Scan at P5.6 |
 | MCLK/BCK/WS waveform and TDM alignment | UNVERIFIED | Scope and low-level slot test; amps/speakers disconnected |
 | Analog output level/load compatibility | UNVERIFIED | Measure with actual downstream input |
