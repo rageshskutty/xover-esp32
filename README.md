@@ -7,6 +7,13 @@ Precompiled DSP blocks live in firmware. A JSON config wires blocks together and
 
 See docs/requirements.md, docs/architecture.md, docs/audio-source.md, and docs/hw-pinmap.md. The 8 MB partition layout in firmware/partitions.csv is provisional: verify the actual module flash size before flashing.
 
+## Status
+The architecture is chain-per-output (ADR 0012 and ADR 0014; both are Proposed).
+The DSP block library and host tests are implemented; the firmware has no chain executor, firmware protection evaluator or JSON loader (the host-side config checker is separate).
+`idf.py build` is currently configured for the bring-up modes; target-build CI remains red on the known baseline.
+Do not connect speakers: outputs remain fail-closed and bring-up signals are limited to -30 dBFS until human verification (AGENTS S2 and S3).
+The live task state is tracked in `docs/engineering/task_state.json`.
+
 ## Build order
 1. TDM bring-up: three PCM5122 DACs and six-channel sine test.
 2. DSP block engine and host tests against scipy.
