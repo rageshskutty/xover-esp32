@@ -25,10 +25,10 @@
     {"id": "T30", "title": "PINWALK bring-up fixes", "state": "merged", "inferred": false, "tests": []},
     {"id": "T30b", "title": "Cite or remove the 0x05 clock-error mask", "state": "merged", "inferred": false, "tests": []},
     {"id": "T33", "title": "Hardware docs re-baseline for ADR 0015", "state": "blocked", "inferred": false, "tests": []},
-    {"id": "T34", "title": "Planning state sync and basis commit", "state": "open", "inferred": false, "tests": []},
-    {"id": "T35", "title": "check.py planning-integrity rules", "state": "open", "inferred": false, "tests": []},
-    {"id": "T36", "title": "AGENTS.md read order and README status", "state": "open", "inferred": false, "tests": []},
-    {"id": "T37", "title": "C8 rule and TODO task ids", "state": "open", "inferred": false, "tests": []},
+    {"id": "T34", "title": "Planning state sync and basis commit", "state": "merged", "inferred": false, "tests": []},
+    {"id": "T35", "title": "check.py planning-integrity rules", "state": "merged", "inferred": false, "tests": []},
+    {"id": "T36", "title": "AGENTS.md read order and README status", "state": "merged", "inferred": false, "tests": []},
+    {"id": "T37", "title": "C8 rule and TODO task ids", "state": "merged", "inferred": false, "tests": []},
     {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "open", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
