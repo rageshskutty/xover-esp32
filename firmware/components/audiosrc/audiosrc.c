@@ -1,2 +1,2 @@
 #include "audiosrc.h"
-/* TODO: bounded PCM ring buffer between decoder and DSP task. */
+/* TODO(T10): decoder hook that pushes PCM into the ring (audiosrc_ring.c). */
