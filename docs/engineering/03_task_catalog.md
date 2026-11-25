@@ -113,7 +113,7 @@ The PCM5122 SCK-ratio question from the correction plan (step 5.0) is closed: AD
 
 T29 from the plan is split into T29a–T29c because it exceeds the 80-line card size. `board_config.h` constants move from the plan's Step 3 into T29b: `tdmout.c` asserts 8 slots today, so the 4-slot constants and the tdmout rework have to compile together. This is a deviation from the plan order and is stated in the PR that introduces these cards (V4).
 
-Test ownership: `tools/check.py` fails if two tasks own the same test. `test_tdm_pack` and `test_pcm5122_ctl` stay with T27 and T24 in `task_state.json`; T29a and T29c add assertions to those files and do not claim them.
+Test ownership: `tools/check.py` fails if two tasks own the same test. `test_tdm_pack` and `test_pcm5122_ctl` stay with T27 and T25 in `task_state.json`; T29a and T29c add assertions to those files and do not claim them.
 
 ## T28 — Target CI job and TDM frame-size assertion
 
