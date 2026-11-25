@@ -39,8 +39,8 @@
   ],
   "blocked": [
     {"id": "STEP4", "reason": "PRESTEP4-4 numerical-contract approval, target memory/interface freeze, protected-block provisioning evidence, human safety/CODEOWNERS review (ADR 0014)."},
-    {"id": "ADR0015", "reason": "Proposed until the Step 1 bench spike passes on hardware."},
-    {"id": "GATE-SPIKE", "reason": "Human bench check on any ESP32-S3 board (8x32 rejected, 4x32 at mclk_multiple 384, I2S1-slave alignment against DOUT0); blocks T29a, T29b, T33. See 03_task_catalog.md."},
+    {"id": "ADR0015", "reason": "Proposed until the GATE-SPIKE bench check passes on hardware. The ESP32-S3 TRM v1.8 check (frame limit, BCK divider, I2S1 slave clock, shared pads) is recorded in ADR 0015 and is SOURCE-VERIFIED only."},
+    {"id": "GATE-SPIKE", "reason": "Human bench check on any ESP32-S3 board, no DAC needed for items 1 and 2: shared BCLK/WS pad state with both I2S channels enabled and I2S1 on the 160 MHz clock source, 4x32 frame at mclk_multiple 384 with I2S1 started first, DOUT1 timing against BCLK compared with PCM5122 setup/hold. The 8x32 rejection is confirmed by the TRM and is optional. Blocks T29a, T29b, T33. See 03_task_catalog.md."},
     {"id": "GATE-ADR", "reason": "ADR 0015, 0016 and 0017 are Proposed; maintainer accept or reject. Blocks T29a and the Step 4 unblock."},
     {"id": "GATE-DOUT2", "reason": "XOVER_PIN_I2S_DOUT2 GPIO number is a human-only pin-map fact (AGENTS S1). Blocks T29b and T33."}
   ]
