@@ -60,8 +60,8 @@ Needs Gate 0 for steps P2.4 and P2.5 (they use pin numbers).
 |---|---|---|
 | P3.1 | Solder headers where missing | Clean joints, no bridges |
 | P3.2 | Measure strap pad levels with the board unpowered and powered, no ties yet | MOD1, MOD2, A1, A2 read low (pulled to ground), as `hw-pinmap.md` section 6 states |
-| P3.3 | Measure the MUTE pad with it floating | Near 3.3 V (default unmuted) |
-| P3.4 | Pull the MUTE pad to GND with a wire; later confirm silence with a tone source | Record which level mutes. The chip mutes on XSMT low (`hw-verification-notes.md`), so low should mute. If the board does the opposite, change the pull-down to a pull-up (pin map section 6) and log it |
+| P3.3 | Measure the MUTE pad with it floating | Near 3.3 V (Adafruit schematic R1 G$4 provides a 10 kΩ pull-up; default unmuted) |
+| P3.4 | Pull the MUTE pad to GND with a wire; later confirm silence with a low-level tone source | The source-resolved circuit is active-low: the pad connects directly to XSMT, so low must mute and high must unmute. Record the functional result. If the measurement disagrees, stop and inspect board revision/wiring; do not reverse the pull-down based on the erroneous schematic text annotation |
 | P3.5 | Tie MOD2 to 3V3 on every board; tie A1 to 3V3 on board 1 and A2 to 3V3 on board 2 | Meter confirms levels from the table in section 3 of the pin map; board 0 has A1 and A2 open |
 | P3.6 | Label the boards DAC 0, DAC 1, DAC 2 on the board itself | Labels on all three |
 
@@ -85,7 +85,7 @@ Needs Gate 0 for steps P2.4 and P2.5 (they use pin numbers).
 | P5.1 | Power up | Nothing hot, no smell; LED behaves as the pin-walk app dictates |
 | P5.2 | Measure 3V3 at each DAC board's VIN | 3.2 to 3.4 V on all three |
 | P5.3 | Measure SDA and SCL idle voltage | About 3.3 V (pull-ups from the DAC boards, about 3.3 kohm combined) |
-| P5.4 | Measure MUTE with GPIO10 as input | About 0.4 V (three board pull-ups against 470 ohm), so the DACs are muted at boot |
+| P5.4 | Measure MUTE with GPIO10 as input | About 0.4 V (three onboard 10 kΩ pull-ups in parallel against the 470 Ω pull-down), so the DACs are held muted at boot |
 | P5.5 | Supply current with the meter | Logged; compare with the P2.7 baseline |
 | P5.6 | I2C scan at 100 kHz | Addresses 0x4C, 0x4D, 0x4E and nothing else |
 | P5.7 | Scope SDA and SCL (optional) | Clean edges at 100 kHz. Try 400 kHz only after this |
