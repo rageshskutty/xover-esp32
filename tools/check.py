@@ -416,6 +416,42 @@ def selftest_planning():
     return bad
 
 
+TODO_RE = re.compile(r"\bTODO\b(?!\(T[0-9]+[a-z]?\))")
+TODO_SKIP = ("firmware/third_party/", "managed_components/")
+
+
+def todo_errors(rel_path, text):
+    return ["%s:%d: TODO without task id (C8)" % (rel_path, n)
+            for n, line in enumerate(text.splitlines(), 1) if TODO_RE.search(line)]
+
+
+def check_todos():
+    failures = []
+    files = sorted({f for ext in ("c", "h") for f in glob.glob(os.path.join(ROOT, "firmware", "**", "*." + ext), recursive=True)})
+    scanned = 0
+    for f in files:
+        rel = os.path.relpath(f, ROOT).replace(os.sep, "/")
+        if any(skip in rel + "/" or rel.startswith(skip) for skip in TODO_SKIP):
+            continue
+        scanned += 1
+        with open(f, encoding="utf-8", errors="replace") as fh:
+            failures += todo_errors(rel, fh.read())
+    print("  scanned %d firmware source file(s)" % scanned)
+    return failures
+
+
+def selftest_todo():
+    bad = []
+    for text, count in (("/* TODO(T09): x */", 0), ("/* TODO: x */", 1), ("// TODO x", 1), ("int todo_count;", 0),
+                        ("TODO(T9)", 0), ("TODO(9)", 1), ("TODO(T10) and TODO later", 1)):
+        got = len(todo_errors("f.c", text))
+        if got != count:
+            bad.append("todo rule: %r gave %d error(s), expected %d" % (text, got, count))
+    if todo_errors("f.c", "a\nb\n/* TODO: x */") != ["f.c:3: TODO without task id (C8)"]:
+        bad.append("todo rule reported a wrong line number")
+    return bad
+
+
 def main():
     try:
         import jsonschema
@@ -423,9 +459,10 @@ def main():
         print("jsonschema missing: pip install -r tools/requirements.txt")
         return 2
     failures = []
-    for title, fn in (("scanner self-test", selftest_rt_scan), ("planning self-test", selftest_planning),
+    for title, fn in (("scanner self-test", selftest_rt_scan), ("planning self-test", selftest_planning), ("todo self-test", selftest_todo),
                       ("configs", check_configs), ("planning integrity", check_planning),
-                      ("real-time scan", check_rt_files), ("secrets", check_secrets)):
+                      ("real-time scan", check_rt_files), ("todo task ids", check_todos),
+                      ("secrets", check_secrets)):
         print("[%s]" % title)
         failures += fn()
     print()

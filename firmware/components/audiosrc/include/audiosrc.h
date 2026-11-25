@@ -1,2 +1,2 @@
 #pragma once
-/* TODO: PCM input ring-buffer API. */
+/* TODO(T10): PCM input API on top of audiosrc_ring.h. */
