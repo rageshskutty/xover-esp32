@@ -8,7 +8,8 @@ accepted, and lists what in `hw-pinmap.md` is then out of date.
 Sources: `docs/hardware/adafruit-pcm5122-breakout.md` (pad names, straps,
 CLK Dir jumper), `docs/adr/0015-tdm-feed-two-lanes.md`,
 `docs/hardware/dout2-candidates.md` (DOUT2 pin options), TI SLAS763C as cited
-in those files.
+in those files, and the front and back photos of the breakout supplied on
+2026-11-25 (PHOTO-OBSERVED).
 
 ## 1. What ADR 0015 changes on the DAC side
 
@@ -47,6 +48,31 @@ open on all three, so every board takes its clock from the ESP32 as secondary).
 Note that DIN on DAC2 must not be tied to the GPIO7 line any more. Wiring DIN
 of all three boards to GPIO7 and then enabling lane 1 would put two drivers on
 one DAC2 input.
+
+## 2a. Pad order on the breakout (PHOTO-OBSERVED)
+
+Front photo, bottom edge, left to right (labels alternate above and below the
+pads, so each label belongs to the pad nearest it):
+
+VIN, GND, WSEL, DIN, BCK, MCK, MUTE, Lout, GND, Rout
+
+So the four I2S signals sit side by side: WSEL, DIN, BCK, MCK. The audio-side
+GND is the second GND (between Lout and Rout), next to the line outputs; the
+first GND, beside VIN, is the power-side ground.
+
+Front photo, top edge: the printed labels are FMT, A1, AGN, A2, MOD1, MOD2,
+SDA, SCL, ATT0, FILT, DEEM, alternating above and below the pads. I count 10
+pads against 11 printed labels, and the photo's resolution does not settle
+which label belongs to which pad. Do not wire the strap and I2C pads from this
+photo alone; check the Adafruit Pinouts page or the board itself first, and
+photograph the wired board for the bring-up log.
+
+Back photo: "CLK Dir Sel" jumper pad is at the top centre, under the
+"PCM5122 I2S DAC" title. The board markings read "112-dB 16/20/24/32-Bit",
+"I2S, LJ, RJ, TDM/DSP", "Hardware / I2C / SPI Control", "3.3V Logic,
+MCLK-optional" and "Line Out 1KΩ Min. Not AC-coupled", which agree with
+`adafruit-pcm5122-breakout.md` section 2. The photos do not show whether the
+jumper is open on the three boards actually bought.
 
 ## 3. Slot plan
 
