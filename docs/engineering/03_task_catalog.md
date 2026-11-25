@@ -111,6 +111,8 @@ build, CTest, sanitizers, and coverage; record command output.
 
 The PCM5122 SCK-ratio question from the correction plan (step 5.0) is closed: ADR 0015 "Datasheet check" records that 384 x fS at 48 kHz is allowed (SLAS763C, Table 32, Table 104, Table 133). Do not re-open it inside a card; if a card finds a conflict, stop and write it to `docs/questions.md`.
 
+The ESP32-S3 TRM questions (128-bit frame limit, BCK divider, I2S1 slave clock, shared BCLK/WS pads) are answered in ADR 0015 "TRM check" (TRM v1.8, SOURCE-VERIFIED, not HW-VERIFIED). Do not re-open them inside a card either; if a card finds a conflict, stop and write it to `docs/questions.md`.
+
 T29 from the plan is split into T29a–T29c because it exceeds the 80-line card size. `board_config.h` constants move from the plan's Step 3 into T29b: `tdmout.c` asserts 8 slots today, so the 4-slot constants and the tdmout rework have to compile together. This is a deviation from the plan order and is stated in the PR that introduces these cards (V4).
 
 Test ownership: `tools/check.py` fails if two tasks own the same test. `test_tdm_pack` and `test_pcm5122_ctl` stay with T27 and T25 in `task_state.json`; T29a and T29c add assertions to those files and do not claim them.
@@ -212,25 +214,30 @@ Slot `i < n_channels` takes `channels[i]`; the remaining slots are zero. Lane A 
 
 **Files:** `firmware/main/board_config.h` (CODEOWNERS), `firmware/components/tdmout/tdmout.c` (CODEOWNERS), `firmware/components/tdmout/include/tdmout.h` if the public signature must change (then C5: ADR note plus `docs/api.md`).
 
-**Required inputs from the maintainer (S1, never guessed):** the GPIO for `XOVER_PIN_I2S_DOUT2`, the I2S1 slot mode and slot mask that the spike recorded in `docs/bringup-log.md`.
+**Required inputs from the maintainer (S1, never guessed):** the GPIO for `XOVER_PIN_I2S_DOUT2`, the I2S1 slot mode and slot mask that the spike recorded in `docs/bringup-log.md`, and the spike's result for the shared BCLK/WS pads (the pads are shared with I2S1 unless the spike failed; ADR 0015 TRM check item 5).
 
 **`board_config.h` changes:** `XOVER_TDM_SLOTS_PER_FRAME 4`, `XOVER_TDM_SLOT_MASK 0x0F`, new `XOVER_PIN_I2S_DOUT2` added to every pin check (unusable-pin, strapping and distinct-bit checks), `XOVER_DAC2_TDM_OFFSET_BCK 0` on lane B. The assertion `XOVER_DAC2_TDM_OFFSET_BCK == 4 * XOVER_TDM_SLOT_BITS` must be replaced by a per-lane check: DAC1 offset equals `2 * XOVER_TDM_SLOT_BITS` on lane A, DAC2 offset is 0 on lane B, and every offset is smaller than the lane frame length.
 
 **`tdmout.c` changes:**
 - Update the four existing `_Static_assert`s to 4 slots and mask `0x0F`; keep the T28 frame-size assert.
-- Delete `tdmout_apply_clock_override`, `TDMOUT_MCLK_DIV_*`, `TDMOUT_BCK_DIV` and every `i2s_ll_*` call. Set `mclk_multiple` to 384, which gives 18.432 MHz MCLK and a master `bclk_div` of 3 on the stock path (ADR 0015).
+- Delete `tdmout_apply_clock_override`, `TDMOUT_MCLK_DIV_*`, `TDMOUT_BCK_DIV` and every `i2s_ll_*` call. Set `mclk_multiple` to 384, which gives 18.432 MHz MCLK and a master `bclk_div` of 3 on the stock path (ADR 0015). The old override programmed `TX_BCK_DIV_NUM` = 1, which the S3 TRM says must not be configured (ADR 0015 TRM check item 3), so it was invalid on hardware as well.
 - Add the I2S1 slave channel and its DOUT2 pin. Enable I2S1 first, then I2S0, so both begin on the same frame.
+- I2S1 clock source: as a slave, I2S1's internal clock must be at least 8 x BCK = 49.152 MHz (ADR 0015 TRM check item 4), so it must come from the 160 MHz PLL source, not the 40 MHz crystal. Set the clock source explicitly through the public IDF config and do not rely on a default. Read the v5.5.6 source to confirm the slave config takes that source. If the resolved clock is available, fail `tdmout_init` when it is below 8 x BCK.
+- Shared pads: after both channels are enabled, BCLK and WS must have input and output enabled (the TRM shows separate IE and OE on a pad, and the input path needs `IO_MUX_FUN_IE` = 1; ADR 0015 TRM check item 5). Use public ESP-IDF GPIO calls (for example `gpio_input_enable()`), not `gpio_ll_*` or `i2s_ll_*`. The exact call is chosen from the v5.5.6 source and the spike result; I2S0 must keep driving BCLK and WS.
 - Document in `tdmout.h` that the caller must have ramped output to zero before `tdmout_stop` (AGENTS S7). `tdmout_stop` itself does not ramp.
+
+**Not in this card:** separate I2S1 input pads jumpered to BCLK/WS. The hardware does not require them (ADR 0015). They are the fallback if the spike shows the shared pads fail; that changes the pin map (new GPIOs, S1) and needs a new maintainer decision.
 
 **Expected baseline:** after T29a and with the constants changed first, the old `tdmout.c` fails to compile on its own asserts. This is the first-fail evidence.
 
-**Acceptance:** four `target-build` jobs green (Actions run URL, C6); `python tools/check.py` PASS; host suite green. Everything about timing, alignment, MCLK value and pin behaviour stays UNVERIFIED until a human records scope results in `docs/bringup-log.md` (V1).
+**Acceptance:** four `target-build` jobs green (Actions run URL, C6); `python tools/check.py` PASS; host suite green. Everything about timing, alignment, MCLK value, I2S1 clock and pin behaviour stays UNVERIFIED until a human records scope results in `docs/bringup-log.md` (V1).
 
 **Rules (5):** C1, C3, S1, S7, V2.
 
 **Stop:**
-- The spike shows DAC2 data late by one BCLK or more, or the driver reconfigures shared BCLK/WS as input-only: ADR 0015 fails and Option C applies. Do not start this card.
+- The spike shows DAC2 data late by one BCLK or more, or the driver reconfigures shared BCLK/WS as input-only and no public-API fix restores I2S0's output: ADR 0015 fails and Option C applies. Do not start this card.
 - The pin number or I2S1 mode is missing: write to `docs/questions.md`, stop.
+- The I2S1 clock source cannot be set to the 160 MHz source through public IDF configuration: write to `docs/questions.md`, stop.
 - The change exceeds 80 production lines: split by file before coding.
 
 ## T29c — `pcm5122_status_is_running_48k_tdm` derives its expectations
@@ -295,7 +302,7 @@ Slot `i < n_channels` takes `channels[i]`; the remaining slots are zero. Lane A 
 
 **Objective:** every doc that states 8 slots, 256 BCK or 12.288 MHz MCLK is made consistent with the merged constants.
 
-**Files:** `docs/hw-pinmap.md` (sections 3 and 4: add DOUT2 and the BCLK/WS jumper to I2S1), `docs/hw-verification-notes.md` (section 1 row that says 8 slots of 32 bit is right), `docs/prebringup.md`, `docs/bom.md` (jumper wire), `docs/design.md`, `docs/adr/0009-dsp-timing-boundaries.md` only if it quotes block sizes.
+**Files:** `docs/hw-pinmap.md` (sections 3 and 4: add DOUT2 to I2S1; I2S1 reads the same BCLK/WS pads as I2S0 unless the spike showed a jumper is needed, ADR 0015 TRM check item 5; section 2 UNVERIFIED note about the GPIO matrix can cite TRM chapter 6, Table 6.11-1), `docs/hw-verification-notes.md` (section 1 row that says 8 slots of 32 bit is right), `docs/prebringup.md`, `docs/bom.md` (jumper wire only if the spike required it), `docs/design.md`, `docs/adr/0009-dsp-timing-boundaries.md` only if it quotes block sizes.
 
 **Contract:** each changed statement cites ADR 0015 or a datasheet section; no number appears that is not in `board_config.h` or a cited datasheet. Every hardware statement keeps the label UNVERIFIED until a human records the check in `docs/bringup-log.md`.
 
@@ -309,12 +316,14 @@ Slot `i < n_channels` takes `channels[i]`; the remaining slots are zero. Lane A 
 
 Any ESP32-S3 board, ESP-IDF v5.5.6. Record each result in `docs/bringup-log.md`; the agent never writes HW-VERIFIED.
 
-1. TDM master, 8 slots x 32 bit, `i2s_channel_init_tdm_mode`. Expected: `ESP_ERR_INVALID_ARG` and a log line about exceeding the maximum of 128. If it succeeds on v5.5.6, finding B1 is withdrawn and T29a to T29c shrink to documentation.
-2. 4 slots x 32 bit, mask `0x0F`, `mclk_multiple` 384. Expected: OK. Scope: BCLK 6.144 MHz, MCLK 18.432 MHz, WS one-BCK pulse every 128 BCK, no `bclk_div` warning in the log.
-3. I2S1 as slave on the shared BCLK/WS, I2S1 started before I2S0. Scope DOUT1 against DOUT0. Check that DAC2 data is not one or more BCLK late, and that the driver does not turn the shared BCLK/WS pins into input-only.
+Narrowed on 2026-11-25 after the TRM check (ADR 0015, TRM v1.8): the TRM confirms the 128-bit frame limit, the invalid divider value 1 and the I2S1 slave clock rule, so the 8 x 32 rejection is no longer a required bench item. Three items remain, all about behaviour that only a board can show.
+
+1. Shared BCLK/WS pads. Initialize I2S0 as TDM master and I2S1 as TDM slave on the same BCLK and WS pads, then enable both. Scope BCLK and WS at the pads: they must keep toggling at 6.144 MHz and one pulse per 128 BCK after I2S1 is initialized. Log the pad state the driver leaves (input-only or input and output). If the pads go input-only, set input and output with public IDF GPIO calls and scope again. Also confirm I2S1's internal clock is on the 160 MHz source (49.152 MHz or more is required).
+2. Frame and start order. 4 slots x 32 bit, mask `0x0F`, `mclk_multiple` 384, I2S1 started before I2S0. Expected: init returns OK with no `bclk_div` warning; MCLK 18.432 MHz, BCLK 6.144 MHz, WS one-BCK pulse every 128 BCK; DOUT0 and DOUT1 begin on the same frame. Optional: also try 8 x 32 once on v5.5.6; it is expected to return `ESP_ERR_INVALID_ARG`. If it succeeds, write that to `docs/questions.md` because it contradicts the TRM and IDF source.
+3. DAC2 data timing. Scope DOUT1 against BCLK (and against DOUT0) at the ESP32 pins first; if a DAC2 board is available, also at its DIN and BCK pads. Record the lag of DOUT1 relative to BCLK in ns and in fractions of one BCLK (163 ns). Compare with the PCM5122 setup and hold times from the SLAS763C timing table; take those figures from the datasheet and write the table number next to them (S1).
 4. Write down the I2S1 slot mode and mask that worked. T29b needs them.
 
-If item 3 fails: ADR 0015 falls back to Option C (8-channel TDM DAC); T29a to T29c and T33 are re-issued.
+If item 1 cannot be fixed in software, or item 3 shows DOUT1 late by one BCLK or more or outside the PCM5122 setup and hold times: ADR 0015 falls back to Option C (8-channel TDM DAC) or, as a new maintainer decision, separate I2S1 input pads jumpered to BCLK/WS; T29a to T29c and T33 are re-issued.
 
 ## GATE-ADR — ADR decisions (human)
 
