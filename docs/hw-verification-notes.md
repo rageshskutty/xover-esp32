@@ -17,7 +17,7 @@ This note answers the UNVERIFIED lists in `docs/hw-pinmap.md` sections 2 and 4. 
 | Clock registers | None needed. In software mode, with a valid SCK, BCK and LRCK, the device auto-configures its clock tree and PLL. 48 kHz with SCK = 256 x fS = 12.288 MHz is a listed combination. Clock auto-set is on by default (Reg 0x25 DCAS = 0) | 8.3.6.2, Table 32, Table 82 |
 | BCK limits | BCK must be stable between 32 and 256 x fS; 256 x fS is the edge of the range, which is allowed | Table 82 (IDBK), Table 4 |
 | Clock-error status mask | The status byte is Page 0 / Register 95 (0x5F), Table 108. Bit 0 is CERF (Clock Error: 0 = clock valid, 1 = clock invalid); bit 2 is CKMF (Clock Missing). Therefore mask 0x05 selects exactly CERF and CKMF. Bit 1 CSRF (Clock Resync Request) and bit 4 LTSH (Latched Clock Halt) are separate status indications and are intentionally not included in this mask. The CERF field description continues on printed page 96. Here 0x05 is a bit mask, not a register address. | SLAS763C Table 108, printed pp. 95–96 |
-| MUTE pin polarity at the chip | XSMT low = soft mute then hard analog mute; XSMT high = un-mute. This matches the Adafruit guide ("pull low to mute"). The schematic text "LOW = Mute Off" is the odd one out, so the multimeter check on the real board still decides | 8.3.3, Pin Functions table, 10.2.1 |
+| MUTE pin polarity and breakout path | SOURCE-RESOLVED: TI defines XSMT low = soft mute and high = soft un-mute. Adafruit's Pinouts/README say pull MUTE low to mute. The Adafruit Eagle schematic/netlist connects JP3 MUTE pad 7 directly to XSMT pin 25 and connects R1 resistor-pack gate G$4 (10 kΩ) from 3.3 V to the same net. No inverter is shown. The schematic's text “LOW = Mute Off / HIGH = Mute On” is therefore erroneous; it does not describe the circuit. With no external drive, the board's own pull-up makes the pad high/unmuted. | TI SLAS763C Pin Functions table (printed p. 6), section 8.3.3 (printed p. 19), section 10.2.1; Adafruit PCM5122 PCB schematic/netlist (R1 G$4, MUTE net, U1 XSMT, JP3 pin 7); Adafruit Pinouts |
 | I2S routing to GPIO 4 to 7 | ESP-IDF states that on the ESP32-S3 any peripheral output signal can be routed to any GPIO through the GPIO matrix, IO MUX and RTC IO MUX. GPIO 4 to 7 are ordinary GPIOs (not strapping, not PSRAM, not USB, not JTAG) | ESP-IDF ESP32-S3 GPIO guide, GPIO Summary |
 
 Not resolved by this: whether 12.288 MHz MCLK through the GPIO matrix meets timing on
@@ -65,9 +65,10 @@ All are read-only I2C reads on page 0. They show what the DAC actually sees.
 | 0x76 (118) | PSTM | 0101 (Run) once clocks run and un-muted |
 | 0x72 (114) | MTST | 11 with MUTE high (at or above 0.7 VDD); 00 with MUTE pulled low |
 
-The MTST readback gives a second, firmware-visible check of the MUTE polarity and the
+The MTST readback gives a second, firmware-visible check of the XSMT logic level and the
 470 ohm pull-down level (steps P3.3 to P3.4 and P5.4), but it does not replace the
-multimeter check on the board's own MUTE pad.
+multimeter check on the assembled MUTE net. The polarity itself is source-resolved; the
+assembled voltage and functional mute/unmute behaviour still require bring-up evidence.
 
 ## 5. Things to fix in the other docs once this is accepted
 
