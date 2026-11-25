@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -258,6 +259,98 @@ def planning_errors(state, cmake_text, test_files, existing_paths):
     return errs
 
 
+SHA_RE = re.compile(r"[0-9a-f]{40}")
+TASK_STATES = ("open", "blocked", "merged", "needs_rework")
+MAX_REPORTED_PATHS = 5
+
+
+def basis_errors(task_state, repo_files, is_ancestor, tree_paths):
+    """Pure rule: both planning files carry one verifiable basis_commit and the inventory matches it.
+
+    is_ancestor(sha) -> True | False | None (None = cannot tell); tree_paths(sha) -> set of blob paths.
+    Rules: B1 well-formed SHA, B2 equal SHAs, B3 ancestor of HEAD (never skipped silently),
+    B4 inventory equals the blob list at the SHA without duplicates, B5 known task states.
+    """
+    if not isinstance(task_state, dict) or not isinstance(repo_files, dict):
+        return ["B1: task_state.json and repository_files.json must be JSON objects"]
+    errs = []
+    tasks = task_state.get("tasks")
+    for task in tasks if isinstance(tasks, list) else []:
+        if isinstance(task, dict) and task.get("state") not in TASK_STATES:
+            errs.append("B5: task %s has state %r, expected one of %s"
+                        % (task.get("id"), task.get("state"), ", ".join(TASK_STATES)))
+    shas = []
+    malformed = False
+    for name, doc in (("task_state.json", task_state), ("repository_files.json", repo_files)):
+        sha = doc.get("basis_commit")
+        shas.append(sha)
+        if not (isinstance(sha, str) and SHA_RE.fullmatch(sha)):
+            malformed = True
+            errs.append("B1: %s basis_commit must be 40 lowercase hex characters (got %r)" % (name, sha))
+    if malformed:
+        return errs
+    if shas[0] != shas[1]:
+        errs.append("B2: basis_commit differs: task_state.json %s, repository_files.json %s" % (shas[0], shas[1]))
+        return errs
+    sha = shas[0]
+    ancestor = is_ancestor(sha)
+    if ancestor is not True:
+        if ancestor is False:
+            errs.append("B3: basis_commit %s is not an ancestor of HEAD" % sha)
+        else:
+            errs.append("B3: cannot verify basis_commit %s; full history needed (git fetch --unshallow)" % sha)
+        return errs
+    paths = repo_files.get("paths")
+    if not isinstance(paths, list) or not all(isinstance(p, str) for p in paths):
+        errs.append("B4: repository_files.json paths must be a list of strings")
+        return errs
+    seen, dupes = set(), set()
+    for p in paths:
+        (dupes if p in seen else seen).add(p)
+    actual = tree_paths(sha)
+    diffs = ["missing " + p for p in sorted(actual - seen)] + ["extra " + p for p in sorted(seen - actual)]
+    if diffs:
+        errs.append("B4: inventory differs from git tree at %s (%d path(s)): %s"
+                    % (sha, len(diffs), ", ".join(diffs[:MAX_REPORTED_PATHS])))
+    if dupes:
+        errs.append("B4: repository_files.json has duplicate path(s): %s"
+                    % ", ".join(sorted(dupes)[:MAX_REPORTED_PATHS]))
+    return errs
+
+
+def git_is_ancestor(sha):
+    try:
+        code = subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", sha, "HEAD"],
+                              capture_output=True, check=False).returncode
+    except OSError:
+        return None
+    return {0: True, 1: False}.get(code)
+
+
+def git_tree_paths(sha):
+    proc = subprocess.run(["git", "-C", ROOT, "ls-tree", "-r", "-z", "--full-tree", sha],
+                          capture_output=True, check=False)
+    if proc.returncode != 0:
+        raise ValueError("git ls-tree failed for %s" % sha)
+    paths = set()
+    for rec in proc.stdout.decode("utf-8").split("\0"):
+        meta, _, path = rec.partition("\t")
+        if path and meta.split()[1] == "blob":
+            paths.add(path)
+    return paths
+
+
+def check_basis(state):
+    try:
+        repo_files = load(os.path.join(ROOT, "docs", "engineering", "repository_files.json"))
+        errs = basis_errors(state, repo_files, git_is_ancestor, git_tree_paths)
+    except (OSError, ValueError) as exc:
+        return ["docs/engineering/repository_files.json: %s" % exc]
+    if not errs:
+        print("  ok   basis_commit %s, %d inventory path(s) match git" % (state["basis_commit"], len(repo_files["paths"])))
+    return errs
+
+
 def check_planning():
     state_path = os.path.join(ROOT, "docs", "engineering", "task_state.json")
     try:
@@ -272,7 +365,7 @@ def check_planning():
     errs = planning_errors(state, cmake_text, test_files, existing)
     if not errs:
         print("  ok   %d task(s), %d test file(s) accounted for" % (len(state["tasks"]), len(test_files)))
-    return errs
+    return errs + check_basis(state)
 
 
 def selftest_planning():
@@ -290,6 +383,36 @@ def selftest_planning():
         bad.append("planning rule missed a built test that no task owns")
     if not planning_errors({"tasks": []}, cmake, files, paths):
         bad.append("planning rule missed a task list that owns no test")
+    sha = "a" * 40
+    tstate = {"basis_commit": sha, "tasks": [{"id": "A", "state": "merged", "tests": []}]}
+    inventory = {"basis_commit": sha, "paths": ["p/one", "p/two"]}
+    in_tree = {"p/one", "p/two"}
+
+    def basis_case(state, inv, ancestor=True):
+        return basis_errors(state, inv, lambda s: ancestor, lambda s: in_tree)
+
+    def flags(errs, *needles):
+        return any(all(n in e for n in needles) for e in errs)
+
+    if basis_case(tstate, inventory):
+        bad.append("basis rule false positive on consistent inputs")
+    if not flags(basis_case(dict(tstate, basis_commit="a" * 39), inventory), "B1"):
+        bad.append("basis rule missed a 39-character basis_commit")
+    if not flags(basis_case(tstate, dict(inventory, basis_commit="b" * 40)), "B2"):
+        bad.append("basis rule missed differing basis_commit values")
+    if not flags(basis_case(tstate, inventory, ancestor=False), "B3", "not an ancestor"):
+        bad.append("basis rule missed a basis_commit that is not an ancestor")
+    if not flags(basis_case(tstate, inventory, ancestor=None), "B3", "cannot verify"):
+        bad.append("basis rule skipped silently when ancestry cannot be checked")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one"])), "B4", "p/two"):
+        bad.append("basis rule missed a path that git has and the inventory lacks")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one", "p/two", "p/three"])), "B4", "p/three"):
+        bad.append("basis rule missed an inventory path that git does not have")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one", "p/two", "p/two"])), "B4", "p/two"):
+        bad.append("basis rule missed a duplicated inventory path")
+    done = {"basis_commit": sha, "tasks": [{"id": "A", "state": "done", "tests": []}]}
+    if not flags(basis_case(done, inventory), "B5"):
+        bad.append("basis rule missed an unknown task state")
     return bad
 
 
