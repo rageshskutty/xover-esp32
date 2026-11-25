@@ -290,6 +290,36 @@ def selftest_planning():
         bad.append("planning rule missed a built test that no task owns")
     if not planning_errors({"tasks": []}, cmake, files, paths):
         bad.append("planning rule missed a task list that owns no test")
+    sha = "a" * 40
+    tstate = {"basis_commit": sha, "tasks": [{"id": "A", "state": "merged", "tests": []}]}
+    inventory = {"basis_commit": sha, "paths": ["p/one", "p/two"]}
+    in_tree = {"p/one", "p/two"}
+
+    def basis_case(state, inv, ancestor=True):
+        return basis_errors(state, inv, lambda s: ancestor, lambda s: in_tree)
+
+    def flags(errs, *needles):
+        return any(all(n in e for n in needles) for e in errs)
+
+    if basis_case(tstate, inventory):
+        bad.append("basis rule false positive on consistent inputs")
+    if not flags(basis_case(dict(tstate, basis_commit="a" * 39), inventory), "B1"):
+        bad.append("basis rule missed a 39-character basis_commit")
+    if not flags(basis_case(tstate, dict(inventory, basis_commit="b" * 40)), "B2"):
+        bad.append("basis rule missed differing basis_commit values")
+    if not flags(basis_case(tstate, inventory, ancestor=False), "B3", "not an ancestor"):
+        bad.append("basis rule missed a basis_commit that is not an ancestor")
+    if not flags(basis_case(tstate, inventory, ancestor=None), "B3", "cannot verify"):
+        bad.append("basis rule skipped silently when ancestry cannot be checked")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one"])), "B4", "p/two"):
+        bad.append("basis rule missed a path that git has and the inventory lacks")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one", "p/two", "p/three"])), "B4", "p/three"):
+        bad.append("basis rule missed an inventory path that git does not have")
+    if not flags(basis_case(tstate, dict(inventory, paths=["p/one", "p/two", "p/two"])), "B4", "p/two"):
+        bad.append("basis rule missed a duplicated inventory path")
+    done = {"basis_commit": sha, "tasks": [{"id": "A", "state": "done", "tests": []}]}
+    if not flags(basis_case(done, inventory), "B5"):
+        bad.append("basis rule missed an unknown task state")
     return bad
 
 
