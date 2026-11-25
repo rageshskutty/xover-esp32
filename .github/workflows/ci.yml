@@ -109,4 +109,3 @@ jobs:
             -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;$PWD/build/$MODE/mode.defaults" \
             -DXOVER_WERROR=ON \
             build
-</content>
