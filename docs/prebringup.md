@@ -70,9 +70,9 @@ Needs Gate 0 for steps P2.4 and P2.5 (they use pin numbers).
 | ID | Step | Pass criterion |
 |---|---|---|
 | P4.1 | Fit 33 ohm resistors at the ESP32 end of GPIO4, 5, 6, 7 | Four resistors, on the signal side before the bus |
-| P4.2 | Fit 470 ohm from GPIO10 to GND | One resistor |
+| P4.2 | Fit one 470 ohm resistor from the shared GPIO10/MUTE net to GND (see `hw-pinmap.md` section 6.1) | One resistor; do not fit one per DAC |
 | P4.3 | Fit the LED with 470 ohm in series on GPIO21 | LED polarity correct, other end to GND |
-| P4.4 | Wire the bus: GPIO4 to MCK, 5 to BCK, 6 to WSEL, 7 to DIN, 8 to SDA, 9 to SCL, 10 to MUTE, on all three boards in parallel. Check pins 3 and 46 are not used for I2C | Continuity from each ESP32 pin to the same pad on each DAC board |
+| P4.4 | Wire the bus: GPIO4 to MCK, 5 to BCK, 6 to WSEL, 7 to DIN, 8 to SDA, 9 to SCL, GPIO10 to the shared MUTE net on all three boards. Fit the single 470 ohm pull-down per `hw-pinmap.md` section 6.1. Check pins 3 and 46 are not used for I2C | Continuity from each ESP32 pin to the same pad on each DAC board; no series device or inverter in the MUTE path unless separately reviewed and documented |
 | P4.5 | Wiring rules: clock and data wires 10 cm or shorter, a ground wire beside each clock line, star ground, both GND pads on the audio side | Done and photographed |
 | P4.6 | Do not fit external I2C pull-ups. Do not enable ESP32 internal pull-ups | None fitted |
 | P4.7 | Continuity: 3V3 to GND, and each signal to GND and to 3V3 | No shorts; each signal reads only the 470 ohm path where expected |
@@ -85,10 +85,11 @@ Needs Gate 0 for steps P2.4 and P2.5 (they use pin numbers).
 | P5.1 | Power up | Nothing hot, no smell; LED behaves as the pin-walk app dictates |
 | P5.2 | Measure 3V3 at each DAC board's VIN | 3.2 to 3.4 V on all three |
 | P5.3 | Measure SDA and SCL idle voltage | About 3.3 V (pull-ups from the DAC boards, about 3.3 kohm combined) |
-| P5.4 | Measure MUTE with GPIO10 as input | About 0.4 V (three onboard 10 kΩ pull-ups in parallel against the 470 Ω pull-down), so the DACs are held muted at boot |
+| P5.4 | Measure shared MUTE with GPIO10 configured high-impedance | About 0.41 V predicted from three onboard 10 kΩ pull-ups in parallel against one 470 Ω pull-down; measure, do not assume. The active-low DACs should remain muted |
 | P5.5 | Supply current with the meter | Logged; compare with the P2.7 baseline |
 | P5.6 | I2C scan at 100 kHz | Addresses 0x4C, 0x4D, 0x4E and nothing else |
 | P5.7 | Scope SDA and SCL (optional) | Clean edges at 100 kHz. Try 400 kHz only after this |
+| P5.8 | Drive GPIO10 LOW, then HIGH while measuring the shared MUTE net and observing a low-level DAC tone (amps/speakers disconnected) | LOW mutes; HIGH unmutes. Record both pad voltage and functional result; GPIO10 HIGH under the 470 Ω load must satisfy ESP32-S3 output-level/current limits |
 
 ## Phase 6: Hand-off to the bring-up test
 
