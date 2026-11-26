@@ -1,0 +1,72 @@
+[
+ {
+  "name": "m1_44k_st_128",
+  "sample_rate": 44100,
+  "channels": 2,
+  "mp3_bytes": 6269,
+  "pcm_bytes": 69120
+ },
+ {
+  "name": "m1_48k_js_192",
+  "sample_rate": 48000,
+  "channels": 2,
+  "mp3_bytes": 9216,
+  "pcm_bytes": 73728
+ },
+ {
+  "name": "m1_32k_mono_64",
+  "sample_rate": 32000,
+  "channels": 1,
+  "mp3_bytes": 3168,
+  "pcm_bytes": 25344
+ },
+ {
+  "name": "m1_44k_st_320",
+  "sample_rate": 44100,
+  "channels": 2,
+  "mp3_bytes": 15673,
+  "pcm_bytes": 69120
+ },
+ {
+  "name": "m1_44k_vbr_q2",
+  "sample_rate": 44100,
+  "channels": 2,
+  "mp3_bytes": 15347,
+  "pcm_bytes": 69120
+ },
+ {
+  "name": "m2_22k_st_64",
+  "sample_rate": 22050,
+  "channels": 2,
+  "mp3_bytes": 3343,
+  "pcm_bytes": 36864
+ },
+ {
+  "name": "m2_24k_mono_32",
+  "sample_rate": 24000,
+  "channels": 1,
+  "mp3_bytes": 1632,
+  "pcm_bytes": 19584
+ },
+ {
+  "name": "m2_16k_st_48",
+  "sample_rate": 16000,
+  "channels": 2,
+  "mp3_bytes": 2592,
+  "pcm_bytes": 27648
+ },
+ {
+  "name": "m25_11k_mono_16",
+  "sample_rate": 11025,
+  "channels": 1,
+  "mp3_bytes": 940,
+  "pcm_bytes": 10368
+ },
+ {
+  "name": "m25_8k_mono_16",
+  "sample_rate": 8000,
+  "channels": 1,
+  "mp3_bytes": 1008,
+  "pcm_bytes": 8064
+ }
+]
