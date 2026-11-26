@@ -37,7 +37,7 @@ DOUT2 is the GPIO chosen at GATE-DOUT2. GPIO15 is the proposed value in
 | I2S DOUT2 (lane 1) | GATE-DOUT2 (proposed 15) | not connected | not connected | DIN | 33 ohm series; keep the wire about as long as the GPIO7 wire |
 | I2C SDA | 8 | SDA | SDA | SDA | no external pull-up |
 | I2C SCL | 9 | SCL | SCL | SCL | no external pull-up |
-| DAC mute | 10 | MUTE | MUTE | MUTE | 470 ohm pull-down, as in hw-pinmap.md section 6 |
+| DAC mute | 10 | MUTE | MUTE | MUTE | One shared 470 ohm pull-down from GPIO10/MUTE net to GND; per-board 10 kΩ pull-ups and active-low truth table in hw-pinmap.md section 6.1 |
 | 3V3 | | VIN | VIN | VIN | |
 | GND | | GND | GND | GND | star ground; both GND pads |
 
