@@ -202,3 +202,14 @@ if(NOT MSVC)
 endif()
 add_test(NAME test_bringup_tone COMMAND test_bringup_tone)
 
+
+add_library(wavdec STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/wavdec/wavdec.c
+)
+target_include_directories(wavdec PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/wavdec/include
+)
+
+add_executable(test_wavdec tests/test_wavdec.c)
+target_link_libraries(test_wavdec PRIVATE wavdec)
+add_test(NAME test_wavdec COMMAND test_wavdec)
