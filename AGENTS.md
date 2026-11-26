@@ -65,8 +65,8 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
 - R6 NaN or Inf at the output: mute, count a fault, never pass it to the DAC.
 
 ### Quality
-- C1 One task card = one branch = one PR, at most 400 changed lines excluding
-  generated or golden data.
+- C1 One task card = one branch = one PR. No changed-line limit; a large PR
+  must still be reviewable (clear commit history, each stage tested).
 - C2 Numerics ship with tests: analytic or golden (scipy). No DSP code without one.
 - C3 `python tools/check.py` and CI are green. Host builds use
   -Wall -Wextra -Wconversion -Werror. Target builds use -Werror too.
@@ -105,7 +105,6 @@ Non-goals for v1: FIR, 96 kHz, feedback graphs, Bluetooth/AirPlay input.
 - The task needs a header change not covered by an ADR (C5).
 - Two docs disagree, or a doc disagrees with measured behaviour.
 - The change touches a CODEOWNERS path or safety behaviour.
-- The task needs more than 400 changed lines: propose a split instead.
 
 ## 5. Workflow
 1. Pick the lowest-numbered task with state `open` in docs/engineering/task_state.json; its card is in docs/engineering/03_task_catalog.md or a later `docs/engineering/0N_task_cards_*.md`. Do not start a task
