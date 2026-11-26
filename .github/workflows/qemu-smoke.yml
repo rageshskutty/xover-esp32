@@ -1,0 +1,44 @@
+name: QEMU smoke
+# Boots the bring-up firmware (mode none) in Espressif QEMU for esp32s3 and checks
+# the serial log. Simulates the CPU and the 8 MB flash from sdkconfig.defaults only:
+# no PCM5122, no I2S/TDM audio path, no real GPIO levels. See docs/simulation.md.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  qemu-smoke:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Mark workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Install QEMU runtime libraries
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libglib2.0-0 libpixman-1-0 libgcrypt20 libslirp0 libsdl2-2.0-0
+      - name: Install Espressif QEMU (version pinned by ESP-IDF v5.5.6 tools.json)
+        run: python "$IDF_PATH/tools/idf_tools.py" install qemu-xtensa
+      - name: Build firmware (mode none)
+        shell: bash
+        working-directory: firmware
+        run: |
+          . "$IDF_PATH/export.sh"
+          mkdir -p build/none
+          : > build/none/mode.defaults
+          idf.py -B build/none \
+            -DIDF_TARGET=esp32s3 \
+            -DSDKCONFIG="$PWD/build/none/sdkconfig" \
+            -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;$PWD/build/none/mode.defaults" \
+            -DXOVER_WERROR=ON \
+            build
+      - name: Boot in QEMU
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          tools/qemu_smoke.sh firmware/build/none 20
