@@ -120,6 +120,20 @@ Do not confuse this jumper with MCK: the jumper selects clock direction; MCK is 
 
 Do not infer regulator topology, current consumption, input protection, output drive beyond the published load guidance, or safe power sequencing from the photos.
 
+### 6.1 MUTE electrical interface at the breakout boundary
+
+For each Adafruit breakout, the published Eagle schematic/netlist shows the
+bottom-edge JP3 MUTE pad (pin 7) connected directly to PCM5122 XSMT pin 25.
+The same MUTE net is pulled up to the board's 3.3 V rail through R1 resistor
+pack gate G$4 (10 kΩ). No inverter, transistor or series resistor appears in
+this path on the Adafruit PCB. XSMT is active-low: LOW = muted; HIGH = unmuted.
+The schematic's printed LOW/HIGH annotation is erroneous.
+
+The project's external GPIO10/470 Ω shared-line wiring is not part of the
+Adafruit breakout. Its proposed topology, expected logic table and verification
+requirements are documented in `docs/hw-pinmap.md` section 6.1. Do not infer
+ESP32 GPIO state solely from this breakout-level polarity statement.
+
 ## 7. PCM5122 audio-interface facts relevant to Xover-ESP32
 
 Sources: TI SLAS763C section 8.3.2.1 / Table 4, section 8.3.2.2 and Figures 13–18 (printed pages 15–18); Adafruit guide Overview and Pinouts pages.
