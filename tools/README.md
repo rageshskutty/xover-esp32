@@ -12,3 +12,5 @@ Planned: create a tested template/converter for exporting biquad coefficients in
   (ADR 0014 section 4). Reports the conservative per-output magnitude bound and the detector
   weighting response; no limits, no pass/fail. Vectors: `protection_oracle_vectors.json`; tests:
   `python tools/test_protection_oracle.py` (runs in CI). Needs numpy and scipy.
+- `gen_mp3_vectors.py`: regenerates the MP3 golden vectors in `host/tests/golden/` (libmp3lame
+  encode, ffmpeg decode). Needs ffmpeg with libmp3lame and numpy. See `host/tests/golden/README.md`.
