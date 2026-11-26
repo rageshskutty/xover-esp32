@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "hifi_decoder.h"
+#include "wavdec.h"
 
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #x); exit(1); } } while (0)
 
@@ -72,17 +72,17 @@ static const uint8_t wav_streaming[] = {
 
 typedef struct { uint8_t *buf; size_t cap, len; } sink_t;
 
-static hifi_result_t feed(hifi_decoder_t *d,
+static wavdec_result_t feed(wavdec_t *d,
                           const uint8_t *in, size_t n,
                           size_t chunk, sink_t *sink)
 {
     size_t off = 0;
-    hifi_result_t last = HIFI_NEED_MORE_DATA;
+    wavdec_result_t last = WAVDEC_NEED_MORE_DATA;
     while (off < n) {
         size_t piece = n - off;
         if (chunk && piece > chunk) piece = chunk;
         size_t used = 0, wrote = 0;
-        hifi_result_t r = hifi_decoder_decode(d, in + off, piece,
+        wavdec_result_t r = wavdec_decode(d, in + off, piece,
                                               sink->buf + sink->len,
                                               sink->cap - sink->len,
                                               &used, &wrote);
@@ -90,16 +90,16 @@ static hifi_result_t feed(hifi_decoder_t *d,
         sink->len += wrote;
         last = r;
         if (r < 0) return r;
-        if (r == HIFI_END_OF_STREAM) return r;
+        if (r == WAVDEC_END_OF_STREAM) return r;
         if (used == 0 && wrote == 0) break;
     }
     return last;
 }
 
-static hifi_result_t eof(hifi_decoder_t *d, sink_t *sink)
+static wavdec_result_t eof(wavdec_t *d, sink_t *sink)
 {
     size_t used = 0, wrote = 0;
-    hifi_result_t r = hifi_decoder_decode(d, NULL, 0,
+    wavdec_result_t r = wavdec_decode(d, NULL, 0,
                                           sink->buf + sink->len,
                                           sink->cap - sink->len,
                                           &used, &wrote);
@@ -111,12 +111,12 @@ static hifi_result_t eof(hifi_decoder_t *d, sink_t *sink)
 
 static void test_wav_basic(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
-    hifi_result_t r = feed(&d, wav_basic, sizeof wav_basic, 0, &s);
-    CHECK(r == HIFI_OK);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
-    CHECK(d.fmt.sample_format   == HIFI_FMT_S16LE);
+    wavdec_result_t r = feed(&d, wav_basic, sizeof wav_basic, 0, &s);
+    CHECK(r == WAVDEC_OK);
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
+    CHECK(d.fmt.sample_format   == WAVDEC_FMT_S16LE);
     CHECK(d.fmt.sample_rate     == 8000);
     CHECK(d.fmt.channels        == 1);
     CHECK(d.fmt.bits_per_sample == 16);
@@ -129,10 +129,10 @@ static void test_wav_basic(void)
 
 static void test_wav_odd_list(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_list, sizeof wav_list, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
     CHECK(s.len == 8);
     static const uint8_t expect[] = {1,0, 2,0, 3,0, 4,0};
     CHECK(!memcmp(s.buf, expect, 8));
@@ -141,11 +141,11 @@ static void test_wav_odd_list(void)
 
 static void test_aiff_basic(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, aiff_basic, sizeof aiff_basic, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
-    CHECK(d.fmt.sample_format == HIFI_FMT_S16BE);
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
+    CHECK(d.fmt.sample_format == WAVDEC_FMT_S16BE);
     CHECK(d.fmt.sample_rate   == 8000);
     CHECK(s.len == 8);
     static const uint8_t expect[] = {0,1, 0,2, 0,3, 0,4};
@@ -156,11 +156,11 @@ static void test_aiff_basic(void)
 /* Bug 3: fl32 must be big-endian. */
 static void test_aifc_fl32(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, aifc_fl32, sizeof aifc_fl32, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
-    CHECK(d.fmt.sample_format   == HIFI_FMT_F32BE);
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
+    CHECK(d.fmt.sample_format   == WAVDEC_FMT_F32BE);
     CHECK(d.fmt.bits_per_sample == 32);
     CHECK(s.len == 8);
     static const uint8_t expect[] = {0x3F,0x80,0,0, 0x40,0,0,0};
@@ -173,10 +173,10 @@ static void test_chunked_feeds(void)
 {
     static const size_t chunks[] = {1, 3, 7};
     for (size_t k = 0; k < 3; ++k) {
-        hifi_decoder_t d; hifi_decoder_init(&d);
+        wavdec_t d; wavdec_init(&d);
         uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
         feed(&d, wav_basic, sizeof wav_basic, chunks[k], &s);
-        CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
+        CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
         CHECK(s.len == 8);
         static const uint8_t expect[] = {1,0, 2,0, 3,0, 4,0};
         CHECK(!memcmp(s.buf, expect, 8));
@@ -187,60 +187,60 @@ static void test_chunked_feeds(void)
 /* Bug 4: errors are sticky. */
 static void test_sticky_error(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, aiff_ssnd_first, sizeof aiff_ssnd_first, 0, &s);
     size_t used = 0, wrote = 0;
-    hifi_result_t r1 = hifi_decoder_decode(&d, wav_basic, sizeof wav_basic,
+    wavdec_result_t r1 = wavdec_decode(&d, wav_basic, sizeof wav_basic,
                                            out, sizeof out, &used, &wrote);
-    CHECK(r1 == HIFI_ERR_CORRUPT);
+    CHECK(r1 == WAVDEC_ERR_CORRUPT);
     CHECK(used == 0 && wrote == 0);
-    hifi_result_t r2 = hifi_decoder_decode(&d, NULL, 0, out, sizeof out,
+    wavdec_result_t r2 = wavdec_decode(&d, NULL, 0, out, sizeof out,
                                            &used, &wrote);
-    CHECK(r2 == HIFI_ERR_CORRUPT);
+    CHECK(r2 == WAVDEC_ERR_CORRUPT);
     printf("  ok: sticky errors\n");
 }
 
 /* Bug 5: SSND before COMM is rejected. */
 static void test_ssnd_before_comm(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
-    hifi_result_t r = feed(&d, aiff_ssnd_first, sizeof aiff_ssnd_first, 0, &s);
-    CHECK(r == HIFI_ERR_CORRUPT);
+    wavdec_result_t r = feed(&d, aiff_ssnd_first, sizeof aiff_ssnd_first, 0, &s);
+    CHECK(r == WAVDEC_ERR_CORRUPT);
     printf("  ok: ssnd_before_comm -> ERR_CORRUPT\n");
 }
 
 /* Bug 6: truncation reported at EOF. */
 static void test_truncated_data(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_trunc_data, sizeof wav_trunc_data, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_ERR_CORRUPT);
+    CHECK(eof(&d, &s) == WAVDEC_ERR_CORRUPT);
     printf("  ok: truncated_data -> ERR_CORRUPT\n");
 }
 
 static void test_truncated_header(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_trunc_data, 8, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_ERR_CORRUPT);
+    CHECK(eof(&d, &s) == WAVDEC_ERR_CORRUPT);
     printf("  ok: truncated_header -> ERR_CORRUPT\n");
 }
 
 /* Bug 2: feed example must not drop header bytes across calls. */
 static void test_split_header(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_basic + 0,  4, 4, &s);
     feed(&d, wav_basic + 4,  4, 4, &s);
     feed(&d, wav_basic + 8,  4, 4, &s);
     feed(&d, wav_basic + 12, sizeof wav_basic - 12, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);
-    CHECK(d.fmt.container == HIFI_CONTAINER_WAV);
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);
+    CHECK(d.fmt.container == WAVDEC_CONTAINER_WAV);
     CHECK(s.len == 8);
     printf("  ok: split header not dropped\n");
 }
@@ -248,17 +248,17 @@ static void test_split_header(void)
 /* Nit 1: BUF_TOO_SMALL must not poison the decoder. */
 static void test_no_output_space_not_sticky(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_basic, 44, 0, &s);          /* header only */
     size_t used = 0, wrote = 0;
-    hifi_result_t r = hifi_decoder_decode(&d, wav_basic + 44, 8,
+    wavdec_result_t r = wavdec_decode(&d, wav_basic + 44, 8,
                                           NULL, 0, &used, &wrote);
-    CHECK(r == HIFI_ERR_BUF_TOO_SMALL);
+    CHECK(r == WAVDEC_ERR_BUF_TOO_SMALL);
     CHECK(d.err_code == 0);                  /* not sticky */
-    r = hifi_decoder_decode(&d, wav_basic + 44, 8, out, sizeof out,
+    r = wavdec_decode(&d, wav_basic + 44, 8, out, sizeof out,
                             &used, &wrote);
-    CHECK(r == HIFI_OK);
+    CHECK(r == WAVDEC_OK);
     CHECK(wrote == 8);
     printf("  ok: BUF_TOO_SMALL is non-sticky\n");
 }
@@ -266,10 +266,10 @@ static void test_no_output_space_not_sticky(void)
 /* Nit 2: streaming WAV (data size 0xFFFFFFFF) ends cleanly. */
 static void test_streaming_wav(void)
 {
-    hifi_decoder_t d; hifi_decoder_init(&d);
+    wavdec_t d; wavdec_init(&d);
     uint8_t out[64]; sink_t s = { out, sizeof out, 0 };
     feed(&d, wav_streaming, sizeof wav_streaming, 0, &s);
-    CHECK(eof(&d, &s) == HIFI_END_OF_STREAM);   /* not ERR_CORRUPT */
+    CHECK(eof(&d, &s) == WAVDEC_END_OF_STREAM);   /* not ERR_CORRUPT */
     CHECK(d.fmt.data_bytes == 0xFFFFFFFFu);
     CHECK(s.len == 8);
     printf("  ok: streaming wav (data size 0xFFFFFFFF)\n");
@@ -277,7 +277,7 @@ static void test_streaming_wav(void)
 
 int main(void)
 {
-    printf("hifi_decoder tests\n");
+    printf("wavdec tests\n");
     test_wav_basic();
     test_wav_odd_list();
     test_aiff_basic();

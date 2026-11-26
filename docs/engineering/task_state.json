@@ -10,7 +10,7 @@
     {"id": "T05", "title": "Simple blocks and numeric safety", "state": "merged", "inferred": true, "tests": ["test_blocks"]},
     {"id": "S7-RAMP", "title": "S7 gain ramp", "state": "merged", "inferred": true, "tests": ["test_s7_ramp"]},
     {"id": "AUDIOSRC-RING", "title": "audiosrc SPSC ring", "state": "merged", "inferred": true, "tests": ["test_spsc_ring"]},
-    {"id": "HIFI-DECODER", "title": "WAV/AIFF streaming decoder", "state": "open", "inferred": true, "tests": ["test_hifi_decoder"]},
+    {"id": "WAVDEC", "title": "WAV/AIFF streaming decoder", "state": "open", "inferred": true, "tests": ["test_wavdec"]},
     {"id": "T23", "title": "PCM5122 register table", "state": "merged", "inferred": false, "tests": ["test_pcm5122_regs"]},
     {"id": "T24", "title": "Bring-up tone generator", "state": "merged", "inferred": false, "tests": ["test_bringup_tone"]},
     {"id": "T25", "title": "PCM5122 control and status decode", "state": "merged", "inferred": false, "tests": ["test_pcm5122_ctl"]},
