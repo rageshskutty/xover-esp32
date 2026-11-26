@@ -128,6 +128,68 @@ Read from the Adafruit Eagle schematic/netlist in `adafruit/Adafruit-PCM5122-I2S
 The DAC mute is not the amplifier mute. The hardware requirements of ADR 0014
 section 5 (amplifier mute, DC blocking, fuse) still apply.
 
+### 6.1 End-to-end ESP32 GPIO10 to PCM5122 mute interface
+
+This is the proposed project-level wiring, combining the Adafruit breakout
+circuit with the external shared-line component shown in this pin map. It is
+not a measured hardware record.
+
+**Connection topology**
+
+```text
+ESP32-S3 GPIO10 (XOVER_PIN_DAC_MUTE_N)
+                 |
+                 +-------------------- shared MUTE net ----------------------+
+                 |                         |                 |                |
+              470 ohm                   DAC 0 MUTE         DAC 1 MUTE      DAC 2 MUTE
+                 |                         |                 |                |
+                GND                  XSMT pin 25        XSMT pin 25       XSMT pin 25
+                                           |                 |                |
+                                        10 kΩ             10 kΩ            10 kΩ
+                                           |                 |                |
+                                          3V3               3V3              3V3
+```
+
+- The Adafruit PCB schematic/netlist proves, per board, that JP3 MUTE pad 7
+  connects directly to PCM5122 U1 XSMT pin 25 (no inverter or series resistor
+  shown), and R1 resistor-pack gate G$4 is a 10 kΩ pull-up from 3.3 V to MUTE.
+- The project pin map proposes one shared MUTE line from ESP32 GPIO10 to all
+  three MUTE pads, with one external 470 Ω resistor from that shared line to
+  GND. The 470 Ω component is an external project component, not populated on
+  the Adafruit breakout. No GPIO-side buffer, transistor or level shifter is
+  specified in this proposed topology.
+- The three 10 kΩ pull-ups are in parallel: effective pull-up is about
+  3.33 kΩ. With GPIO10 high-impedance and the 470 Ω pull-down fitted, the
+  divider predicts approximately 0.41 V on the shared line:
+  3.3 V × 470 / (3333 + 470) ≈ 0.408 V.
+- With GPIO10 actively driven high, the GPIO must source approximately
+  3.3 V / 470 Ω ≈ 7.0 mA through the external pull-down (plus any other
+  current). This is a first-order estimate, not a measured current or a
+  GPIO drive-strength approval. Verify the actual GPIO10 high voltage/current
+  against the ESP32-S3 and development-board limits before relying on it.
+
+**End-to-end logic (expected; bench confirmation still required)**
+
+| GPIO10 state | Shared MUTE / XSMT voltage | PCM5122 state |
+|---|---|---|
+| LOW | LOW | Muted |
+| HIGH | HIGH (must be verified under the 470 Ω load) | Unmuted |
+| High impedance during reset/boot | Approximately 0.41 V from the proposed resistor network | Muted, provided the pull-down is fitted and the network is wired as shown |
+
+Firmware pin name `XOVER_PIN_DAC_MUTE_N` refers to the active-low mute
+signal: asserting it LOW mutes; deasserting it HIGH unmutes. The boot-time
+high-impedance state is not a substitute for firmware's fail-closed mute
+initialization. Keep amplifier/speaker outputs disconnected during first-tone
+and mute tests.
+
+**Verification required before marking HW-VERIFIED:** confirm continuity from
+GPIO10 to all three MUTE pads, confirm exactly one 470 Ω pull-down to GND,
+measure the shared-line voltage with GPIO10 high-impedance, then test GPIO10
+LOW and HIGH while observing both the MUTE pad voltage and DAC output mute
+behaviour. Record instrument, setup, values and result in
+`docs/bringup-log.md`. If the measured circuit differs from this topology,
+stop and update the human-owned pin map before changing firmware.
+
 ## 7. Checks for the first bring-up (human)
 
 1. Multimeter: assembled MUTE idle voltage and GPIO10 low/high levels, SDA/SCL pull-up voltage, strap pad levels, 3V3 at each VIN.
