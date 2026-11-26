@@ -202,3 +202,14 @@ if(NOT MSVC)
 endif()
 add_test(NAME test_bringup_tone COMMAND test_bringup_tone)
 
+
+add_library(hifi_decoder STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/hifi_decoder/hifi_decoder.c
+)
+target_include_directories(hifi_decoder PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../firmware/components/hifi_decoder/include
+)
+
+add_executable(test_hifi_decoder tests/test_hifi_decoder.c)
+target_link_libraries(test_hifi_decoder PRIVATE hifi_decoder)
+add_test(NAME test_hifi_decoder COMMAND test_hifi_decoder)
