@@ -1,0 +1,29 @@
+menu "Biquad bench"
+
+    config BENCH_WIFI_LOAD
+        bool "Run the benchmark under Wi-Fi load (SoftAP plus TCP traffic on core 0)"
+        default n
+        help
+            Adds a Wi-Fi SoftAP and a TCP load server that run on core 0 while the
+            unchanged benchmark runs on core 1. Enabled by sdkconfig.wifi only.
+
+    config BENCH_WIFI_SSID
+        string "Bench SoftAP SSID"
+        depends on BENCH_WIFI_LOAD
+        default "xover-bench"
+
+    config BENCH_WIFI_PASS
+        string "Bench SoftAP password (8 to 63 characters)"
+        depends on BENCH_WIFI_LOAD
+        default "xover-bench-0"
+        help
+            Throwaway password for a SoftAP that has no uplink and exists only
+            while the benchmark runs. It protects nothing.
+
+    config BENCH_WIFI_WAIT_S
+        int "Seconds to wait for a traffic client before the benchmark starts"
+        depends on BENCH_WIFI_LOAD
+        range 10 1800
+        default 240
+
+endmenu
