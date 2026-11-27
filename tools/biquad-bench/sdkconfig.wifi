@@ -1,0 +1,15 @@
+# Overlay for the Wi-Fi load build:
+#   idf.py -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.wifi" build
+CONFIG_BENCH_WIFI_LOAD=y
+
+# Main task, Wi-Fi task and lwIP all on core 0. The benchmark task stays on core 1.
+CONFIG_ESP_MAIN_TASK_AFFINITY_CPU0=y
+CONFIG_ESP_WIFI_TASK_PINNED_TO_CORE_0=y
+CONFIG_LWIP_TCPIP_TASK_AFFINITY_CPU0=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Saturated Wi-Fi may starve the core 0 idle task. That is a result, not a crash.
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
+
+# The Wi-Fi stack may not fit the default 1 MB app partition.
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
