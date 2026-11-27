@@ -29,9 +29,15 @@ jobs:
           - name: biquad-bench
             dir: tools/biquad-bench
             experimental: false
+            sdkconfig_defaults: ""
+          - name: biquad-bench-wifi
+            dir: tools/biquad-bench
+            experimental: false
+            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.wifi"
           - name: firmware
             dir: firmware
             experimental: true
+            sdkconfig_defaults: ""
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,7 +49,11 @@ jobs:
         working-directory: ${{ matrix.dir }}
         run: |
           . "$IDF_PATH/export.sh"
-          idf.py -DIDF_TARGET=esp32s3 build
+          if [ -n "${{ matrix.sdkconfig_defaults }}" ]; then
+            idf.py -DIDF_TARGET=esp32s3 "-DSDKCONFIG_DEFAULTS=${{ matrix.sdkconfig_defaults }}" build
+          else
+            idf.py -DIDF_TARGET=esp32s3 build
+          fi
           idf.py merge-bin -o ${{ matrix.name }}-merged.bin
       - name: Collect images
         shell: bash
