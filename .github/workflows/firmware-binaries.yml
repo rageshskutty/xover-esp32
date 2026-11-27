@@ -58,7 +58,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -74,4 +74,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             --title "$GITHUB_REF_NAME" --notes "Unverified build. See docs/bringup-log.md before flashing." \
-            --prerelease dist/*/*-merged.bin dist/*/SHA256SUMS
+            --prerelease $(ls dist/*/*-merged.bin) $(ls dist/*/SHA256SUMS | sed 's/$//')
