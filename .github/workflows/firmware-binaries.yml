@@ -1,0 +1,78 @@
+name: Firmware binaries
+
+# Builds flashable ESP32-S3 images and publishes them as downloadable artifacts
+# (Actions run page -> Artifacts). Each artifact holds the individual images plus
+# one merged image that is written at offset 0x0.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["tools/biquad-bench-ci"]
+    tags: ["v*"]
+    paths:
+      - "tools/biquad-bench/**"
+      - "firmware/**"
+      - ".github/workflows/firmware-binaries.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.6
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: biquad-bench
+            dir: tools/biquad-bench
+          - name: firmware
+            dir: firmware
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Mark workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Build and merge into one flashable image
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        run: |
+          . "$IDF_PATH/export.sh"
+          idf.py -DIDF_TARGET=esp32s3 build
+          idf.py merge-bin -o build/${{ matrix.name }}-merged.bin
+      - name: Collect images
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp build/${{ matrix.name }}-merged.bin "$GITHUB_WORKSPACE/out/"
+          cp build/bootloader/bootloader.bin build/partition_table/partition-table.bin \
+             build/ota_data_initial.bin build/flash_args "$GITHUB_WORKSPACE/out/" 2>/dev/null || true
+          find build -maxdepth 1 -name '*.bin' ! -name '*-merged.bin' -exec cp {} "$GITHUB_WORKSPACE/out/" \;
+          (cd "$GITHUB_WORKSPACE/out" && sha256sum *.bin > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-esp32s3
+          path: out/
+          if-no-files-found: error
+
+  release:
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: false
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" --notes "Unverified build. See docs/bringup-log.md before flashing." \
+            --prerelease $(ls dist/*/*-merged.bin) $(ls dist/*/SHA256SUMS | sed 's/$//')
