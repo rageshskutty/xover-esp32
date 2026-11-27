@@ -1,12 +1,12 @@
 set(BENCH_SRCS "bench_main.c" "biquad_ref.c" "bench_util.c")
-set(BENCH_REQ spi_flash esp_psram esp_hw_support)
+set(BENCH_REQ spi_flash esp_psram esp_hw_support
+    esp_wifi esp_netif esp_event nvs_flash lwip esp_timer)
 
 # Wi-Fi load build (sdkconfig.wifi): the benchmark code is compiled unchanged;
 # wifi_load.c supplies app_main, brings up a SoftAP and a TCP load server on
 # core 0, then calls the benchmark's own entry point.
 if(CONFIG_BENCH_WIFI_LOAD)
     list(APPEND BENCH_SRCS "wifi_load.c")
-    list(APPEND BENCH_REQ esp_wifi esp_netif esp_event nvs_flash lwip esp_timer)
 endif()
 
 idf_component_register(
