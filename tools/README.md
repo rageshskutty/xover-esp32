@@ -14,7 +14,7 @@ Planned: create a tested template/converter for exporting biquad coefficients in
   `python tools/test_protection_oracle.py` (runs in CI). Needs numpy and scipy.
 - `gen_mp3_vectors.py`: regenerates the MP3 golden vectors in `host/tests/golden/` (libmp3lame
   encode, ffmpeg decode). Needs ffmpeg with libmp3lame and numpy. See `host/tests/golden/README.md`.
-- `biquad-bench/`: ESP-IDF project that benchmarks biquad throughput on the ESP32-S3 (6- and
+- `biquad-bench/`: ESP-IDF project (results: `docs/bench/biquad-throughput.md`) that benchmarks biquad throughput on the ESP32-S3 (6- and
   2-channel). Host-side check: `gcc -std=gnu11 -Wall -Wextra tools/biquad-bench/host_test/test_host.c -lm`.
   Flashable binaries come from the `Firmware binaries` workflow (see below).
 - Flashable binaries: the `Firmware binaries` workflow (`.github/workflows/firmware-binaries.yml`)

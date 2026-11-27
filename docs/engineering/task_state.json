@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-11-25",
+  "updated": "2026-11-27",
   "basis_commit": "4129d9d71497e869c697c294807112ab8b1085b8",
   "note": "Task ids for tests were inferred from docs/PLAN.md and docs/engineering/03_task_catalog.md; the maintainer must confirm entries marked inferred=true.",
   "tasks": [
@@ -30,7 +30,8 @@
     {"id": "T35", "title": "check.py planning-integrity rules", "state": "merged", "inferred": false, "tests": []},
     {"id": "T36", "title": "AGENTS.md read order and README status", "state": "merged", "inferred": false, "tests": []},
     {"id": "T37", "title": "C8 rule and TODO task ids", "state": "merged", "inferred": false, "tests": []},
-    {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "merged", "inferred": false, "tests": []}
+    {"id": "T38", "title": "Bring-up tone level cap parameter", "state": "merged", "inferred": false, "tests": []},
+    {"id": "BENCH-BIQUAD", "title": "Biquad throughput benchmark on ESP32-S3 N16R8, CI-built binary and results report (docs/bench/biquad-throughput.md)", "state": "merged", "inferred": false, "tests": []}
   ],
   "deferred_tests": [
     {"path": "host/tests/test_app_state_machine.c", "reason": "Not built. Belongs to retired/blocked control-plane cards T10-T15; reissue as a micro-card first."},
