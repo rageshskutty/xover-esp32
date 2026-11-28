@@ -64,6 +64,7 @@ Correctness checks in the same log all PASS: coefficients max diff 1.2e-7, singl
 ## Not covered
 - Everything ADR 0009 asks of a target report: full-block service, deadline margin, instrumentation
   overhead, Wi-Fi active, 1 h underrun soak, SRAM low-water. This run had no Wi-Fi and no I2S.
+  The kernel under Wi-Fi load is in `biquad-throughput-wifi.md`.
 - The other blocks in a real chain (gain, delay, limiter, protection, mix, float conversion).
 - Float32 precision of long cascades (ADR 0016); this log only shows agreement with the reference.
 - Contention between core 0 (Wi-Fi, streaming) and the core 1 DSP task on cache and the PSRAM bus.
