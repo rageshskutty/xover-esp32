@@ -1,0 +1,1410 @@
+Microsoft Windows [Version 10.0.26300.9974]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\ragsk>python -m pip install esptool pyserial
+Collecting esptool
+  Downloading esptool-5.7.0.tar.gz (548 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 548.1/548.1 kB 4.7 MB/s  0:00:00
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Collecting pyserial
+  Using cached pyserial-3.5-py2.py3-none-any.whl.metadata (1.6 kB)
+WARNING: Cache entry deserialization failed, entry ignored
+Collecting cryptography>=43.0.0 (from esptool)
+  Downloading cryptography-50.0.2-cp311-abi3-win_amd64.whl.metadata (4.4 kB)
+Collecting reedsolo<1.8,>=1.5.3 (from esptool)
+  Downloading reedsolo-1.7.0-py3-none-any.whl.metadata (23 kB)
+WARNING: Cache entry deserialization failed, entry ignored
+Collecting PyYAML>=5.1 (from esptool)
+  Downloading pyyaml-6.0.4-cp314-cp314-win_amd64.whl.metadata (2.4 kB)
+Collecting intelhex (from esptool)
+  Downloading intelhex-2.3.0-py2.py3-none-any.whl.metadata (2.7 kB)
+Collecting rich_click<2 (from esptool)
+  Downloading rich_click-1.9.9-py3-none-any.whl.metadata (7.4 kB)
+Collecting click<9 (from esptool)
+  Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting esp-pylib>=1.0.0 (from esp-pylib[cli,ide,serial]>=1.0.0->esptool)
+  Downloading esp_pylib-1.2.1-py3-none-any.whl.metadata (27 kB)
+Collecting colorama (from rich_click<2->esptool)
+  Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting rich>=12 (from rich_click<2->esptool)
+  Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+WARNING: Cache entry deserialization failed, entry ignored
+Collecting cffi>=2.0.0 (from cryptography>=43.0.0->esptool)
+  Downloading cffi-2.1.1-cp314-cp314-win_amd64.whl.metadata (2.6 kB)
+WARNING: Cache entry deserialization failed, entry ignored
+Collecting pycparser (from cffi>=2.0.0->cryptography>=43.0.0->esptool)
+  Downloading pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
+Collecting websockets>=12.0 (from esp-pylib[cli,ide,serial]>=1.0.0->esptool)
+  Downloading websockets-17.4-cp314-cp314-win_amd64.whl.metadata (6.5 kB)
+Collecting markdown-it-py>=2.2.0 (from rich>=12->rich_click<2->esptool)
+  Downloading markdown_it_py-4.3.0-py3-none-any.whl.metadata (7.9 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich>=12->rich_click<2->esptool)
+  Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=12->rich_click<2->esptool)
+  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Downloading click-8.5.1-py3-none-any.whl (126 kB)
+Downloading reedsolo-1.7.0-py3-none-any.whl (32 kB)
+Downloading rich_click-1.9.9-py3-none-any.whl (71 kB)
+Using cached pyserial-3.5-py2.py3-none-any.whl (90 kB)
+Downloading cryptography-50.0.2-cp311-abi3-win_amd64.whl (3.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.8/3.8 MB 11.2 MB/s  0:00:00
+Downloading cffi-2.1.1-cp314-cp314-win_amd64.whl (187 kB)
+Downloading esp_pylib-1.2.1-py3-none-any.whl (59 kB)
+Downloading pyyaml-6.0.4-cp314-cp314-win_amd64.whl (157 kB)
+Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 12.9 MB/s  0:00:00
+Downloading markdown_it_py-4.3.0-py3-none-any.whl (96 kB)
+Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Downloading websockets-17.4-cp314-cp314-win_amd64.whl (219 kB)
+Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Downloading intelhex-2.3.0-py2.py3-none-any.whl (50 kB)
+Downloading pycparser-3.12-py3-none-any.whl (62 kB)
+Building wheels for collected packages: esptool
+  Building wheel for esptool (pyproject.toml) ... done
+  Created wheel for esptool: filename=esptool-5.7.0-py3-none-any.whl size=665881 sha256=13996f59e57e3d3b4ae22147899bbc611438a085c3fe084598662e055e03db92
+  Stored in directory: c:\users\ragsk\appdata\local\pip\cache\wheels\b9\0b\18\0b6eacb7f0445a43c0aad4d864073c67942c10f6c0d2a9ca67
+Successfully built esptool
+Installing collected packages: reedsolo, pyserial, intelhex, websockets, PyYAML, pygments, pycparser, mdurl, colorama, click, markdown-it-py, cffi, rich, cryptography, rich_click, esp-pylib, esptool
+Successfully installed PyYAML-6.0.4 cffi-2.1.1 click-8.5.1 colorama-0.4.6 cryptography-50.0.2 esp-pylib-1.2.1 esptool-5.7.0 intelhex-2.3.0 markdown-it-py-4.3.0 mdurl-0.1.2 pycparser-3.12 pygments-2.21.0 pyserial-3.5 reedsolo-1.7.0 rich-15.0.0 rich_click-1.9.9 websockets-17.4
+
+[notice] A new release of pip is available: 26.1.2 -> 26.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+
+C:\Users\ragsk>cd Downloads
+
+C:\Users\ragsk\Downloads>./flash_log.bat
+'.' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\ragsk\Downloads>flash_log.bat
+Using C:\Users\ragsk\Downloads\biquad-bench-wifi-esp32s3.zip
+C:\Users\ragsk\Downloads\fw_extract\biquad-bench-wifi-merged.bin
+C:\Users\ragsk\Downloads\fw_extract\biquad_bench.bin
+C:\Users\ragsk\Downloads\fw_extract\bootloader.bin
+C:\Users\ragsk\Downloads\fw_extract\partition-table.bin
+WARNING: Deprecated: Command 'write_flash' is deprecated. Use 'write-flash' instead.
+esptool v5.7.0
+Connected to ESP32-S3 on COM4:
+Chip type:          ESP32-S3 (QFN56) (revision v0.2)
+Features:           Wi-Fi, BT 5 (LE), Dual Core + LP Core, 240MHz, Embedded PSRAM 8MB (AP_3v3)
+Crystal frequency:  40MHz
+MAC:                xx:xx:xx:xx:xx:xx
+
+Stub flasher running.
+Changing baud rate to 460800...
+Changed.
+
+Configuring flash size...
+Flash will be erased from 0x00000000 to 0x000cefff...
+Wrote 845024 bytes (532345 compressed) at 0x00000000 in 13.4 seconds (504.8 kbit/s).
+Hash of data verified.
+
+Hard resetting via RTS pin...
+Logging to C:\Users\ragsk\Downloads\com4_log.txt  (Ctrl+C to stop)
+WIFI_WAIT,1,0,0,0
+deleted on purpose few wait
+WIFI_WAIT,240,0,0,0
+WIFI_TRAFFIC,NO_CLIENT
+
+=== Biquad Benchmark ===
+Chip:        ESP32-S3 (model=9, rev=2, cores=2)
+CPU freq:    240 MHz
+Flash:       16 MB
+I (241043) main_task: Returned from app_main()
+PSRAM:       yes (8 MB)
+ESP-IDF:     v5.5.6
+DSPS_BIQUAD_F32 expands to: dsps_biquad_f32_ae32
+========================
+
+=== Correctness checks ===
+CHECK coefficients LPF/HPF: max_diff=0.0000001192 -> PASS
+CHECK single_stage esp_dsp_ae32: max_diff=0.0000006929 -> PASS
+CHECK single_stage esp_dsp_aes3: max_diff=0.0000006929 -> PASS
+CHECK single_stage esp_dsp_ansi: max_diff=0.0000006929 -> PASS
+CHECK cascade esp_dsp_ae32: max_diff=0.0000343323 -> PASS
+CHECK cascade esp_dsp_aes3: max_diff=0.0000343323 -> PASS
+CHECK cascade esp_dsp_ansi: max_diff=0.0000343323 -> PASS
+CHECK lpf_attenuation: measured=42.74 dB analytic=42.74 dB -> PASS
+=== Correctness PASSED ===
+
+CSV,scenario,impl,mem,channels,block,biquads_per_ch,avg_cycles,min_cycles,max_cycles,p99_cycles,budget_us,avg_load_pct,worst_load_pct,p99_load_pct
+CSV,sweep,esp_dsp_ae32,internal,6,32,1,3725,3708,4794,4793,666.667,2.33,3.00,3.00
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 1biq avg=3725cyc (2.3%) p99=4793cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,1,3724,3708,4795,4792,666.667,2.33,3.00,3.00
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 1biq avg=3724cyc (2.3%) p99=4792cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,1,5405,5388,6475,6474,666.667,3.38,4.05,4.05
+  [sweep] esp_dsp_ansi internal 6ch 32smp 1biq avg=5405cyc (3.4%) p99=6474cyc
+CSV,sweep,ref_c,internal,6,32,1,3730,3714,4801,4800,666.667,2.33,3.00,3.00
+  [sweep] ref_c internal 6ch 32smp 1biq avg=3730cyc (2.3%) p99=4800cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,2,7296,7278,8366,8365,666.667,4.56,5.23,5.23
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 2biq avg=7296cyc (4.6%) p99=8365cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,2,7296,7278,8364,8363,666.667,4.56,5.23,5.23
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 2biq avg=7296cyc (4.6%) p99=8363cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,2,10673,10638,11724,11724,666.667,6.67,7.33,7.33
+  [sweep] esp_dsp_ansi internal 6ch 32smp 2biq avg=10673cyc (6.7%) p99=11724cyc
+CSV,sweep,ref_c,internal,6,32,2,7308,7290,8377,8377,666.667,4.57,5.24,5.24
+  [sweep] ref_c internal 6ch 32smp 2biq avg=7308cyc (4.6%) p99=8377cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,4,14472,14418,15552,15505,666.667,9.04,9.72,9.69
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 4biq avg=14472cyc (9.0%) p99=15505cyc
+WIFI,241281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,32,4,14471,14418,15793,15502,666.667,9.04,9.87,9.69
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 4biq avg=14471cyc (9.0%) p99=15502cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,4,21225,21138,22225,22225,666.667,13.27,13.89,13.89
+  [sweep] esp_dsp_ansi internal 6ch 32smp 4biq avg=21225cyc (13.3%) p99=22225cyc
+CSV,sweep,ref_c,internal,6,32,4,14494,14442,15529,15528,666.667,9.06,9.71,9.71
+  [sweep] ref_c internal 6ch 32smp 4biq avg=14494cyc (9.1%) p99=15528cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,8,28819,28698,29935,29786,666.667,18.01,18.71,18.62
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 8biq avg=28819cyc (18.0%) p99=29786cyc
+WIFI,242281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,32,8,28820,28698,29785,29785,666.667,18.01,18.62,18.62
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 8biq avg=28820cyc (18.0%) p99=29785cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,8,42327,42138,43225,43224,666.667,26.45,27.02,27.02
+  [sweep] esp_dsp_ansi internal 6ch 32smp 8biq avg=42327cyc (26.5%) p99=43224cyc
+CSV,sweep,ref_c,internal,6,32,8,28867,28746,29833,29833,666.667,18.04,18.65,18.65
+  [sweep] ref_c internal 6ch 32smp 8biq avg=28867cyc (18.0%) p99=29833cyc
+WIFI,243281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,32,12,43168,42978,45606,44066,666.667,26.98,28.50,27.54
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 12biq avg=43168cyc (27.0%) p99=44066cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,12,43154,42978,44772,44065,666.667,26.97,27.98,27.54
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 12biq avg=43154cyc (27.0%) p99=44065cyc
+WIFI,244281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,32,12,63434,63138,65678,64225,666.667,39.65,41.05,40.14
+  [sweep] esp_dsp_ansi internal 6ch 32smp 12biq avg=63434cyc (39.6%) p99=64225cyc
+CSV,sweep,ref_c,internal,6,32,12,43239,43050,44381,44137,666.667,27.02,27.74,27.59
+  [sweep] ref_c internal 6ch 32smp 12biq avg=43239cyc (27.0%) p99=44137cyc
+WIFI,245281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,32,16,57518,57258,59938,58345,666.667,35.95,37.46,36.47
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 16biq avg=57518cyc (35.9%) p99=58345cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,16,57516,57258,60119,58345,666.667,35.95,37.57,36.47
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 16biq avg=57516cyc (35.9%) p99=58345cyc
+WIFI,246281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,32,16,84519,84138,85690,85225,666.667,52.82,53.56,53.27
+  [sweep] esp_dsp_ansi internal 6ch 32smp 16biq avg=84519cyc (52.8%) p99=85225cyc
+CSV,sweep,ref_c,internal,6,32,16,57613,57354,59406,58441,666.667,36.01,37.13,36.53
+  [sweep] ref_c internal 6ch 32smp 16biq avg=57613cyc (36.0%) p99=58441cyc
+WIFI,247281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,1,6991,6972,8087,8059,1333.333,2.18,2.53,2.52
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 1biq avg=6991cyc (2.2%) p99=8059cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,1,6990,6972,8059,8058,1333.333,2.18,2.52,2.52
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 1biq avg=6990cyc (2.2%) p99=8058cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,1,10414,10380,11467,11467,1333.333,3.25,3.58,3.58
+  [sweep] esp_dsp_ansi internal 6ch 64smp 1biq avg=10414cyc (3.3%) p99=11467cyc
+CSV,sweep,ref_c,internal,6,64,1,6996,6978,8065,8061,1333.333,2.19,2.52,2.52
+  [sweep] ref_c internal 6ch 64smp 1biq avg=6996cyc (2.2%) p99=8061cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,2,13857,13806,14894,14893,1333.333,4.33,4.65,4.65
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 2biq avg=13857cyc (4.3%) p99=14893cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,2,13858,13806,14892,14891,1333.333,4.33,4.65,4.65
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 2biq avg=13858cyc (4.3%) p99=14891cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,2,20708,20622,21710,21709,1333.333,6.47,6.78,6.78
+  [sweep] esp_dsp_ansi internal 6ch 64smp 2biq avg=20708cyc (6.5%) p99=21709cyc
+WIFI,248281,0,0,0
+CSV,sweep,ref_c,internal,6,64,2,13870,13818,15579,14904,1333.333,4.33,4.87,4.66
+  [sweep] ref_c internal 6ch 64smp 2biq avg=13870cyc (4.3%) p99=14904cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,4,27594,27474,28957,28562,1333.333,8.62,9.05,8.93
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 4biq avg=27594cyc (8.6%) p99=28562cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,4,27594,27474,29259,28561,1333.333,8.62,9.14,8.93
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 4biq avg=27594cyc (8.6%) p99=28561cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,4,41295,41106,43248,42193,1333.333,12.90,13.52,13.19
+  [sweep] esp_dsp_ansi internal 6ch 64smp 4biq avg=41295cyc (12.9%) p99=42193cyc
+WIFI,249281,0,0,0
+CSV,sweep,ref_c,internal,6,64,4,27618,27498,28621,28585,1333.333,8.63,8.94,8.93
+  [sweep] ref_c internal 6ch 64smp 4biq avg=27618cyc (8.6%) p99=28585cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,8,55049,54810,55898,55898,1333.333,17.20,17.47,17.47
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 8biq avg=55049cyc (17.2%) p99=55898cyc
+WIFI,250281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,64,8,55051,54810,56984,55897,1333.333,17.20,17.81,17.47
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 8biq avg=55051cyc (17.2%) p99=55897cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,8,82452,82074,83489,83161,1333.333,25.77,26.09,25.99
+  [sweep] esp_dsp_ansi internal 6ch 64smp 8biq avg=82452cyc (25.8%) p99=83161cyc
+WIFI,251281,0,0,0
+CSV,sweep,ref_c,internal,6,64,8,55097,54858,56175,55945,1333.333,17.22,17.55,17.48
+  [sweep] ref_c internal 6ch 64smp 8biq avg=55097cyc (17.2%) p99=55945cyc
+WIFI,252281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,12,82523,82146,84334,83234,1333.333,25.79,26.35,26.01
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 12biq avg=82523cyc (25.8%) p99=83234cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,12,82521,82146,84681,83233,1333.333,25.79,26.46,26.01
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 12biq avg=82521cyc (25.8%) p99=83233cyc
+WIFI,253281,0,0,0
+WIFI,254281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,64,12,123612,123047,125113,124140,1333.333,38.63,39.10,38.79
+  [sweep] esp_dsp_ansi internal 6ch 64smp 12biq avg=123612cyc (38.6%) p99=124140cyc
+CSV,sweep,ref_c,internal,6,64,12,82593,82218,84071,83305,1333.333,25.81,26.27,26.03
+  [sweep] ref_c internal 6ch 64smp 12biq avg=82593cyc (25.8%) p99=83305cyc
+WIFI,255281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,16,109978,109482,112262,110570,1333.333,34.37,35.08,34.55
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 16biq avg=109978cyc (34.4%) p99=110570cyc
+WIFI,256281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,64,16,109977,109482,112514,110569,1333.333,34.37,35.16,34.55
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 16biq avg=109977cyc (34.4%) p99=110569cyc
+WIFI,257281,0,0,0
+WIFI,258281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,64,16,164771,164014,167390,165139,1333.333,51.49,52.31,51.61
+  [sweep] esp_dsp_ansi internal 6ch 64smp 16biq avg=164771cyc (51.5%) p99=165139cyc
+WIFI,259281,0,0,0
+CSV,sweep,ref_c,internal,6,64,16,110076,109578,112017,110665,1333.333,34.40,35.01,34.58
+  [sweep] ref_c internal 6ch 64smp 16biq avg=110076cyc (34.4%) p99=110665cyc
+CSV,sweep,esp_dsp_ae32,internal,6,128,1,13552,13500,14588,14588,2666.667,2.12,2.28,2.28
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 1biq avg=13552cyc (2.1%) p99=14588cyc
+CSV,sweep,esp_dsp_aes3,internal,6,128,1,13551,13500,14587,14587,2666.667,2.12,2.28,2.28
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 1biq avg=13551cyc (2.1%) p99=14587cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,1,20450,20364,21453,21451,2666.667,3.20,3.35,3.35
+  [sweep] esp_dsp_ansi internal 6ch 128smp 1biq avg=20450cyc (3.2%) p99=21451cyc
+CSV,sweep,ref_c,internal,6,128,1,13557,13506,14593,14593,2666.667,2.12,2.28,2.28
+  [sweep] ref_c internal 6ch 128smp 1biq avg=13557cyc (2.1%) p99=14593cyc
+WIFI,260281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,2,26982,26862,27950,27949,2666.667,4.22,4.37,4.37
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 2biq avg=26982cyc (4.2%) p99=27949cyc
+CSV,sweep,esp_dsp_aes3,internal,6,128,2,26981,26862,27949,27949,2666.667,4.22,4.37,4.37
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 2biq avg=26981cyc (4.2%) p99=27949cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,2,40778,40590,41680,41677,2666.667,6.37,6.51,6.51
+  [sweep] esp_dsp_ansi internal 6ch 128smp 2biq avg=40778cyc (6.4%) p99=41677cyc
+WIFI,261281,0,0,0
+CSV,sweep,ref_c,internal,6,128,2,26995,26874,28148,27961,2666.667,4.22,4.40,4.37
+  [sweep] ref_c internal 6ch 128smp 2biq avg=26995cyc (4.2%) p99=27961cyc
+CSV,sweep,esp_dsp_ae32,internal,6,128,4,53825,53586,55267,54674,2666.667,8.41,8.64,8.54
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 4biq avg=53825cyc (8.4%) p99=54674cyc
+WIFI,262281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,4,53825,53586,55422,54673,2666.667,8.41,8.66,8.54
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 4biq avg=53825cyc (8.4%) p99=54673cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,4,81420,81042,82344,82129,2666.667,12.72,12.87,12.83
+  [sweep] esp_dsp_ansi internal 6ch 128smp 4biq avg=81420cyc (12.7%) p99=82129cyc
+WIFI,263281,0,0,0
+CSV,sweep,ref_c,internal,6,128,4,53851,53610,55780,54697,2666.667,8.41,8.72,8.55
+  [sweep] ref_c internal 6ch 128smp 4biq avg=53851cyc (8.4%) p99=54697cyc
+WIFI,264281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,8,107529,107034,109156,108122,2666.667,16.80,17.06,16.89
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 8biq avg=107529cyc (16.8%) p99=108122cyc
+WIFI,265281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,8,107528,107034,108881,108121,2666.667,16.80,17.01,16.89
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 8biq avg=107528cyc (16.8%) p99=108121cyc
+WIFI,266281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,8,162703,161951,164020,163070,2666.667,25.42,25.63,25.48
+  [sweep] esp_dsp_ansi internal 6ch 128smp 8biq avg=162703cyc (25.4%) p99=163070cyc
+WIFI,267281,0,0,0
+CSV,sweep,ref_c,internal,6,128,8,107578,107082,109256,108169,2666.667,16.81,17.07,16.90
+  [sweep] ref_c internal 6ch 128smp 8biq avg=107578cyc (16.8%) p99=108169cyc
+WIFI,268281,0,0,0
+WIFI,269281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,12,161217,160482,163132,161609,2666.667,25.19,25.49,25.25
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 12biq avg=161217cyc (25.2%) p99=161609cyc
+WIFI,270281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,12,161215,160482,162827,161591,2666.667,25.19,25.44,25.25
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 12biq avg=161215cyc (25.2%) p99=161591cyc
+WIFI,271281,0,0,0
+WIFI,272281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,12,243971,243904,245140,245045,2666.667,38.12,38.30,38.29
+  [sweep] esp_dsp_ansi internal 6ch 128smp 12biq avg=243971cyc (38.1%) p99=245045cyc
+WIFI,273281,0,0,0
+CSV,sweep,ref_c,internal,6,128,12,161291,160554,162798,161668,2666.667,25.20,25.44,25.26
+  [sweep] ref_c internal 6ch 128smp 12biq avg=161291cyc (25.2%) p99=161668cyc
+WIFI,274281,0,0,0
+WIFI,275281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,16,214922,213930,215491,215047,2666.667,33.58,33.67,33.60
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 16biq avg=214922cyc (33.6%) p99=215047cyc
+WIFI,276281,0,0,0
+WIFI,277281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,16,214923,213930,215919,215051,2666.667,33.58,33.74,33.60
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 16biq avg=214923cyc (33.6%) p99=215051cyc
+WIFI,278281,0,0,0
+WIFI,279281,0,0,0
+WIFI,280281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,16,325254,324817,326662,325968,2666.667,50.82,51.04,50.93
+  [sweep] esp_dsp_ansi internal 6ch 128smp 16biq avg=325254cyc (50.8%) p99=325968cyc
+WIFI,281281,0,0,0
+WIFI,282281,0,0,0
+CSV,sweep,ref_c,internal,6,128,16,215019,214026,217007,215155,2666.667,33.60,33.91,33.62
+  [sweep] ref_c internal 6ch 128smp 16biq avg=215019cyc (33.6%) p99=215155cyc
+CSV,sweep,esp_dsp_ae32,internal,6,256,1,26676,26556,28664,27647,5333.333,2.08,2.24,2.16
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 1biq avg=26676cyc (2.1%) p99=27647cyc
+CSV,sweep,esp_dsp_aes3,internal,6,256,1,26675,26556,27735,27646,5333.333,2.08,2.17,2.16
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 1biq avg=26675cyc (2.1%) p99=27646cyc
+WIFI,283281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,1,40505,40332,41654,41422,5333.333,3.16,3.25,3.24
+  [sweep] esp_dsp_ansi internal 6ch 256smp 1biq avg=40505cyc (3.2%) p99=41422cyc
+CSV,sweep,ref_c,internal,6,256,1,26681,26562,27652,27652,5333.333,2.08,2.16,2.16
+  [sweep] ref_c internal 6ch 256smp 1biq avg=26681cyc (2.1%) p99=27652cyc
+WIFI,284281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,2,53213,52974,54184,54065,5333.333,4.16,4.23,4.22
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 2biq avg=53213cyc (4.2%) p99=54065cyc
+CSV,sweep,esp_dsp_aes3,internal,6,256,2,53212,52974,54064,54064,5333.333,4.16,4.22,4.22
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 2biq avg=53212cyc (4.2%) p99=54064cyc
+WIFI,285281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,2,80887,80526,82269,81616,5333.333,6.32,6.43,6.38
+  [sweep] esp_dsp_ansi internal 6ch 256smp 2biq avg=80887cyc (6.3%) p99=81616cyc
+CSV,sweep,ref_c,internal,6,256,2,53224,52986,54078,54076,5333.333,4.16,4.22,4.22
+  [sweep] ref_c internal 6ch 256smp 2biq avg=53224cyc (4.2%) p99=54076cyc
+WIFI,286281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,4,106289,105810,107488,106901,5333.333,8.30,8.40,8.35
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 4biq avg=106289cyc (8.3%) p99=106901cyc
+WIFI,287281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,4,106288,105810,107259,106900,5333.333,8.30,8.38,8.35
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 4biq avg=106288cyc (8.3%) p99=106900cyc
+WIFI,288281,0,0,0
+WIFI,289281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,4,161656,160918,162809,162028,5333.333,12.63,12.72,12.66
+  [sweep] esp_dsp_ansi internal 6ch 256smp 4biq avg=161656cyc (12.6%) p99=162028cyc
+WIFI,290281,0,0,0
+CSV,sweep,ref_c,internal,6,256,4,106313,105834,107900,106924,5333.333,8.31,8.43,8.35
+  [sweep] ref_c internal 6ch 256smp 4biq avg=106313cyc (8.3%) p99=106924cyc
+WIFI,291281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,8,212454,211482,213455,212593,5333.333,16.60,16.68,16.61
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 8biq avg=212454cyc (16.6%) p99=212593cyc
+WIFI,292281,0,0,0
+WIFI,293281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,8,212455,211482,214020,212582,5333.333,16.60,16.72,16.61
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 8biq avg=212455cyc (16.6%) p99=212582cyc
+WIFI,294281,0,0,0
+WIFI,295281,0,0,0
+WIFI,296281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,8,323168,322752,324379,323887,5333.333,25.25,25.34,25.30
+  [sweep] esp_dsp_ansi internal 6ch 256smp 8biq avg=323168cyc (25.2%) p99=323887cyc
+WIFI,297281,0,0,0
+WIFI,298281,0,0,0
+CSV,sweep,ref_c,internal,6,256,8,212507,211530,213772,212660,5333.333,16.60,16.70,16.61
+  [sweep] ref_c internal 6ch 256smp 8biq avg=212507cyc (16.6%) p99=212660cyc
+WIFI,299281,0,0,0
+WIFI,300281,0,0,0
+WIFI,301281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,12,318606,318208,320313,319342,5333.333,24.89,25.02,24.95
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 12biq avg=318606cyc (24.9%) p99=319342cyc
+WIFI,302281,0,0,0
+WIFI,303281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,12,318604,318240,320088,319336,5333.333,24.89,25.01,24.95
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 12biq avg=318604cyc (24.9%) p99=319336cyc
+WIFI,304281,0,0,0
+WIFI,305281,0,0,0
+WIFI,306281,0,0,0
+WIFI,307281,0,0,0
+WIFI,308281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,12,484679,484616,485953,485741,5333.333,37.87,37.97,37.95
+  [sweep] esp_dsp_ansi internal 6ch 256smp 12biq avg=484679cyc (37.9%) p99=485741cyc
+WIFI,309281,0,0,0
+WIFI,310281,0,0,0
+CSV,sweep,ref_c,internal,6,256,12,318678,318279,321451,319410,5333.333,24.90,25.11,24.95
+  [sweep] ref_c internal 6ch 256smp 12biq avg=318678cyc (24.9%) p99=319410cyc
+WIFI,311281,0,0,0
+WIFI,312281,0,0,0
+WIFI,313281,0,0,0
+WIFI,314281,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,16,424772,423845,426455,425051,5333.333,33.19,33.32,33.21
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 16biq avg=424772cyc (33.2%) p99=425051cyc
+WIFI,315281,0,0,0
+WIFI,316281,0,0,0
+WIFI,317281,0,0,0
+WIFI,318281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,16,424770,423843,426053,425050,5333.333,33.19,33.29,33.21
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 16biq avg=424770cyc (33.2%) p99=425050cyc
+WIFI,319281,0,0,0
+WIFI,320281,0,0,0
+WIFI,321281,0,0,0
+WIFI,322281,0,0,0
+WIFI,323281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,16,646214,645406,647610,646609,5333.333,50.49,50.59,50.52
+  [sweep] esp_dsp_ansi internal 6ch 256smp 16biq avg=646214cyc (50.5%) p99=646609cyc
+WIFI,324281,0,0,0
+WIFI,325281,0,0,0
+WIFI,326281,0,0,0
+WIFI,327281,0,0,0
+CSV,sweep,ref_c,internal,6,256,16,424871,423978,426634,425181,5333.333,33.19,33.33,33.22
+  [sweep] ref_c internal 6ch 256smp 16biq avg=424871cyc (33.2%) p99=425181cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,1,1237,1236,2319,1237,666.667,0.77,1.45,0.77
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 1biq avg=1237cyc (0.8%) p99=1237cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,1,1236,1236,1236,1236,666.667,0.77,0.77,0.77
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 1biq avg=1236cyc (0.8%) p99=1236cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,1,1796,1796,2877,1796,666.667,1.12,1.80,1.12
+  [sweep] esp_dsp_ansi internal 2ch 32smp 1biq avg=1796cyc (1.1%) p99=1796cyc
+CSV,sweep,ref_c,internal,2,32,1,1239,1238,2318,1301,666.667,0.77,1.45,0.81
+  [sweep] ref_c internal 2ch 32smp 1biq avg=1239cyc (0.8%) p99=1301cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,2,2426,2426,3508,2428,666.667,1.52,2.19,1.52
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 2biq avg=2426cyc (1.5%) p99=2428cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,2,2427,2426,2963,2475,666.667,1.52,1.85,1.55
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 2biq avg=2427cyc (1.5%) p99=2475cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,2,3547,3546,4599,3554,666.667,2.22,2.87,2.22
+  [sweep] esp_dsp_ansi internal 2ch 32smp 2biq avg=3547cyc (2.2%) p99=3554cyc
+CSV,sweep,ref_c,internal,2,32,2,2430,2430,2662,2433,666.667,1.52,1.66,1.52
+  [sweep] ref_c internal 2ch 32smp 2biq avg=2430cyc (1.5%) p99=2433cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,4,4823,4806,5897,5896,666.667,3.01,3.69,3.69
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 4biq avg=4823cyc (3.0%) p99=5896cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,4,4824,4806,6805,5894,666.667,3.02,4.25,3.68
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 4biq avg=4824cyc (3.0%) p99=5894cyc
+WIFI,328281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,32,4,7064,7046,8136,8135,666.667,4.42,5.08,5.08
+  [sweep] esp_dsp_ansi internal 2ch 32smp 4biq avg=7064cyc (4.4%) p99=8135cyc
+CSV,sweep,ref_c,internal,2,32,4,4831,4814,5904,5903,666.667,3.02,3.69,3.69
+  [sweep] ref_c internal 2ch 32smp 4biq avg=4831cyc (3.0%) p99=5903cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,8,9601,9566,10957,10655,666.667,6.00,6.85,6.66
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 8biq avg=9601cyc (6.0%) p99=10655cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,8,9601,9566,10655,10654,666.667,6.00,6.66,6.66
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 8biq avg=9601cyc (6.0%) p99=10654cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,8,14098,14046,15136,15136,666.667,8.81,9.46,9.46
+  [sweep] esp_dsp_ansi internal 2ch 32smp 8biq avg=14098cyc (8.8%) p99=15136cyc
+CSV,sweep,ref_c,internal,2,32,8,9616,9582,10672,10671,666.667,6.01,6.67,6.67
+  [sweep] ref_c internal 2ch 32smp 8biq avg=9616cyc (6.0%) p99=10671cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,12,14378,14326,15417,15417,666.667,8.99,9.64,9.64
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 12biq avg=14378cyc (9.0%) p99=15417cyc
+WIFI,329281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,32,12,14381,14326,16728,15414,666.667,8.99,10.46,9.63
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 12biq avg=14381cyc (9.0%) p99=15414cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,12,21133,21046,22136,22136,666.667,13.21,13.84,13.84
+  [sweep] esp_dsp_ansi internal 2ch 32smp 12biq avg=21133cyc (13.2%) p99=22136cyc
+CSV,sweep,ref_c,internal,2,32,12,14404,14350,16799,15439,666.667,9.00,10.50,9.65
+  [sweep] ref_c internal 2ch 32smp 12biq avg=14404cyc (9.0%) p99=15439cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,16,19172,19086,20177,20177,666.667,11.98,12.61,12.61
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 16biq avg=19172cyc (12.0%) p99=20177cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,16,19171,19086,20176,20176,666.667,11.98,12.61,12.61
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 16biq avg=19171cyc (12.0%) p99=20176cyc
+WIFI,330281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,32,16,28170,28046,30285,29136,666.667,17.61,18.93,18.21
+  [sweep] esp_dsp_ansi internal 2ch 32smp 16biq avg=28170cyc (17.6%) p99=29136cyc
+CSV,sweep,ref_c,internal,2,32,16,19204,19118,20208,20208,666.667,12.00,12.63,12.63
+  [sweep] ref_c internal 2ch 32smp 16biq avg=19204cyc (12.0%) p99=20208cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,1,2324,2324,3414,2324,1333.333,0.73,1.07,0.73
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 1biq avg=2324cyc (0.7%) p99=2324cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,1,2324,2324,2325,2325,1333.333,0.73,0.73,0.73
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 1biq avg=2324cyc (0.7%) p99=2325cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,1,3460,3460,4547,3464,1333.333,1.08,1.42,1.08
+  [sweep] esp_dsp_ansi internal 2ch 64smp 1biq avg=3460cyc (1.1%) p99=3464cyc
+CSV,sweep,ref_c,internal,2,64,1,2326,2326,2613,2327,1333.333,0.73,0.82,0.73
+  [sweep] ref_c internal 2ch 64smp 1biq avg=2326cyc (0.7%) p99=2327cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,2,4619,4602,5692,5692,1333.333,1.44,1.78,1.78
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 2biq avg=4619cyc (1.4%) p99=5692cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,2,4619,4602,5691,5691,1333.333,1.44,1.78,1.78
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 2biq avg=4619cyc (1.4%) p99=5691cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,2,6892,6874,8073,7963,1333.333,2.15,2.52,2.49
+  [sweep] esp_dsp_ansi internal 2ch 64smp 2biq avg=6892cyc (2.2%) p99=7963cyc
+CSV,sweep,ref_c,internal,2,64,2,4624,4606,6377,5692,1333.333,1.45,1.99,1.78
+  [sweep] ref_c internal 2ch 64smp 2biq avg=4624cyc (1.4%) p99=5692cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,4,9200,9158,10249,10249,1333.333,2.88,3.20,3.20
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 4biq avg=9200cyc (2.9%) p99=10249cyc
+WIFI,331281,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,64,4,9200,9158,10248,10247,1333.333,2.88,3.20,3.20
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 4biq avg=9200cyc (2.9%) p99=10247cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,4,13753,13702,14794,14791,1333.333,4.30,4.62,4.62
+  [sweep] esp_dsp_ansi internal 2ch 64smp 4biq avg=13753cyc (4.3%) p99=14791cyc
+CSV,sweep,ref_c,internal,2,64,4,9207,9166,10256,10255,1333.333,2.88,3.21,3.20
+  [sweep] ref_c internal 2ch 64smp 4biq avg=9207cyc (2.9%) p99=10255cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,8,18339,18270,19361,19361,1333.333,5.73,6.05,6.05
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 8biq avg=18339cyc (5.7%) p99=19361cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,8,18339,18270,20675,19359,1333.333,5.73,6.46,6.05
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 8biq avg=18339cyc (5.7%) p99=19359cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,8,27478,27358,28667,28448,1333.333,8.59,8.96,8.89
+  [sweep] esp_dsp_ansi internal 2ch 64smp 8biq avg=27478cyc (8.6%) p99=28448cyc
+WIFI,332281,0,0,0
+CSV,sweep,ref_c,internal,2,64,8,18356,18286,19507,19375,1333.333,5.74,6.10,6.05
+  [sweep] ref_c internal 2ch 64smp 8biq avg=18356cyc (5.7%) p99=19375cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,12,27502,27382,28473,28473,1333.333,8.59,8.90,8.90
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 12biq avg=27502cyc (8.6%) p99=28473cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,12,27501,27382,28472,28472,1333.333,8.59,8.90,8.90
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 12biq avg=27501cyc (8.6%) p99=28472cyc
+WIFI,333281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,64,12,41205,41014,42134,42104,1333.333,12.88,13.17,13.16
+  [sweep] esp_dsp_ansi internal 2ch 64smp 12biq avg=41205cyc (12.9%) p99=42104cyc
+CSV,sweep,ref_c,internal,2,64,12,27525,27406,28496,28496,1333.333,8.60,8.91,8.91
+  [sweep] ref_c internal 2ch 64smp 12biq avg=27525cyc (8.6%) p99=28496cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,16,36649,36494,38427,37585,1333.333,11.45,12.01,11.75
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 16biq avg=36649cyc (11.5%) p99=37585cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,16,36649,36494,37584,37584,1333.333,11.45,11.75,11.75
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 16biq avg=36649cyc (11.5%) p99=37584cyc
+WIFI,334281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,64,16,54913,54670,56726,55760,1333.333,17.16,17.73,17.43
+  [sweep] esp_dsp_ansi internal 2ch 64smp 16biq avg=54913cyc (17.2%) p99=55760cyc
+CSV,sweep,ref_c,internal,2,64,16,36682,36526,37616,37616,1333.333,11.46,11.75,11.75
+  [sweep] ref_c internal 2ch 64smp 16biq avg=36682cyc (11.5%) p99=37616cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,1,4517,4500,5591,5591,2666.667,0.71,0.87,0.87
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 1biq avg=4517cyc (0.7%) p99=5591cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,1,4517,4500,5590,5590,2666.667,0.71,0.87,0.87
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 1biq avg=4517cyc (0.7%) p99=5590cyc
+WIFI,335281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,1,6805,6788,7878,7877,2666.667,1.06,1.23,1.23
+  [sweep] esp_dsp_ansi internal 2ch 128smp 1biq avg=6805cyc (1.1%) p99=7877cyc
+CSV,sweep,ref_c,internal,2,128,1,4519,4502,5592,5591,2666.667,0.71,0.87,0.87
+  [sweep] ref_c internal 2ch 128smp 1biq avg=4519cyc (0.7%) p99=5591cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,2,8988,8954,10045,10044,2666.667,1.40,1.57,1.57
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 2biq avg=8988cyc (1.4%) p99=10044cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,2,8988,8954,10043,10043,2666.667,1.40,1.57,1.57
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 2biq avg=8988cyc (1.4%) p99=10043cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,2,13581,13530,14626,14619,2666.667,2.12,2.29,2.28
+  [sweep] esp_dsp_ansi internal 2ch 128smp 2biq avg=13581cyc (2.1%) p99=14619cyc
+CSV,sweep,ref_c,internal,2,128,2,8992,8958,10048,10048,2666.667,1.41,1.57,1.57
+  [sweep] ref_c internal 2ch 128smp 2biq avg=8992cyc (1.4%) p99=10048cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,4,17931,17862,18953,18951,2666.667,2.80,2.96,2.96
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 4biq avg=17931cyc (2.8%) p99=18951cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,4,17931,17862,18951,18951,2666.667,2.80,2.96,2.96
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 4biq avg=17931cyc (2.8%) p99=18951cyc
+WIFI,336281,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,4,27134,27014,28104,28104,2666.667,4.24,4.39,4.39
+  [sweep] esp_dsp_ansi internal 2ch 128smp 4biq avg=27134cyc (4.2%) p99=28104cyc
+CSV,sweep,ref_c,internal,2,128,4,17938,17870,18960,18960,2666.667,2.80,2.96,2.96
+  [sweep] ref_c internal 2ch 128smp 4biq avg=17938cyc (2.8%) p99=18960cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,8,35832,35678,36769,36769,2666.667,5.60,5.75,5.75
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 8biq avg=35832cyc (5.6%) p99=36769cyc
+WIFI,337285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,8,35831,35678,36839,36767,2666.667,5.60,5.76,5.74
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 8biq avg=35831cyc (5.6%) p99=36767cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,8,54223,53982,55140,55072,2666.667,8.47,8.62,8.61
+  [sweep] esp_dsp_ansi internal 2ch 128smp 8biq avg=54223cyc (8.5%) p99=55072cyc
+WIFI,338285,0,0,0
+CSV,sweep,ref_c,internal,2,128,8,35850,35694,37707,36784,2666.667,5.60,5.89,5.75
+  [sweep] ref_c internal 2ch 128smp 8biq avg=35850cyc (5.6%) p99=36784cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,12,53733,53494,54862,54585,2666.667,8.40,8.57,8.53
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 12biq avg=53733cyc (8.4%) p99=54585cyc
+WIFI,339285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,12,53733,53494,54635,54583,2666.667,8.40,8.54,8.53
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 12biq avg=53733cyc (8.4%) p99=54583cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,12,81328,80950,82099,82040,2666.667,12.71,12.83,12.82
+  [sweep] esp_dsp_ansi internal 2ch 128smp 12biq avg=81328cyc (12.7%) p99=82040cyc
+WIFI,340285,0,0,0
+CSV,sweep,ref_c,internal,2,128,12,53759,53518,55824,54608,2666.667,8.40,8.72,8.53
+  [sweep] ref_c internal 2ch 128smp 12biq avg=53759cyc (8.4%) p99=54608cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,16,71636,71310,73037,72401,2666.667,11.19,11.41,11.31
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 16biq avg=71636cyc (11.2%) p99=72401cyc
+WIFI,341285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,16,71635,71310,73373,72400,2666.667,11.19,11.46,11.31
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 16biq avg=71635cyc (11.2%) p99=72400cyc
+WIFI,342285,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,16,108418,107918,109286,109008,2666.667,16.94,17.08,17.03
+  [sweep] esp_dsp_ansi internal 2ch 128smp 16biq avg=108418cyc (16.9%) p99=109008cyc
+WIFI,343285,0,0,0
+CSV,sweep,ref_c,internal,2,128,16,71669,71342,73099,72432,2666.667,11.20,11.42,11.32
+  [sweep] ref_c internal 2ch 128smp 16biq avg=71669cyc (11.2%) p99=72432cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,1,8886,8852,9943,9943,5333.333,0.69,0.78,0.78
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 1biq avg=8886cyc (0.7%) p99=9943cyc
+CSV,sweep,esp_dsp_aes3,internal,2,256,1,8886,8852,9942,9942,5333.333,0.69,0.78,0.78
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 1biq avg=8886cyc (0.7%) p99=9942cyc
+CSV,sweep,esp_dsp_ansi,internal,2,256,1,13495,13444,14533,14533,5333.333,1.05,1.14,1.14
+  [sweep] esp_dsp_ansi internal 2ch 256smp 1biq avg=13495cyc (1.1%) p99=14533cyc
+CSV,sweep,ref_c,internal,2,256,1,8888,8854,9944,9944,5333.333,0.69,0.78,0.78
+  [sweep] ref_c internal 2ch 256smp 1biq avg=8888cyc (0.7%) p99=9944cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,2,17727,17658,18749,18749,5333.333,1.38,1.46,1.46
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 2biq avg=17727cyc (1.4%) p99=18749cyc
+CSV,sweep,esp_dsp_aes3,internal,2,256,2,17726,17658,18748,18747,5333.333,1.38,1.46,1.46
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 2biq avg=17726cyc (1.4%) p99=18747cyc
+WIFI,344285,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,2,26962,26842,28708,27932,5333.333,2.11,2.24,2.18
+  [sweep] esp_dsp_ansi internal 2ch 256smp 2biq avg=26962cyc (2.1%) p99=27932cyc
+CSV,sweep,ref_c,internal,2,256,2,17714,17662,18752,18751,5333.333,1.38,1.47,1.46
+  [sweep] ref_c internal 2ch 256smp 2biq avg=17714cyc (1.4%) p99=18751cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,4,35423,35270,36361,36360,5333.333,2.77,2.84,2.84
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 4biq avg=35423cyc (2.8%) p99=36360cyc
+WIFI,345285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,4,35423,35270,36496,36360,5333.333,2.77,2.85,2.84
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 4biq avg=35423cyc (2.8%) p99=36360cyc
+CSV,sweep,esp_dsp_ansi,internal,2,256,4,53879,53638,54793,54728,5333.333,4.21,4.28,4.28
+  [sweep] esp_dsp_ansi internal 2ch 256smp 4biq avg=53879cyc (4.2%) p99=54728cyc
+CSV,sweep,ref_c,internal,2,256,4,35432,35278,36369,36368,5333.333,2.77,2.84,2.84
+  [sweep] ref_c internal 2ch 256smp 4biq avg=35432cyc (2.8%) p99=36368cyc
+WIFI,346285,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,8,70818,70494,71587,71585,5333.333,5.53,5.59,5.59
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 8biq avg=70818cyc (5.5%) p99=71585cyc
+WIFI,347285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,8,70819,70494,72375,71584,5333.333,5.53,5.65,5.59
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 8biq avg=70819cyc (5.5%) p99=71584cyc
+WIFI,348285,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,8,107730,107230,108552,108320,5333.333,8.42,8.48,8.46
+  [sweep] esp_dsp_ansi internal 2ch 256smp 8biq avg=107730cyc (8.4%) p99=108320cyc
+CSV,sweep,ref_c,internal,2,256,8,70836,70510,72255,71600,5333.333,5.53,5.64,5.59
+  [sweep] ref_c internal 2ch 256smp 8biq avg=70836cyc (5.5%) p99=71600cyc
+WIFI,349285,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,12,106196,105718,107310,106809,5333.333,8.30,8.38,8.34
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 12biq avg=106196cyc (8.3%) p99=106809cyc
+WIFI,350285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,12,106196,105718,107663,106808,5333.333,8.30,8.41,8.34
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 12biq avg=106196cyc (8.3%) p99=106808cyc
+WIFI,351285,0,0,0
+WIFI,352285,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,12,161564,160825,162939,161966,5333.333,12.62,12.73,12.65
+  [sweep] esp_dsp_ansi internal 2ch 256smp 12biq avg=161564cyc (12.6%) p99=161966cyc
+WIFI,353285,0,0,0
+CSV,sweep,ref_c,internal,2,256,12,106221,105742,107378,106832,5333.333,8.30,8.39,8.35
+  [sweep] ref_c internal 2ch 256smp 12biq avg=106221cyc (8.3%) p99=106832cyc
+WIFI,354285,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,16,141592,140942,143082,142054,5333.333,11.06,11.18,11.10
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 16biq avg=141592cyc (11.1%) p99=142054cyc
+WIFI,355285,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,16,141590,140942,142651,142042,5333.333,11.06,11.14,11.10
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 16biq avg=141590cyc (11.1%) p99=142042cyc
+WIFI,356285,0,0,0
+WIFI,357285,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,16,215415,214421,216353,215588,5333.333,16.83,16.90,16.84
+  [sweep] esp_dsp_ansi internal 2ch 256smp 16biq avg=215415cyc (16.8%) p99=215588cyc
+WIFI,358285,0,0,0
+CSV,sweep,ref_c,internal,2,256,16,141624,140974,142789,142080,5333.333,11.06,11.16,11.10
+  [sweep] ref_c internal 2ch 256smp 16biq avg=141624cyc (11.1%) p99=142080cyc
+WIFI,359285,0,0,0
+WIFI,360285,0,0,0
+CSV,psram_sweep,esp_dsp_ae32,psram,6,256,8,212456,211482,214248,212594,5333.333,16.60,16.74,16.61
+  [psram_sweep] esp_dsp_ae32 psram 6ch 256smp 8biq avg=212456cyc (16.6%) p99=212594cyc
+WIFI,361285,0,0,0
+WIFI,362285,0,0,0
+CSV,psram_sweep,esp_dsp_aes3,psram,6,256,8,212453,211482,214156,212583,5333.333,16.60,16.73,16.61
+  [psram_sweep] esp_dsp_aes3 psram 6ch 256smp 8biq avg=212453cyc (16.6%) p99=212583cyc
+WIFI,363285,0,0,0
+WIFI,364285,0,0,0
+WIFI,365285,0,0,0
+CSV,psram_sweep,esp_dsp_ansi,psram,6,256,8,323156,322708,325443,323883,5333.333,25.25,25.43,25.30
+  [psram_sweep] esp_dsp_ansi psram 6ch 256smp 8biq avg=323156cyc (25.2%) p99=323883cyc
+WIFI,366285,0,0,0
+WIFI,367285,0,0,0
+CSV,psram_sweep,ref_c,psram,6,256,8,212506,211530,214431,212654,5333.333,16.60,16.75,16.61
+  [psram_sweep] ref_c psram 6ch 256smp 8biq avg=212506cyc (16.6%) p99=212654cyc
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,2,53212,52974,54073,54065,5333.333,4.16,4.22,4.22
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 2biq avg=53212cyc (4.2%) p99=54065cyc
+WIFI,368285,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,2,53213,52974,54383,54064,5333.333,4.16,4.25,4.22
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 2biq avg=53213cyc (4.2%) p99=54064cyc
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,2,80887,80526,82377,81616,5333.333,6.32,6.44,6.38
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 2biq avg=80887cyc (6.3%) p99=81616cyc
+WIFI,369285,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,2,53225,52986,54342,54076,5333.333,4.16,4.25,4.22
+  [lr4_eq] ref_c internal 6ch 256smp 2biq avg=53225cyc (4.2%) p99=54076cyc
+WIFI,370285,0,0,0
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,6,159380,158646,160471,159747,5333.333,12.45,12.54,12.48
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 6biq avg=159380cyc (12.5%) p99=159747cyc
+WIFI,371285,0,0,0
+WIFI,372285,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,6,159379,158646,160410,159753,5333.333,12.45,12.53,12.48
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 6biq avg=159379cyc (12.5%) p99=159753cyc
+WIFI,373285,0,0,0
+WIFI,374285,0,0,0
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,6,242407,242335,243485,242456,5333.333,18.94,19.02,18.94
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 6biq avg=242407cyc (18.9%) p99=242456cyc
+WIFI,375285,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,6,159416,158682,160755,159775,5333.333,12.45,12.56,12.48
+  [lr4_eq] ref_c internal 6ch 256smp 6biq avg=159416cyc (12.5%) p99=159775cyc
+WIFI,376285,0,0,0
+WIFI,377285,0,0,0
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,10,265514,265371,267212,266517,5333.333,20.74,20.88,20.82
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 10biq avg=265514cyc (20.7%) p99=266517cyc
+WIFI,378285,0,0,0
+WIFI,379285,0,0,0
+WIFI,380285,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,10,265513,265370,266832,266520,5333.333,20.74,20.85,20.82
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 10biq avg=265513cyc (20.7%) p99=266520cyc
+WIFI,381285,0,0,0
+WIFI,382285,0,0,0
+WIFI,383285,0,0,0
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,10,403932,403105,405438,404335,5333.333,31.56,31.67,31.59
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 10biq avg=403932cyc (31.6%) p99=404335cyc
+WIFI,384285,0,0,0
+WIFI,385285,0,0,0
+WIFI,386285,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,10,265576,265396,267420,266558,5333.333,20.75,20.89,20.82
+  [lr4_eq] ref_c internal 6ch 256smp 10biq avg=265576cyc (20.7%) p99=266558cyc
+BENCH_STATUS,OK
+BENCH_DONE
+WIFI,387285,0,0,0
+WIFI,388285,0,0,0
+deleted on purpose few wait
+WIFI,704285,0,0,0
+WIFI,705285,0,0,0
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0xa (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x1560
+load:0x403c8700,len:0xe68
+load:0x403cb700,len:0x3168
+entry 0x403c8940
+I (24) boot: ESP-IDF v5.5.6 2nd stage bootloader
+I (25) boot: compile time Nov 27 2026 18:13:58
+I (25) boot: chip revision: v0.2
+I (25) qio_mode: Enabling default flash chip QIO
+I (29) boot.esp32s3: Boot SPI Speed : 80MHz
+I (33) boot.esp32s3: SPI Mode       : QIO
+I (37) boot.esp32s3: SPI Flash Size : 16MB
+I (41) boot: Partition Table:
+I (43) boot: ## Label            Usage          Type ST Offset   Length
+I (49) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (56) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (62) boot:  2 factory          factory app      00 00 00010000 00177000
+I (69) esp_image: segment 0: paddr=00010020 vaddr=3c090020 size=1a1ach (106924) map
+I (93) esp_image: segment 1: paddr=0002a1d4 vaddr=3fc9ae00 size=05408h ( 21512) load
+I (97) esp_image: segment 2: paddr=0002f5e4 vaddr=40374000 size=00a34h (  2612) load
+I (98) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=8818ch (557452) map
+I (188) esp_image: segment 4: paddr=000b81b4 vaddr=40374a34 size=162d8h ( 90840) load
+I (206) esp_image: segment 5: paddr=000ce494 vaddr=50000000 size=00020h (    32) load
+I (216) boot: Loaded app from partition at offset 0x10000
+I (221) octal_psram: vendor id    : 0x0d (AP)
+I (221) octal_psram: dev id       : 0x02 (generation 3)
+I (222) octal_psram: density      : 0x03 (64 Mbit)
+I (224) octal_psram: good-die     : 0x01 (Pass)
+I (228) octal_psram: Latency      : 0x01 (Fixed)
+I (232) octal_psram: VCC          : 0x01 (3V)
+I (236) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (241) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (246) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (251) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (256) octal_psram: DriveStrength: 0x00 (1/1)
+I (260) MSPI Timing: Enter psram timing tuning
+I (265) esp_psram: Found 8MB PSRAM device
+I (268) esp_psram: Speed: 80MHz
+I (271) cpu_start: Multicore app
+I (687) esp_psram: SPI SRAM memory test OK
+I (695) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (696) cpu_start: Pro cpu start user code
+I (696) cpu_start: cpu freq: 240000000 Hz
+I (697) app_init: Application information:
+I (701) app_init: Project name:     biquad_bench
+I (706) app_init: App version:      4735170
+I (709) app_init: Compile time:     Nov 27 2026 18:13:51
+I (714) app_init: ELF file SHA256:  98a2d77bd...
+I (719) app_init: ESP-IDF:          v5.5.6
+I (723) efuse_init: Min chip rev:     v0.0
+I (726) efuse_init: Max chip rev:     v0.99
+I (730) efuse_init: Chip rev:         v0.2
+I (734) heap_init: Initializing. RAM available for dynamic allocation:
+I (741) heap_init: At 3FCA4030 len 000456E0 (277 KiB): RAM
+I (746) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (751) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (756) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (761) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (768) spi_flash: detected chip: boya
+I (771) spi_flash: flash io: qio
+I (774) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (781) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (787) main_task: Started on CPU0
+I (811) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (811) main_task: Calling app_main()
+
+=== Biquad Benchmark: Wi-Fi load build ===
+I (830) pp: pp rom version: e7ae62f
+I (830) net80211: net80211 rom version: e7ae62f
+I (832) wifi:wifi driver task: 3fcb20d4, prio:23, stack:6656, core=0
+I (837) wifi:wifi firmware version: c6dceae
+I (837) wifi:wifi certification version: v7.0
+I (840) wifi:config NVS flash: enabled
+I (844) wifi:config nano formatting: disabled
+I (848) wifi:Init data frame dynamic rx buffer num: 32
+I (853) wifi:Init static rx mgmt buffer num: 5
+I (857) wifi:Init management short buffer num: 32
+I (861) wifi:Init dynamic tx buffer num: 32
+I (865) wifi:Init static tx FG buffer num: 2
+I (869) wifi:Init static rx buffer size: 1600
+I (873) wifi:Init static rx buffer num: 10
+I (877) wifi:Init dynamic rx buffer num: 32
+I (882) wifi_init: rx ba win: 6
+I (884) wifi_init: accept mbox: 6
+I (887) wifi_init: tcpip mbox: 32
+I (890) wifi_init: udp mbox: 6
+I (893) wifi_init: tcp mbox: 6
+I (896) wifi_init: tcp tx win: 5760
+I (899) wifi_init: tcp rx win: 5760
+I (902) wifi_init: tcp mss: 1440
+I (905) wifi_init: WiFi IRAM OP enabled
+I (908) wifi_init: WiFi RX IRAM OP enabled
+I (916) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (953) wifi:mode : softAP (xx:xx:xx:xx:xx:xx)
+I (955) wifi:Total power save buffer number: 16
+I (955) wifi:Init max length of beacon: 752/752
+I (956) wifi:Init max length of beacon: 752/752
+I (960) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
+I (967) wifi:Set ps type: 0, coexist: 0
+
+WIFI_STATUS,AP_UP,ssid=xover-bench,ip=192.168.4.1,port=5001
+WIFI_STATUS,WAITING (join the AP, run tools/biquad-bench/wifi_load_client.py, up to 240 s)
+WIFI_WAIT,1,0,0,0
+WIFI_WAIT,2,0,0,0
+WIFI_WAIT,3,0,0,0
+deleted on purpose few wait
+WIFI_WAIT,240,0,0,0
+WIFI_TRAFFIC,NO_CLIENT
+
+=== Biquad Benchmark ===
+Chip:        ESP32-S3 (model=9, rev=2, cores=2)
+CPU freq:    240 MHz
+Flash:       16 MB
+I (240984) main_task: Returned from app_main()
+PSRAM:       yes (8 MB)
+ESP-IDF:     v5.5.6
+DSPS_BIQUAD_F32 expands to: dsps_biquad_f32_ae32
+========================
+
+=== Correctness checks ===
+CHECK coefficients LPF/HPF: max_diff=0.0000001192 -> PASS
+CHECK single_stage esp_dsp_ae32: max_diff=0.0000006929 -> PASS
+CHECK single_stage esp_dsp_aes3: max_diff=0.0000006929 -> PASS
+CHECK single_stage esp_dsp_ansi: max_diff=0.0000006929 -> PASS
+CHECK cascade esp_dsp_ae32: max_diff=0.0000343323 -> PASS
+CHECK cascade esp_dsp_aes3: max_diff=0.0000343323 -> PASS
+CHECK cascade esp_dsp_ansi: max_diff=0.0000343323 -> PASS
+CHECK lpf_attenuation: measured=42.74 dB analytic=42.74 dB -> PASS
+=== Correctness PASSED ===
+
+CSV,scenario,impl,mem,channels,block,biquads_per_ch,avg_cycles,min_cycles,max_cycles,p99_cycles,budget_us,avg_load_pct,worst_load_pct,p99_load_pct
+CSV,sweep,esp_dsp_ae32,internal,6,32,1,3725,3708,4796,4793,666.667,2.33,3.00,3.00
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 1biq avg=3725cyc (2.3%) p99=4793cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,1,3726,3708,4795,4792,666.667,2.33,3.00,3.00
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 1biq avg=3726cyc (2.3%) p99=4792cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,1,5405,5388,6474,6474,666.667,3.38,4.05,4.05
+  [sweep] esp_dsp_ansi internal 6ch 32smp 1biq avg=5405cyc (3.4%) p99=6474cyc
+CSV,sweep,ref_c,internal,6,32,1,3730,3714,4801,4800,666.667,2.33,3.00,3.00
+  [sweep] ref_c internal 6ch 32smp 1biq avg=3730cyc (2.3%) p99=4800cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,2,7296,7278,8366,8365,666.667,4.56,5.23,5.23
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 2biq avg=7296cyc (4.6%) p99=8365cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,2,7296,7278,8365,8363,666.667,4.56,5.23,5.23
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 2biq avg=7296cyc (4.6%) p99=8363cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,2,10673,10638,11725,11724,666.667,6.67,7.33,7.33
+  [sweep] esp_dsp_ansi internal 6ch 32smp 2biq avg=10673cyc (6.7%) p99=11724cyc
+CSV,sweep,ref_c,internal,6,32,2,7308,7290,8377,8377,666.667,4.57,5.24,5.24
+  [sweep] ref_c internal 6ch 32smp 2biq avg=7308cyc (4.6%) p99=8377cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,4,14472,14418,15533,15505,666.667,9.04,9.71,9.69
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 4biq avg=14472cyc (9.0%) p99=15505cyc
+WIFI,241222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,32,4,14472,14418,15925,15502,666.667,9.04,9.95,9.69
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 4biq avg=14472cyc (9.0%) p99=15502cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,4,21225,21138,22325,22225,666.667,13.27,13.95,13.89
+  [sweep] esp_dsp_ansi internal 6ch 32smp 4biq avg=21225cyc (13.3%) p99=22225cyc
+CSV,sweep,ref_c,internal,6,32,4,14495,14442,15529,15528,666.667,9.06,9.71,9.71
+  [sweep] ref_c internal 6ch 32smp 4biq avg=14495cyc (9.1%) p99=15528cyc
+CSV,sweep,esp_dsp_ae32,internal,6,32,8,28819,28698,30166,29786,666.667,18.01,18.85,18.62
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 8biq avg=28819cyc (18.0%) p99=29786cyc
+WIFI,242222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,32,8,28820,28698,29940,29785,666.667,18.01,18.71,18.62
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 8biq avg=28820cyc (18.0%) p99=29785cyc
+CSV,sweep,esp_dsp_ansi,internal,6,32,8,42328,42138,43225,43224,666.667,26.46,27.02,27.02
+  [sweep] esp_dsp_ansi internal 6ch 32smp 8biq avg=42328cyc (26.5%) p99=43224cyc
+CSV,sweep,ref_c,internal,6,32,8,28867,28746,29834,29833,666.667,18.04,18.65,18.65
+  [sweep] ref_c internal 6ch 32smp 8biq avg=28867cyc (18.0%) p99=29833cyc
+WIFI,243222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,32,12,43168,42978,45606,44066,666.667,26.98,28.50,27.54
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 12biq avg=43168cyc (27.0%) p99=44066cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,12,43153,42978,44286,44065,666.667,26.97,27.68,27.54
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 12biq avg=43153cyc (27.0%) p99=44065cyc
+WIFI,244222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,32,12,63433,63138,65104,64225,666.667,39.65,40.69,40.14
+  [sweep] esp_dsp_ansi internal 6ch 32smp 12biq avg=63433cyc (39.6%) p99=64225cyc
+CSV,sweep,ref_c,internal,6,32,12,43238,43050,44684,44137,666.667,27.02,27.93,27.59
+  [sweep] ref_c internal 6ch 32smp 12biq avg=43238cyc (27.0%) p99=44137cyc
+WIFI,245222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,32,16,57518,57258,59953,58345,666.667,35.95,37.47,36.47
+  [sweep] esp_dsp_ae32 internal 6ch 32smp 16biq avg=57518cyc (35.9%) p99=58345cyc
+CSV,sweep,esp_dsp_aes3,internal,6,32,16,57513,57258,58388,58345,666.667,35.95,36.49,36.47
+  [sweep] esp_dsp_aes3 internal 6ch 32smp 16biq avg=57513cyc (35.9%) p99=58345cyc
+WIFI,246222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,32,16,84519,84138,86676,85225,666.667,52.82,54.17,53.27
+  [sweep] esp_dsp_ansi internal 6ch 32smp 16biq avg=84519cyc (52.8%) p99=85225cyc
+CSV,sweep,ref_c,internal,6,32,16,57613,57354,59087,58441,666.667,36.01,36.93,36.53
+  [sweep] ref_c internal 6ch 32smp 16biq avg=57613cyc (36.0%) p99=58441cyc
+WIFI,247222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,1,6991,6972,8060,8059,1333.333,2.18,2.52,2.52
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 1biq avg=6991cyc (2.2%) p99=8059cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,1,6990,6972,8059,8058,1333.333,2.18,2.52,2.52
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 1biq avg=6990cyc (2.2%) p99=8058cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,1,10414,10380,11467,11467,1333.333,3.25,3.58,3.58
+  [sweep] esp_dsp_ansi internal 6ch 64smp 1biq avg=10414cyc (3.3%) p99=11467cyc
+CSV,sweep,ref_c,internal,6,64,1,6996,6978,8065,8061,1333.333,2.19,2.52,2.52
+  [sweep] ref_c internal 6ch 64smp 1biq avg=6996cyc (2.2%) p99=8061cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,2,13857,13806,14893,14893,1333.333,4.33,4.65,4.65
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 2biq avg=13857cyc (4.3%) p99=14893cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,2,13857,13806,14893,14891,1333.333,4.33,4.65,4.65
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 2biq avg=13857cyc (4.3%) p99=14891cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,2,20709,20622,21709,21709,1333.333,6.47,6.78,6.78
+  [sweep] esp_dsp_ansi internal 6ch 64smp 2biq avg=20709cyc (6.5%) p99=21709cyc
+WIFI,248222,0,0,0
+CSV,sweep,ref_c,internal,6,64,2,13871,13818,15294,14904,1333.333,4.33,4.78,4.66
+  [sweep] ref_c internal 6ch 64smp 2biq avg=13871cyc (4.3%) p99=14904cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,4,27593,27474,28562,28562,1333.333,8.62,8.93,8.93
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 4biq avg=27593cyc (8.6%) p99=28562cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,4,27593,27474,28561,28561,1333.333,8.62,8.93,8.93
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 4biq avg=27593cyc (8.6%) p99=28561cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,4,41295,41106,42255,42192,1333.333,12.90,13.20,13.19
+  [sweep] esp_dsp_ansi internal 6ch 64smp 4biq avg=41295cyc (12.9%) p99=42192cyc
+WIFI,249222,0,0,0
+CSV,sweep,ref_c,internal,6,64,4,27619,27498,29826,28585,1333.333,8.63,9.32,8.93
+  [sweep] ref_c internal 6ch 64smp 4biq avg=27619cyc (8.6%) p99=28585cyc
+CSV,sweep,esp_dsp_ae32,internal,6,64,8,55049,54810,57140,55898,1333.333,17.20,17.86,17.47
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 8biq avg=55049cyc (17.2%) p99=55898cyc
+WIFI,250222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,64,8,55050,54810,56199,55897,1333.333,17.20,17.56,17.47
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 8biq avg=55050cyc (17.2%) p99=55897cyc
+CSV,sweep,esp_dsp_ansi,internal,6,64,8,82452,82074,83392,83161,1333.333,25.77,26.06,25.99
+  [sweep] esp_dsp_ansi internal 6ch 64smp 8biq avg=82452cyc (25.8%) p99=83161cyc
+WIFI,251222,0,0,0
+CSV,sweep,ref_c,internal,6,64,8,55097,54858,57504,55945,1333.333,17.22,17.97,17.48
+  [sweep] ref_c internal 6ch 64smp 8biq avg=55097cyc (17.2%) p99=55945cyc
+WIFI,252222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,12,82522,82146,83463,83234,1333.333,25.79,26.08,26.01
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 12biq avg=82522cyc (25.8%) p99=83234cyc
+CSV,sweep,esp_dsp_aes3,internal,6,64,12,82520,82146,84213,83233,1333.333,25.79,26.32,26.01
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 12biq avg=82520cyc (25.8%) p99=83233cyc
+WIFI,253222,0,0,0
+WIFI,254222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,64,12,123612,123048,124374,124140,1333.333,38.63,38.87,38.79
+  [sweep] esp_dsp_ansi internal 6ch 64smp 12biq avg=123612cyc (38.6%) p99=124140cyc
+CSV,sweep,ref_c,internal,6,64,12,82593,82218,84086,83305,1333.333,25.81,26.28,26.03
+  [sweep] ref_c internal 6ch 64smp 12biq avg=82593cyc (25.8%) p99=83305cyc
+WIFI,255222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,64,16,109978,109482,112367,110570,1333.333,34.37,35.11,34.55
+  [sweep] esp_dsp_ae32 internal 6ch 64smp 16biq avg=109978cyc (34.4%) p99=110570cyc
+WIFI,256222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,64,16,109977,109482,111298,110569,1333.333,34.37,34.78,34.55
+  [sweep] esp_dsp_aes3 internal 6ch 64smp 16biq avg=109977cyc (34.4%) p99=110569cyc
+WIFI,257222,0,0,0
+WIFI,258222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,64,16,164771,164015,166578,165144,1333.333,51.49,52.06,51.61
+  [sweep] esp_dsp_ansi internal 6ch 64smp 16biq avg=164771cyc (51.5%) p99=165144cyc
+WIFI,259222,0,0,0
+CSV,sweep,ref_c,internal,6,64,16,110075,109578,112156,110665,1333.333,34.40,35.05,34.58
+  [sweep] ref_c internal 6ch 64smp 16biq avg=110075cyc (34.4%) p99=110665cyc
+CSV,sweep,esp_dsp_ae32,internal,6,128,1,13551,13500,14588,14588,2666.667,2.12,2.28,2.28
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 1biq avg=13551cyc (2.1%) p99=14588cyc
+CSV,sweep,esp_dsp_aes3,internal,6,128,1,13551,13500,14587,14587,2666.667,2.12,2.28,2.28
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 1biq avg=13551cyc (2.1%) p99=14587cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,1,20450,20364,21451,21451,2666.667,3.20,3.35,3.35
+  [sweep] esp_dsp_ansi internal 6ch 128smp 1biq avg=20450cyc (3.2%) p99=21451cyc
+CSV,sweep,ref_c,internal,6,128,1,13557,13506,14595,14593,2666.667,2.12,2.28,2.28
+  [sweep] ref_c internal 6ch 128smp 1biq avg=13557cyc (2.1%) p99=14593cyc
+WIFI,260222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,2,26982,26862,27950,27949,2666.667,4.22,4.37,4.37
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 2biq avg=26982cyc (4.2%) p99=27949cyc
+CSV,sweep,esp_dsp_aes3,internal,6,128,2,26981,26862,27998,27949,2666.667,4.22,4.37,4.37
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 2biq avg=26981cyc (4.2%) p99=27949cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,2,40778,40590,41836,41677,2666.667,6.37,6.54,6.51
+  [sweep] esp_dsp_ansi internal 6ch 128smp 2biq avg=40778cyc (6.4%) p99=41677cyc
+WIFI,261222,0,0,0
+CSV,sweep,ref_c,internal,6,128,2,26995,26874,27961,27961,2666.667,4.22,4.37,4.37
+  [sweep] ref_c internal 6ch 128smp 2biq avg=26995cyc (4.2%) p99=27961cyc
+CSV,sweep,esp_dsp_ae32,internal,6,128,4,53824,53586,54674,54674,2666.667,8.41,8.54,8.54
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 4biq avg=53824cyc (8.4%) p99=54674cyc
+WIFI,262222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,4,53824,53586,54682,54673,2666.667,8.41,8.54,8.54
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 4biq avg=53824cyc (8.4%) p99=54673cyc
+CSV,sweep,esp_dsp_ansi,internal,6,128,4,81419,81042,82310,82129,2666.667,12.72,12.86,12.83
+  [sweep] esp_dsp_ansi internal 6ch 128smp 4biq avg=81419cyc (12.7%) p99=82129cyc
+WIFI,263222,0,0,0
+CSV,sweep,ref_c,internal,6,128,4,53850,53610,55565,54697,2666.667,8.41,8.68,8.55
+  [sweep] ref_c internal 6ch 128smp 4biq avg=53850cyc (8.4%) p99=54697cyc
+WIFI,264222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,8,107529,107034,109337,108122,2666.667,16.80,17.08,16.89
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 8biq avg=107529cyc (16.8%) p99=108122cyc
+WIFI,265222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,8,107528,107034,109205,108121,2666.667,16.80,17.06,16.89
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 8biq avg=107528cyc (16.8%) p99=108121cyc
+WIFI,266222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,8,162703,161950,163366,163070,2666.667,25.42,25.53,25.48
+  [sweep] esp_dsp_ansi internal 6ch 128smp 8biq avg=162703cyc (25.4%) p99=163070cyc
+WIFI,267222,0,0,0
+CSV,sweep,ref_c,internal,6,128,8,107578,107082,108881,108169,2666.667,16.81,17.01,16.90
+  [sweep] ref_c internal 6ch 128smp 8biq avg=107578cyc (16.8%) p99=108169cyc
+WIFI,268222,0,0,0
+WIFI,269222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,12,161217,160482,162918,161595,2666.667,25.19,25.46,25.25
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 12biq avg=161217cyc (25.2%) p99=161595cyc
+WIFI,270222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,12,161215,160482,162243,161591,2666.667,25.19,25.35,25.25
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 12biq avg=161215cyc (25.2%) p99=161591cyc
+WIFI,271222,0,0,0
+WIFI,272222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,12,243970,243904,245091,245045,2666.667,38.12,38.30,38.29
+  [sweep] esp_dsp_ansi internal 6ch 128smp 12biq avg=243970cyc (38.1%) p99=245045cyc
+WIFI,273222,0,0,0
+CSV,sweep,ref_c,internal,6,128,12,161291,160554,164067,161669,2666.667,25.20,25.64,25.26
+  [sweep] ref_c internal 6ch 128smp 12biq avg=161291cyc (25.2%) p99=161669cyc
+WIFI,274222,0,0,0
+WIFI,275222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,128,16,214923,213930,216569,215059,2666.667,33.58,33.84,33.60
+  [sweep] esp_dsp_ae32 internal 6ch 128smp 16biq avg=214923cyc (33.6%) p99=215059cyc
+WIFI,276222,0,0,0
+WIFI,277222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,128,16,214923,213930,216372,215056,2666.667,33.58,33.81,33.60
+  [sweep] esp_dsp_aes3 internal 6ch 128smp 16biq avg=214923cyc (33.6%) p99=215056cyc
+WIFI,278222,0,0,0
+WIFI,279222,0,0,0
+WIFI,280222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,128,16,325254,324819,326978,325968,2666.667,50.82,51.09,50.93
+  [sweep] esp_dsp_ansi internal 6ch 128smp 16biq avg=325254cyc (50.8%) p99=325968cyc
+WIFI,281222,0,0,0
+WIFI,282222,0,0,0
+CSV,sweep,ref_c,internal,6,128,16,215018,214026,216739,215169,2666.667,33.60,33.87,33.62
+  [sweep] ref_c internal 6ch 128smp 16biq avg=215018cyc (33.6%) p99=215169cyc
+CSV,sweep,esp_dsp_ae32,internal,6,256,1,26675,26556,27647,27647,5333.333,2.08,2.16,2.16
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 1biq avg=26675cyc (2.1%) p99=27647cyc
+CSV,sweep,esp_dsp_aes3,internal,6,256,1,26675,26556,27646,27645,5333.333,2.08,2.16,2.16
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 1biq avg=26675cyc (2.1%) p99=27645cyc
+WIFI,283222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,1,40504,40332,41652,41422,5333.333,3.16,3.25,3.24
+  [sweep] esp_dsp_ansi internal 6ch 256smp 1biq avg=40504cyc (3.2%) p99=41422cyc
+CSV,sweep,ref_c,internal,6,256,1,26682,26562,28299,27652,5333.333,2.08,2.21,2.16
+  [sweep] ref_c internal 6ch 256smp 1biq avg=26682cyc (2.1%) p99=27652cyc
+WIFI,284222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,2,53215,52974,55270,54065,5333.333,4.16,4.32,4.22
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 2biq avg=53215cyc (4.2%) p99=54065cyc
+CSV,sweep,esp_dsp_aes3,internal,6,256,2,53213,52974,54065,54064,5333.333,4.16,4.22,4.22
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 2biq avg=53213cyc (4.2%) p99=54064cyc
+WIFI,285222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,2,80888,80526,81638,81616,5333.333,6.32,6.38,6.38
+  [sweep] esp_dsp_ansi internal 6ch 256smp 2biq avg=80888cyc (6.3%) p99=81616cyc
+CSV,sweep,ref_c,internal,6,256,2,53225,52986,54989,54076,5333.333,4.16,4.30,4.22
+  [sweep] ref_c internal 6ch 256smp 2biq avg=53225cyc (4.2%) p99=54076cyc
+WIFI,286222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,4,106289,105810,107742,106901,5333.333,8.30,8.42,8.35
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 4biq avg=106289cyc (8.3%) p99=106901cyc
+WIFI,287222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,4,106291,105810,110050,106901,5333.333,8.30,8.60,8.35
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 4biq avg=106291cyc (8.3%) p99=106901cyc
+WIFI,288222,0,0,0
+WIFI,289222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,4,161656,160918,162811,162034,5333.333,12.63,12.72,12.66
+  [sweep] esp_dsp_ansi internal 6ch 256smp 4biq avg=161656cyc (12.6%) p99=162034cyc
+WIFI,290222,0,0,0
+CSV,sweep,ref_c,internal,6,256,4,106313,105834,108114,106924,5333.333,8.31,8.45,8.35
+  [sweep] ref_c internal 6ch 256smp 4biq avg=106313cyc (8.3%) p99=106924cyc
+WIFI,291222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,8,212455,211482,214531,212593,5333.333,16.60,16.76,16.61
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 8biq avg=212455cyc (16.6%) p99=212593cyc
+WIFI,292222,0,0,0
+WIFI,293222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,8,212454,211482,213661,212585,5333.333,16.60,16.69,16.61
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 8biq avg=212454cyc (16.6%) p99=212585cyc
+WIFI,294222,0,0,0
+WIFI,295222,0,0,0
+WIFI,296222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,8,323169,322781,324221,323888,5333.333,25.25,25.33,25.30
+  [sweep] esp_dsp_ansi internal 6ch 256smp 8biq avg=323169cyc (25.2%) p99=323888cyc
+WIFI,297222,0,0,0
+WIFI,298222,0,0,0
+CSV,sweep,ref_c,internal,6,256,8,212506,211530,213982,212655,5333.333,16.60,16.72,16.61
+  [sweep] ref_c internal 6ch 256smp 8biq avg=212506cyc (16.6%) p99=212655cyc
+WIFI,299222,0,0,0
+WIFI,300222,0,0,0
+WIFI,301222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,12,318606,318207,319651,319338,5333.333,24.89,24.97,24.95
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 12biq avg=318606cyc (24.9%) p99=319338cyc
+WIFI,302222,0,0,0
+WIFI,303222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,12,318604,318209,320198,319335,5333.333,24.89,25.02,24.95
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 12biq avg=318604cyc (24.9%) p99=319335cyc
+WIFI,304222,0,0,0
+WIFI,305222,0,0,0
+WIFI,306222,0,0,0
+WIFI,307222,0,0,0
+WIFI,308222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,12,484678,484617,485949,485741,5333.333,37.87,37.96,37.95
+  [sweep] esp_dsp_ansi internal 6ch 256smp 12biq avg=484678cyc (37.9%) p99=485741cyc
+WIFI,309222,0,0,0
+WIFI,310222,0,0,0
+CSV,sweep,ref_c,internal,6,256,12,318677,318277,320248,319411,5333.333,24.90,25.02,24.95
+  [sweep] ref_c internal 6ch 256smp 12biq avg=318677cyc (24.9%) p99=319411cyc
+WIFI,311222,0,0,0
+WIFI,312222,0,0,0
+WIFI,313222,0,0,0
+WIFI,314222,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,6,256,16,424773,423845,426852,425068,5333.333,33.19,33.35,33.21
+  [sweep] esp_dsp_ae32 internal 6ch 256smp 16biq avg=424773cyc (33.2%) p99=425068cyc
+WIFI,315222,0,0,0
+WIFI,316222,0,0,0
+WIFI,317222,0,0,0
+WIFI,318222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,6,256,16,424772,423843,426779,425055,5333.333,33.19,33.34,33.21
+  [sweep] esp_dsp_aes3 internal 6ch 256smp 16biq avg=424772cyc (33.2%) p99=425055cyc
+WIFI,319222,0,0,0
+WIFI,320222,0,0,0
+WIFI,321222,0,0,0
+WIFI,322222,0,0,0
+WIFI,323222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,6,256,16,646219,645405,647699,646605,5333.333,50.49,50.60,50.52
+  [sweep] esp_dsp_ansi internal 6ch 256smp 16biq avg=646219cyc (50.5%) p99=646605cyc
+WIFI,324222,0,0,0
+WIFI,325222,0,0,0
+WIFI,326222,0,0,0
+WIFI,327222,0,0,0
+CSV,sweep,ref_c,internal,6,256,16,424871,424008,426438,425181,5333.333,33.19,33.32,33.22
+  [sweep] ref_c internal 6ch 256smp 16biq avg=424871cyc (33.2%) p99=425181cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,1,1236,1236,2323,1236,666.667,0.77,1.45,0.77
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 1biq avg=1236cyc (0.8%) p99=1236cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,1,1236,1236,2326,1236,666.667,0.77,1.45,0.77
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 1biq avg=1236cyc (0.8%) p99=1236cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,1,1796,1796,2878,1796,666.667,1.12,1.80,1.12
+  [sweep] esp_dsp_ansi internal 2ch 32smp 1biq avg=1796cyc (1.1%) p99=1796cyc
+CSV,sweep,ref_c,internal,2,32,1,1239,1238,2320,1238,666.667,0.77,1.45,0.77
+  [sweep] ref_c internal 2ch 32smp 1biq avg=1239cyc (0.8%) p99=1238cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,2,2426,2426,3511,2428,666.667,1.52,2.19,1.52
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 2biq avg=2426cyc (1.5%) p99=2428cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,2,2426,2426,2446,2429,666.667,1.52,1.53,1.52
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 2biq avg=2426cyc (1.5%) p99=2429cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,2,3546,3546,4628,3551,666.667,2.22,2.89,2.22
+  [sweep] esp_dsp_ansi internal 2ch 32smp 2biq avg=3546cyc (2.2%) p99=3551cyc
+CSV,sweep,ref_c,internal,2,32,2,2430,2430,2433,2433,666.667,1.52,1.52,1.52
+  [sweep] ref_c internal 2ch 32smp 2biq avg=2430cyc (1.5%) p99=2433cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,4,4825,4806,5897,5896,666.667,3.02,3.69,3.69
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 4biq avg=4825cyc (3.0%) p99=5896cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,4,4824,4806,5896,5894,666.667,3.02,3.69,3.68
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 4biq avg=4824cyc (3.0%) p99=5894cyc
+WIFI,328222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,32,4,7064,7046,8135,8135,666.667,4.42,5.08,5.08
+  [sweep] esp_dsp_ansi internal 2ch 32smp 4biq avg=7064cyc (4.4%) p99=8135cyc
+CSV,sweep,ref_c,internal,2,32,4,4831,4814,5904,5903,666.667,3.02,3.69,3.69
+  [sweep] ref_c internal 2ch 32smp 4biq avg=4831cyc (3.0%) p99=5903cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,8,9600,9566,10701,10655,666.667,6.00,6.69,6.66
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 8biq avg=9600cyc (6.0%) p99=10655cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,8,9600,9566,10656,10654,666.667,6.00,6.66,6.66
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 8biq avg=9600cyc (6.0%) p99=10654cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,8,14099,14046,15136,15136,666.667,8.81,9.46,9.46
+  [sweep] esp_dsp_ansi internal 2ch 32smp 8biq avg=14099cyc (8.8%) p99=15136cyc
+CSV,sweep,ref_c,internal,2,32,8,9616,9582,10672,10671,666.667,6.01,6.67,6.67
+  [sweep] ref_c internal 2ch 32smp 8biq avg=9616cyc (6.0%) p99=10671cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,12,14380,14326,15417,15417,666.667,8.99,9.64,9.64
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 12biq avg=14380cyc (9.0%) p99=15417cyc
+WIFI,329222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,32,12,14380,14326,15415,15414,666.667,8.99,9.63,9.63
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 12biq avg=14380cyc (9.0%) p99=15414cyc
+CSV,sweep,esp_dsp_ansi,internal,2,32,12,21133,21046,22136,22136,666.667,13.21,13.84,13.84
+  [sweep] esp_dsp_ansi internal 2ch 32smp 12biq avg=21133cyc (13.2%) p99=22136cyc
+CSV,sweep,ref_c,internal,2,32,12,14403,14350,15440,15439,666.667,9.00,9.65,9.65
+  [sweep] ref_c internal 2ch 32smp 12biq avg=14403cyc (9.0%) p99=15439cyc
+CSV,sweep,esp_dsp_ae32,internal,2,32,16,19172,19086,20177,20176,666.667,11.98,12.61,12.61
+  [sweep] esp_dsp_ae32 internal 2ch 32smp 16biq avg=19172cyc (12.0%) p99=20176cyc
+CSV,sweep,esp_dsp_aes3,internal,2,32,16,19171,19086,20176,20176,666.667,11.98,12.61,12.61
+  [sweep] esp_dsp_aes3 internal 2ch 32smp 16biq avg=19171cyc (12.0%) p99=20176cyc
+WIFI,330222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,32,16,28169,28046,29548,29136,666.667,17.61,18.47,18.21
+  [sweep] esp_dsp_ansi internal 2ch 32smp 16biq avg=28169cyc (17.6%) p99=29136cyc
+CSV,sweep,ref_c,internal,2,32,16,19205,19118,20208,20208,666.667,12.00,12.63,12.63
+  [sweep] ref_c internal 2ch 32smp 16biq avg=19205cyc (12.0%) p99=20208cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,1,2324,2324,3411,2324,1333.333,0.73,1.07,0.73
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 1biq avg=2324cyc (0.7%) p99=2324cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,1,2324,2324,2555,2325,1333.333,0.73,0.80,0.73
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 1biq avg=2324cyc (0.7%) p99=2325cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,1,3460,3460,4549,3482,1333.333,1.08,1.42,1.09
+  [sweep] esp_dsp_ansi internal 2ch 64smp 1biq avg=3460cyc (1.1%) p99=3482cyc
+CSV,sweep,ref_c,internal,2,64,1,2326,2326,2328,2327,1333.333,0.73,0.73,0.73
+  [sweep] ref_c internal 2ch 64smp 1biq avg=2326cyc (0.7%) p99=2327cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,2,4619,4602,5692,5692,1333.333,1.44,1.78,1.78
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 2biq avg=4619cyc (1.4%) p99=5692cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,2,4619,4602,5691,5691,1333.333,1.44,1.78,1.78
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 2biq avg=4619cyc (1.4%) p99=5691cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,2,6891,6874,7963,7963,1333.333,2.15,2.49,2.49
+  [sweep] esp_dsp_ansi internal 2ch 64smp 2biq avg=6891cyc (2.2%) p99=7963cyc
+CSV,sweep,ref_c,internal,2,64,2,4623,4606,5696,5692,1333.333,1.44,1.78,1.78
+  [sweep] ref_c internal 2ch 64smp 2biq avg=4623cyc (1.4%) p99=5692cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,4,9201,9158,11541,10249,1333.333,2.88,3.61,3.20
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 4biq avg=9201cyc (2.9%) p99=10249cyc
+WIFI,331222,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,64,4,9202,9158,11574,10247,1333.333,2.88,3.62,3.20
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 4biq avg=9202cyc (2.9%) p99=10247cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,4,13754,13702,15679,14791,1333.333,4.30,4.90,4.62
+  [sweep] esp_dsp_ansi internal 2ch 64smp 4biq avg=13754cyc (4.3%) p99=14791cyc
+CSV,sweep,ref_c,internal,2,64,4,9208,9166,11148,10255,1333.333,2.88,3.48,3.20
+  [sweep] ref_c internal 2ch 64smp 4biq avg=9208cyc (2.9%) p99=10255cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,8,18340,18270,20897,19361,1333.333,5.73,6.53,6.05
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 8biq avg=18340cyc (5.7%) p99=19361cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,8,18339,18270,20383,19359,1333.333,5.73,6.37,6.05
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 8biq avg=18339cyc (5.7%) p99=19359cyc
+CSV,sweep,esp_dsp_ansi,internal,2,64,8,27479,27358,29732,28448,1333.333,8.59,9.29,8.89
+  [sweep] esp_dsp_ansi internal 2ch 64smp 8biq avg=27479cyc (8.6%) p99=28448cyc
+WIFI,332222,0,0,0
+CSV,sweep,ref_c,internal,2,64,8,18355,18286,19962,19375,1333.333,5.74,6.24,6.05
+  [sweep] ref_c internal 2ch 64smp 8biq avg=18355cyc (5.7%) p99=19375cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,12,27502,27382,30001,28473,1333.333,8.59,9.38,8.90
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 12biq avg=27502cyc (8.6%) p99=28473cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,12,27501,27382,28472,28472,1333.333,8.59,8.90,8.90
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 12biq avg=27501cyc (8.6%) p99=28472cyc
+WIFI,333222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,64,12,41205,41014,42308,42104,1333.333,12.88,13.22,13.16
+  [sweep] esp_dsp_ansi internal 2ch 64smp 12biq avg=41205cyc (12.9%) p99=42104cyc
+CSV,sweep,ref_c,internal,2,64,12,27525,27406,28496,28496,1333.333,8.60,8.91,8.91
+  [sweep] ref_c internal 2ch 64smp 12biq avg=27525cyc (8.6%) p99=28496cyc
+CSV,sweep,esp_dsp_ae32,internal,2,64,16,36649,36494,37585,37585,1333.333,11.45,11.75,11.75
+  [sweep] esp_dsp_ae32 internal 2ch 64smp 16biq avg=36649cyc (11.5%) p99=37585cyc
+CSV,sweep,esp_dsp_aes3,internal,2,64,16,36648,36494,37816,37584,1333.333,11.45,11.82,11.75
+  [sweep] esp_dsp_aes3 internal 2ch 64smp 16biq avg=36648cyc (11.5%) p99=37584cyc
+WIFI,334222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,64,16,54913,54670,56660,55760,1333.333,17.16,17.71,17.43
+  [sweep] esp_dsp_ansi internal 2ch 64smp 16biq avg=54913cyc (17.2%) p99=55760cyc
+CSV,sweep,ref_c,internal,2,64,16,36682,36526,39135,37616,1333.333,11.46,12.23,11.75
+  [sweep] ref_c internal 2ch 64smp 16biq avg=36682cyc (11.5%) p99=37616cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,1,4517,4500,5591,5591,2666.667,0.71,0.87,0.87
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 1biq avg=4517cyc (0.7%) p99=5591cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,1,4517,4500,5590,5590,2666.667,0.71,0.87,0.87
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 1biq avg=4517cyc (0.7%) p99=5590cyc
+WIFI,335222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,1,6806,6788,7878,7877,2666.667,1.06,1.23,1.23
+  [sweep] esp_dsp_ansi internal 2ch 128smp 1biq avg=6806cyc (1.1%) p99=7877cyc
+CSV,sweep,ref_c,internal,2,128,1,4519,4502,5592,5591,2666.667,0.71,0.87,0.87
+  [sweep] ref_c internal 2ch 128smp 1biq avg=4519cyc (0.7%) p99=5591cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,2,8988,8954,10045,10044,2666.667,1.40,1.57,1.57
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 2biq avg=8988cyc (1.4%) p99=10044cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,2,8989,8954,10854,10043,2666.667,1.40,1.70,1.57
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 2biq avg=8989cyc (1.4%) p99=10043cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,2,13581,13530,15327,14619,2666.667,2.12,2.39,2.28
+  [sweep] esp_dsp_ansi internal 2ch 128smp 2biq avg=13581cyc (2.1%) p99=14619cyc
+CSV,sweep,ref_c,internal,2,128,2,8992,8958,10674,10048,2666.667,1.41,1.67,1.57
+  [sweep] ref_c internal 2ch 128smp 2biq avg=8992cyc (1.4%) p99=10048cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,4,17931,17862,19019,18951,2666.667,2.80,2.97,2.96
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 4biq avg=17931cyc (2.8%) p99=18951cyc
+CSV,sweep,esp_dsp_aes3,internal,2,128,4,17932,17862,19891,18951,2666.667,2.80,3.11,2.96
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 4biq avg=17932cyc (2.8%) p99=18951cyc
+WIFI,336222,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,4,27134,27014,28269,28104,2666.667,4.24,4.42,4.39
+  [sweep] esp_dsp_ansi internal 2ch 128smp 4biq avg=27134cyc (4.2%) p99=28104cyc
+CSV,sweep,ref_c,internal,2,128,4,17938,17870,19022,18960,2666.667,2.80,2.97,2.96
+  [sweep] ref_c internal 2ch 128smp 4biq avg=17938cyc (2.8%) p99=18960cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,8,35833,35678,38086,36769,2666.667,5.60,5.95,5.75
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 8biq avg=35833cyc (5.6%) p99=36769cyc
+WIFI,337226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,8,35832,35678,36768,36767,2666.667,5.60,5.74,5.74
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 8biq avg=35832cyc (5.6%) p99=36767cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,8,54223,53982,55350,55072,2666.667,8.47,8.65,8.61
+  [sweep] esp_dsp_ansi internal 2ch 128smp 8biq avg=54223cyc (8.5%) p99=55072cyc
+WIFI,338226,0,0,0
+CSV,sweep,ref_c,internal,2,128,8,35849,35694,37258,36784,2666.667,5.60,5.82,5.75
+  [sweep] ref_c internal 2ch 128smp 8biq avg=35849cyc (5.6%) p99=36784cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,12,53733,53494,55591,54585,2666.667,8.40,8.69,8.53
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 12biq avg=53733cyc (8.4%) p99=54585cyc
+WIFI,339226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,12,53733,53494,54884,54583,2666.667,8.40,8.58,8.53
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 12biq avg=53733cyc (8.4%) p99=54583cyc
+CSV,sweep,esp_dsp_ansi,internal,2,128,12,81328,80950,82503,82040,2666.667,12.71,12.89,12.82
+  [sweep] esp_dsp_ansi internal 2ch 128smp 12biq avg=81328cyc (12.7%) p99=82040cyc
+WIFI,340226,0,0,0
+CSV,sweep,ref_c,internal,2,128,12,53760,53518,55587,54608,2666.667,8.40,8.69,8.53
+  [sweep] ref_c internal 2ch 128smp 12biq avg=53760cyc (8.4%) p99=54608cyc
+CSV,sweep,esp_dsp_ae32,internal,2,128,16,71635,71310,73928,72401,2666.667,11.19,11.55,11.31
+  [sweep] esp_dsp_ae32 internal 2ch 128smp 16biq avg=71635cyc (11.2%) p99=72401cyc
+WIFI,341226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,128,16,71634,71310,72831,72400,2666.667,11.19,11.38,11.31
+  [sweep] esp_dsp_aes3 internal 2ch 128smp 16biq avg=71634cyc (11.2%) p99=72400cyc
+WIFI,342226,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,128,16,108419,107918,109696,109008,2666.667,16.94,17.14,17.03
+  [sweep] esp_dsp_ansi internal 2ch 128smp 16biq avg=108419cyc (16.9%) p99=109008cyc
+WIFI,343226,0,0,0
+CSV,sweep,ref_c,internal,2,128,16,71669,71342,73081,72432,2666.667,11.20,11.42,11.32
+  [sweep] ref_c internal 2ch 128smp 16biq avg=71669cyc (11.2%) p99=72432cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,1,8886,8852,9943,9943,5333.333,0.69,0.78,0.78
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 1biq avg=8886cyc (0.7%) p99=9943cyc
+CSV,sweep,esp_dsp_aes3,internal,2,256,1,8886,8852,9942,9942,5333.333,0.69,0.78,0.78
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 1biq avg=8886cyc (0.7%) p99=9942cyc
+CSV,sweep,esp_dsp_ansi,internal,2,256,1,13495,13444,14534,14533,5333.333,1.05,1.14,1.14
+  [sweep] esp_dsp_ansi internal 2ch 256smp 1biq avg=13495cyc (1.1%) p99=14533cyc
+CSV,sweep,ref_c,internal,2,256,1,8888,8854,9944,9944,5333.333,0.69,0.78,0.78
+  [sweep] ref_c internal 2ch 256smp 1biq avg=8888cyc (0.7%) p99=9944cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,2,17726,17658,18749,18749,5333.333,1.38,1.46,1.46
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 2biq avg=17726cyc (1.4%) p99=18749cyc
+CSV,sweep,esp_dsp_aes3,internal,2,256,2,17726,17658,18748,18747,5333.333,1.38,1.46,1.46
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 2biq avg=17726cyc (1.4%) p99=18747cyc
+WIFI,344226,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,2,26962,26842,27932,27932,5333.333,2.11,2.18,2.18
+  [sweep] esp_dsp_ansi internal 2ch 256smp 2biq avg=26962cyc (2.1%) p99=27932cyc
+CSV,sweep,ref_c,internal,2,256,2,17715,17662,18752,18751,5333.333,1.38,1.47,1.46
+  [sweep] ref_c internal 2ch 256smp 2biq avg=17715cyc (1.4%) p99=18751cyc
+CSV,sweep,esp_dsp_ae32,internal,2,256,4,35423,35270,36366,36360,5333.333,2.77,2.84,2.84
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 4biq avg=35423cyc (2.8%) p99=36360cyc
+WIFI,345226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,4,35424,35270,37167,36360,5333.333,2.77,2.90,2.84
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 4biq avg=35424cyc (2.8%) p99=36360cyc
+CSV,sweep,esp_dsp_ansi,internal,2,256,4,53880,53638,55540,54728,5333.333,4.21,4.34,4.28
+  [sweep] esp_dsp_ansi internal 2ch 256smp 4biq avg=53880cyc (4.2%) p99=54728cyc
+CSV,sweep,ref_c,internal,2,256,4,35432,35278,36368,36368,5333.333,2.77,2.84,2.84
+  [sweep] ref_c internal 2ch 256smp 4biq avg=35432cyc (2.8%) p99=36368cyc
+WIFI,346226,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,8,70818,70494,71609,71585,5333.333,5.53,5.59,5.59
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 8biq avg=70818cyc (5.5%) p99=71585cyc
+WIFI,347226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,8,70819,70494,72454,71584,5333.333,5.53,5.66,5.59
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 8biq avg=70819cyc (5.5%) p99=71584cyc
+WIFI,348226,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,8,107730,107230,108552,108320,5333.333,8.42,8.48,8.46
+  [sweep] esp_dsp_ansi internal 2ch 256smp 8biq avg=107730cyc (8.4%) p99=108320cyc
+CSV,sweep,ref_c,internal,2,256,8,70836,70510,71844,71600,5333.333,5.53,5.61,5.59
+  [sweep] ref_c internal 2ch 256smp 8biq avg=70836cyc (5.5%) p99=71600cyc
+WIFI,349226,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,12,106196,105718,107030,106809,5333.333,8.30,8.36,8.34
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 12biq avg=106196cyc (8.3%) p99=106809cyc
+WIFI,350226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,12,106197,105718,107931,106808,5333.333,8.30,8.43,8.34
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 12biq avg=106197cyc (8.3%) p99=106808cyc
+WIFI,351226,0,0,0
+WIFI,352226,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,12,161564,160826,163072,161963,5333.333,12.62,12.74,12.65
+  [sweep] esp_dsp_ansi internal 2ch 256smp 12biq avg=161564cyc (12.6%) p99=161963cyc
+WIFI,353226,0,0,0
+CSV,sweep,ref_c,internal,2,256,12,106222,105742,108151,106832,5333.333,8.30,8.45,8.35
+  [sweep] ref_c internal 2ch 256smp 12biq avg=106222cyc (8.3%) p99=106832cyc
+WIFI,354226,0,0,0
+CSV,sweep,esp_dsp_ae32,internal,2,256,16,141592,140942,143625,142054,5333.333,11.06,11.22,11.10
+  [sweep] esp_dsp_ae32 internal 2ch 256smp 16biq avg=141592cyc (11.1%) p99=142054cyc
+WIFI,355226,0,0,0
+CSV,sweep,esp_dsp_aes3,internal,2,256,16,141590,140942,142783,142042,5333.333,11.06,11.15,11.10
+  [sweep] esp_dsp_aes3 internal 2ch 256smp 16biq avg=141590cyc (11.1%) p99=142042cyc
+WIFI,356226,0,0,0
+WIFI,357226,0,0,0
+CSV,sweep,esp_dsp_ansi,internal,2,256,16,215414,214419,216485,215572,5333.333,16.83,16.91,16.84
+  [sweep] esp_dsp_ansi internal 2ch 256smp 16biq avg=215414cyc (16.8%) p99=215572cyc
+WIFI,358226,0,0,0
+CSV,sweep,ref_c,internal,2,256,16,141624,140974,142753,142080,5333.333,11.06,11.15,11.10
+  [sweep] ref_c internal 2ch 256smp 16biq avg=141624cyc (11.1%) p99=142080cyc
+WIFI,359226,0,0,0
+WIFI,360226,0,0,0
+CSV,psram_sweep,esp_dsp_ae32,psram,6,256,8,212456,211482,214248,212601,5333.333,16.60,16.74,16.61
+  [psram_sweep] esp_dsp_ae32 psram 6ch 256smp 8biq avg=212456cyc (16.6%) p99=212601cyc
+WIFI,361226,0,0,0
+WIFI,362226,0,0,0
+CSV,psram_sweep,esp_dsp_aes3,psram,6,256,8,212453,211482,213784,212594,5333.333,16.60,16.70,16.61
+  [psram_sweep] esp_dsp_aes3 psram 6ch 256smp 8biq avg=212453cyc (16.6%) p99=212594cyc
+WIFI,363226,0,0,0
+WIFI,364226,0,0,0
+WIFI,365226,0,0,0
+CSV,psram_sweep,esp_dsp_ansi,psram,6,256,8,323156,322743,325007,323883,5333.333,25.25,25.39,25.30
+  [psram_sweep] esp_dsp_ansi psram 6ch 256smp 8biq avg=323156cyc (25.2%) p99=323883cyc
+WIFI,366226,0,0,0
+WIFI,367226,0,0,0
+CSV,psram_sweep,ref_c,psram,6,256,8,212506,211530,214455,212647,5333.333,16.60,16.75,16.61
+  [psram_sweep] ref_c psram 6ch 256smp 8biq avg=212506cyc (16.6%) p99=212647cyc
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,2,53213,52974,54933,54065,5333.333,4.16,4.29,4.22
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 2biq avg=53213cyc (4.2%) p99=54065cyc
+WIFI,368226,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,2,53213,52974,54068,54064,5333.333,4.16,4.22,4.22
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 2biq avg=53213cyc (4.2%) p99=54064cyc
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,2,80887,80526,81679,81616,5333.333,6.32,6.38,6.38
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 2biq avg=80887cyc (6.3%) p99=81616cyc
+WIFI,369226,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,2,53226,52986,56012,54076,5333.333,4.16,4.38,4.22
+  [lr4_eq] ref_c internal 6ch 256smp 2biq avg=53226cyc (4.2%) p99=54076cyc
+WIFI,370226,0,0,0
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,6,159379,158646,160563,159747,5333.333,12.45,12.54,12.48
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 6biq avg=159379cyc (12.5%) p99=159747cyc
+WIFI,371226,0,0,0
+WIFI,372226,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,6,159380,158646,160536,159747,5333.333,12.45,12.54,12.48
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 6biq avg=159380cyc (12.5%) p99=159747cyc
+WIFI,373226,0,0,0
+WIFI,374226,0,0,0
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,6,242407,242335,243485,242457,5333.333,18.94,19.02,18.94
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 6biq avg=242407cyc (18.9%) p99=242457cyc
+WIFI,375226,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,6,159417,158682,160950,159778,5333.333,12.45,12.57,12.48
+  [lr4_eq] ref_c internal 6ch 256smp 6biq avg=159417cyc (12.5%) p99=159778cyc
+WIFI,376226,0,0,0
+WIFI,377226,0,0,0
+CSV,lr4_eq,esp_dsp_ae32,internal,6,256,10,265514,265371,267732,266516,5333.333,20.74,20.92,20.82
+  [lr4_eq] esp_dsp_ae32 internal 6ch 256smp 10biq avg=265514cyc (20.7%) p99=266516cyc
+WIFI,378226,0,0,0
+WIFI,379226,0,0,0
+WIFI,380226,0,0,0
+CSV,lr4_eq,esp_dsp_aes3,internal,6,256,10,265512,265335,266592,266521,5333.333,20.74,20.83,20.82
+  [lr4_eq] esp_dsp_aes3 internal 6ch 256smp 10biq avg=265512cyc (20.7%) p99=266521cyc
+WIFI,381226,0,0,0
+WIFI,382226,0,0,0
+WIFI,383226,0,0,0
+CSV,lr4_eq,esp_dsp_ansi,internal,6,256,10,403932,403170,405421,404325,5333.333,31.56,31.67,31.59
+  [lr4_eq] esp_dsp_ansi internal 6ch 256smp 10biq avg=403932cyc (31.6%) p99=404325cyc
+WIFI,384226,0,0,0
+WIFI,385226,0,0,0
+WIFI,386226,0,0,0
+CSV,lr4_eq,ref_c,internal,6,256,10,265575,265430,266929,266559,5333.333,20.75,20.85,20.82
+  [lr4_eq] ref_c internal 6ch 256smp 10biq avg=265575cyc (20.7%) p99=266559cyc
+BENCH_STATUS,OK
+BENCH_DONE
+WIFI,387226,0,0,0
+WIFI,388226,0,0,0
+WIFI,389226,0,0,0
+WIFI,390226,0,0,0
+WIFI,391226,0,0,0
+WIFI,392226,0,0,0
+WIFI,393226,0,0,0
+WIFI,394226,0,0,0
+WIFI,395226,0,0,0
